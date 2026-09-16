@@ -1,7 +1,7 @@
 {
   "baseUrl": "",
-  "titlePrefix": "",
-  "titleSuffix": "AddressBook Level-3",
+  "titlePrefix": "CS2103T-F08-4",
+  "titleSuffix": "",
   "faviconPath": "images/SeEduLogo.png",
   "style": {
     "codeTheme": "light"
