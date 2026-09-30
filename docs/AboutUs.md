@@ -11,7 +11,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
-### John Doe
+### Angus Yim
 
 <img src="images/angus-yxz.png" width="200px">
 
