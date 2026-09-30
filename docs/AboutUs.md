@@ -23,6 +23,14 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](https://github.com/angus-yxz)]
 
+### Yeo Zhan Ning
+
+<img src="images/yeoznc.png" width="200px">
+
+[[github](https://github.com/yeoznc)]
+
+
+
 * Role: Developer
 
 ### Jane Doe
