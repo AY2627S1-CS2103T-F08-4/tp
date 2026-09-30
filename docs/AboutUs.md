@@ -11,6 +11,12 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
+### Li Junliang
+
+<img src="images/junliangli2004-web.png" width="200px">
+
+[[github](https://github.com/junliangli2004-web)]
+
 ### Angus Yim
 
 <img src="images/angus-yxz.png" width="200px">
