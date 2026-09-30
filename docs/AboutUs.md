@@ -17,6 +17,12 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](https://github.com/junliangli2004-web)]
 
+### Angus Yim
+
+<img src="images/angus-yxz.png" width="200px">
+
+[[github](https://github.com/angus-yxz)]
+
 * Role: Developer
 
 ### Jane Doe
