@@ -9,19 +9,19 @@
 <!-- * Table of Contents -->
 <page-nav-print />
 
---------------------------------------------------------------------------------------------------------------------
+---
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+- _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
 
---------------------------------------------------------------------------------------------------------------------
+---
 
 ## **Setting up, getting started**
 
 Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
---------------------------------------------------------------------------------------------------------------------
+---
 
 ## **Design**
 
@@ -29,35 +29,36 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 <puml src="diagrams/ArchitectureDiagram.puml" width="280" />
 
-The ***Architecture Diagram*** given above explains the high-level design of the App.
+The **_Architecture Diagram_** given above explains the high-level design of the App.
 
 The following provides a quick overview of the main components and their interactions.
 
 **Main components of the architecture**
 
 **`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
-* At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
-* At shut down, it shuts down the other components and invokes cleanup methods where necessary.
+
+- At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
+- At shut down, it shuts down the other components and invokes cleanup methods where necessary.
 
 The bulk of the app's work is done by the following four components:
 
-* [**`UI`**](#ui-component): The UI of the App.
-* [**`Logic`**](#logic-component): The command executor.
-* [**`Model`**](#model-component): Holds the data of the App in memory.
-* [**`Storage`**](#storage-component): Reads data from, and writes data to, the hard disk.
+- [**`UI`**](#ui-component): The UI of the App.
+- [**`Logic`**](#logic-component): The command executor.
+- [**`Model`**](#model-component): Holds the data of the App in memory.
+- [**`Storage`**](#storage-component): Reads data from, and writes data to, the hard disk.
 
 [**`Commons`**](#common-classes) represents a collection of classes used by multiple other components.
 
 **How the architecture components interact with each other**
 
-The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete 1`.
+The _Sequence Diagram_ below shows how the components interact with each other for the scenario where the user issues the command `delete 1`.
 
 <puml src="diagrams/ArchitectureSequenceDiagram.puml" width="574" />
 
 Each of the four main components (also shown in the diagram above),
 
-* defines its *API* in an `interface` with the same name as the Component.
-* provides its functionality through a concrete `{Component Name}Manager` class that implements the corresponding API interface.
+- defines its _API_ in an `interface` with the same name as the Component.
+- provides its functionality through a concrete `{Component Name}Manager` class that implements the corresponding API interface.
 
 For example, the `Logic` component defines its API in `Logic.java` and implements it in `LogicManager.java`. Other components interact with a component through its interface rather than its concrete class, preventing them from coupling to that component's implementation, as illustrated in the following partial class diagram.
 
@@ -77,10 +78,10 @@ The `UI` component uses the JavaFX UI framework. The layouts of these UI parts a
 
 The `UI` component,
 
-* executes user commands using the `Logic` component.
-* listens for changes to `Model` data so that the UI can be updated with the modified data.
-* keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
-* depends on some classes in the `Model` component because it displays `Person` objects from the model.
+- executes user commands using the `Logic` component.
+- listens for changes to `Model` data so that the UI can be updated with the modified data.
+- keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
+- depends on some classes in the `Model` component because it displays `Person` objects from the model.
 
 ### Logic component
 
@@ -99,7 +100,6 @@ The sequence diagram below illustrates the interactions within the `Logic` compo
 **Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, the lifeline continues till the end of diagram.
 </box>
 
-
 How the `Logic` component works:
 
 1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
@@ -113,22 +113,22 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 <puml src="diagrams/ParserClasses.puml" width="600"/>
 
 How the parsing works:
-* When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
-* All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+
+- When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
+- All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
+
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
 
 <puml src="diagrams/ModelClassDiagram.puml" width="450" />
 
-
 The `Model` component,
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
-* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
-* stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
-* does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
-
+- stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
+- stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+- stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
+- does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
 <box type="info" seamless>
 
@@ -137,7 +137,6 @@ The `Model` component,
 <puml src="diagrams/BetterModelClassDiagram.puml" width="450" />
 </box>
 
-
 ### Storage component
 
 **API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
@@ -145,15 +144,16 @@ The `Model` component,
 <puml src="diagrams/StorageClassDiagram.puml" width="550" />
 
 The `Storage` component,
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
-* is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
-* depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+
+- can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
+- is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+- depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 ### Common classes
 
 Classes used by multiple components are in the `seedu.address.commons` package.
 
---------------------------------------------------------------------------------------------------------------------
+---
 
 ## **Implementation**
 
@@ -165,9 +165,9 @@ This section describes some noteworthy details on how certain features are imple
 
 The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
 
-* `VersionedAddressBook#commit()` -- Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` -- Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` -- Restores a previously undone address book state from its history.
+- `VersionedAddressBook#commit()` -- Saves the current address book state in its history.
+- `VersionedAddressBook#undo()` -- Restores the previous address book state from its history.
+- `VersionedAddressBook#redo()` -- Restores a previously undone address book state from its history.
 
 These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
 
@@ -193,7 +193,6 @@ Step 3. The user executes `add n/David …​` to add a new person. The `add` co
 Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
 
 <puml src="diagrams/UndoRedoState3.puml" alt="UndoRedoState3" />
-
 
 <box type="info" seamless>
 
@@ -237,14 +236,14 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 **Aspect: How undo & redo execute:**
 
-* **Alternative 1 (current choice):** Saves the entire address book.
-  * Pros: Easy to implement.
-  * Cons: May have performance issues in terms of memory usage.
+- **Alternative 1 (current choice):** Saves the entire address book.
+  - Pros: Easy to implement.
+  - Cons: May have performance issues in terms of memory usage.
 
-* **Alternative 2:** Individual command knows how to undo/redo by
+- **Alternative 2:** Individual command knows how to undo/redo by
   itself.
-  * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
-  * Cons: We must ensure that the implementation of each individual command is correct.
+  - Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
+  - Cons: We must ensure that the implementation of each individual command is correct.
 
 _{more aspects and alternatives to be added}_
 
@@ -252,17 +251,16 @@ _{more aspects and alternatives to be added}_
 
 _{Explain here how the data archiving feature will be implemented}_
 
-
---------------------------------------------------------------------------------------------------------------------
+---
 
 ## **Documentation, logging, testing, dev-ops**
 
-* [Documentation guide](Documentation.md)
-* [Testing guide](Testing.md)
-* [Logging guide](Logging.md)
-* [DevOps guide](DevOps.md)
+- [Documentation guide](Documentation.md)
+- [Testing guide](Testing.md)
+- [Logging guide](Logging.md)
+- [DevOps guide](DevOps.md)
 
---------------------------------------------------------------------------------------------------------------------
+---
 
 ## **Appendix: Requirements**
 
@@ -270,29 +268,38 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+- is a Bank Teller
+- works for a small bank
+- has no existing easy client information access
+- prefers desktop apps over other types of applications
+- can type fast
+- is reasonably comfortable using CLI apps
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
-
+**Value proposition**:
+Provides a fast and convenient CLI-based method of managing bank clients for bank tellers. Information like their card numbers and credit scores can be managed. Credit scores can conveniently be tracked and computed per user, allowing bankers to better manage them.
 
 ### User stories
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …                                    | I want to …                 | So that I can…                                                        |
-|----------|--------------------------------------------|------------------------------|------------------------------------------------------------------------|
-| `* * *`  | new user                                   | see usage instructions       | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person             |                                                                        |
-| `* * *`  | user                                       | delete a person              | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name        | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name         | locate a person easily                                                 |
-
-*{More to be added}*
+| Priority | As a …      | I want to …                                                                              | So that I can…                                                             |
+| -------- | ----------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `* * *`  | bank teller | create a client profile containing a unique client reference, name and contact details   | keep the client's information in one place.                                |
+| `* * *`  | bank teller | view my saved client profiles and their contact details                                  | retrieve the information needed when serving a client.                     |
+| `* * *`  | bank teller | delete a client profile                                                                  | remove records that were created by mistake or are no longer needed.       |
+| `* * *`  | bank teller | access my saved client records after closing and reopening TellerFlow                    | do not have to enter the same information again.                           |
+| `* *`    | bank teller | update a client's contact details without recreating the profile                         | keep the record accurate with less repeated work.                          |
+| `* *`    | bank teller | create a profile before all optional contact details are available                       | record a client without inventing missing information.                     |
+| `* *`    | bank teller | receive a warning when a new profile shares an existing phone number or email address    | check for accidental duplicates while allowing legitimate shared contacts. |
+| `* *`    | bank teller | find clients using all or part of their names                                            | locate a record when I do not remember the exact name.                     |
+| `* *`    | bank teller | find clients using a phone number                                                        | locate a record when the number is the information available to me.        |
+| `* *`    | bank teller | maintain a short service note on a client profile                                        | retain relevant context for the next interaction.                          |
+| `* *`    | bank teller | record a card summary with its last four digits, provider and expiry date under a client | recognise the card being discussed.                                        |
+| `* *`    | bank teller | remove an obsolete card summary from a client profile                                    | do not mistake an old card for a current one.                              |
+| `* *`    | bank teller | see when a client profile was created and last modified                                  | judge how recently its information was maintained.                         |
+| `*`      | bank teller | access help on available commands and their usage                                        | complete tasks when I do not remember the required input.                  |
+| `*`      | bank teller | find clients with recorded cards expiring in a chosen month                              | identify records that may need a follow-up.                                |
+| `*`      | bank teller | sort the displayed client list by name                                                   | scan the records in a predictable order.                                   |
 
 ### Use cases
 
@@ -311,17 +318,16 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 **Extensions**
 
-* 2a. The list is empty.
+- 2a. The list is empty.
 
   Use case ends.
 
-* 3a. The given index is invalid.
+- 3a. The given index is invalid.
+  - 3a1. AddressBook shows an error message.
 
-    * 3a1. AddressBook shows an error message.
+    Use case resumes at step 2.
 
-      Use case resumes at step 2.
-
-*{More to be added}*
+_{More to be added}_
 
 ### Non-Functional Requirements
 
@@ -329,14 +335,14 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
 3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
 
-*{More to be added}*
+_{More to be added}_
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+- **Mainstream OS**: Windows, Linux, Unix, or macOS
+- **Private contact detail**: A contact detail that is not meant to be shared with others
 
---------------------------------------------------------------------------------------------------------------------
+---
 
 ## **Appendix: Instructions for manual testing**
 
@@ -345,31 +351,28 @@ Given below are instructions to test the app manually.
 <box type="info" seamless>
 
 **Note:** These instructions only provide a starting point for testers to work on;
-testers are expected to do more *exploratory* testing.
+testers are expected to do more _exploratory_ testing.
 </box>
 
 ### Launch and shutdown
 
 1. Initial launch
-
    1. Download the JAR file and copy it into an empty folder.
 
    1. Double-click the JAR file.<br>
       Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
 
 1. Saving window preferences
-
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
    1. Relaunch the app by double-clicking the JAR file.<br>
-       Expected: The most recent window size and location are retained.
+      Expected: The most recent window size and location are retained.
 
 1. _{ more test cases … }_
 
 ### Deleting a person
 
 1. Deleting a person while all persons are being shown
-
    1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
 
    1. Test case: `delete 1`<br>
@@ -386,7 +389,6 @@ testers are expected to do more *exploratory* testing.
 ### Saving data
 
 1. Dealing with missing/corrupted data files
-
    1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
 
 1. _{ more test cases … }_
