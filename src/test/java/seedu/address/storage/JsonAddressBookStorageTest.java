@@ -70,6 +70,7 @@ public class JsonAddressBookStorageTest {
         jsonAddressBookStorage.saveAddressBook(original, filePath);
         ReadOnlyAddressBook readBack = jsonAddressBookStorage.readAddressBook(filePath).get();
         assertEquals(original, new AddressBook(readBack));
+        assertEquals(ALICE.getRemark(), readBack.getPersonList().get(0).getRemark());
 
         // Modify data, overwrite existing file, and read back
         original.addPerson(HOON);
