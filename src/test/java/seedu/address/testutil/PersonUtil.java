@@ -1,9 +1,16 @@
 package seedu.address.testutil;
 
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CARD_NUMBER;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CREDIT_SCORE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CVV;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_DEBT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPIRY_DATE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PROVIDER;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_REFERENCE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.Set;
@@ -30,10 +37,17 @@ public class PersonUtil {
      */
     public static String getPersonDetails(Person person) {
         StringBuilder sb = new StringBuilder();
+        sb.append(PREFIX_REFERENCE + person.getClientReference().value + " ");
         sb.append(PREFIX_NAME + person.getName().fullName + " ");
         sb.append(PREFIX_PHONE + person.getPhone().value + " ");
         sb.append(PREFIX_EMAIL + person.getEmail().value + " ");
         sb.append(PREFIX_ADDRESS + person.getAddress().value + " ");
+        sb.append(PREFIX_CARD_NUMBER + person.getCardDetails().getCardNumber() + " ");
+        sb.append(PREFIX_CVV + person.getCardDetails().getCvv() + " ");
+        sb.append(PREFIX_EXPIRY_DATE + person.getCardDetails().getExpiryDate() + " ");
+        sb.append(PREFIX_PROVIDER + person.getCardDetails().getProvider() + " ");
+        sb.append(PREFIX_CREDIT_SCORE + person.getCreditScore().toString() + " ");
+        sb.append(PREFIX_DEBT + person.getDebt().toString() + " ");
         person.getTags().stream().forEach(
             s -> sb.append(PREFIX_TAG + s.tagName + " ")
         );

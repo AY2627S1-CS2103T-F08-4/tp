@@ -10,6 +10,10 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
+import seedu.address.model.person.CardDetails;
+import seedu.address.model.person.ClientReference;
+import seedu.address.model.person.CreditScore;
+import seedu.address.model.person.Debt;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
@@ -43,7 +47,7 @@ public class ParserUtil {
      */
     public static Name parseName(String name) throws ParseException {
         requireNonNull(name);
-        String trimmedName = name.trim();
+        String trimmedName = name.trim().replaceAll(" +", " ");
         if (!Name.isValidName(trimmedName)) {
             throw new ParseException(Name.MESSAGE_CONSTRAINTS);
         }
@@ -93,6 +97,72 @@ public class ParserUtil {
             throw new ParseException(Email.MESSAGE_CONSTRAINTS);
         }
         return new Email(trimmedEmail);
+    }
+
+    /**
+     * Parses a client reference and normalizes it to uppercase.
+     */
+    public static ClientReference parseClientReference(String reference) throws ParseException {
+        requireNonNull(reference);
+        String trimmed = reference.trim();
+        if (!ClientReference.isValidClientReference(trimmed)) {
+            throw new ParseException(ClientReference.MESSAGE_CONSTRAINTS);
+        }
+        return new ClientReference(trimmed);
+    }
+
+    /** Parses a nonnegative whole-number credit score. */
+    public static CreditScore parseCreditScore(String creditScore) throws ParseException {
+        requireNonNull(creditScore);
+        String trimmed = creditScore.trim();
+        if (!CreditScore.isValidCreditScore(trimmed)) {
+            throw new ParseException(CreditScore.MESSAGE_CONSTRAINTS);
+        }
+        return new CreditScore(trimmed);
+    }
+
+    /** Parses a nonnegative debt amount with at most two decimal places. */
+    public static Debt parseDebt(String debt) throws ParseException {
+        requireNonNull(debt);
+        String trimmed = debt.trim();
+        if (!Debt.isValidDebt(trimmed)) {
+            throw new ParseException(Debt.MESSAGE_CONSTRAINTS);
+        }
+        return new Debt(trimmed);
+    }
+
+    /** Parses a card number as plain text. */
+    public static String parseCardNumber(String cardNumber) throws ParseException {
+        return parseRequiredCardField(cardNumber, CardDetails.CARD_NUMBER_MESSAGE_CONSTRAINTS);
+    }
+
+    /** Parses a CVV as plain text. */
+    public static String parseCvv(String cvv) throws ParseException {
+        return parseRequiredCardField(cvv, CardDetails.CVV_MESSAGE_CONSTRAINTS);
+    }
+
+    /** Parses an expiry date in MM/YY format with a valid month. */
+    public static String parseExpiryDate(String expiryDate) throws ParseException {
+        requireNonNull(expiryDate);
+        String trimmed = expiryDate.trim();
+        if (!CardDetails.isValidExpiryDate(trimmed)) {
+            throw new ParseException(CardDetails.EXPIRY_DATE_MESSAGE_CONSTRAINTS);
+        }
+        return trimmed;
+    }
+
+    /** Parses a provider name. */
+    public static String parseProvider(String provider) throws ParseException {
+        return parseRequiredCardField(provider, CardDetails.PROVIDER_MESSAGE_CONSTRAINTS);
+    }
+
+    private static String parseRequiredCardField(String value, String message) throws ParseException {
+        requireNonNull(value);
+        String trimmed = value.trim();
+        if (trimmed.isBlank()) {
+            throw new ParseException(message);
+        }
+        return trimmed;
     }
 
     /**

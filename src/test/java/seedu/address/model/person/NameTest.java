@@ -32,10 +32,13 @@ public class NameTest {
 
         // valid name
         assertTrue(Name.isValidName("peter jack")); // alphabets only
-        assertTrue(Name.isValidName("12345")); // numbers only
-        assertTrue(Name.isValidName("peter the 2nd")); // alphanumeric characters
+        assertFalse(Name.isValidName("12345")); // numbers only
+        assertFalse(Name.isValidName("peter the 2nd")); // digits are outside US01
         assertTrue(Name.isValidName("Capital Tan")); // with capital letters
-        assertTrue(Name.isValidName("David Roger Jackson Ray Jr 2nd")); // long names
+        assertTrue(Name.isValidName("Mary O'Connor-Smith")); // apostrophes and hyphens
+        assertTrue(Name.isValidName("A".repeat(100)));
+        assertFalse(Name.isValidName("A".repeat(101)));
+        assertFalse(Name.isValidName("-'")); // requires at least one letter
     }
 
     @Test

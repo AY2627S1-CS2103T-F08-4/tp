@@ -7,10 +7,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Address;
+import seedu.address.model.person.CardDetails;
+import seedu.address.model.person.CreditScore;
+import seedu.address.model.person.Debt;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
@@ -28,6 +32,12 @@ class JsonAdaptedPerson {
     private final String phone;
     private final String email;
     private final String address;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private final JsonAdaptedCardDetails cardDetails;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private final String creditScore;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private final String debt;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     /**
@@ -36,11 +46,16 @@ class JsonAdaptedPerson {
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
+            @JsonProperty("cardDetails") JsonAdaptedCardDetails cardDetails,
+            @JsonProperty("creditScore") String creditScore, @JsonProperty("debt") String debt,
             @JsonProperty("tags") List<JsonAdaptedTag> tags) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
+        this.cardDetails = cardDetails;
+        this.creditScore = creditScore;
+        this.debt = debt;
         if (tags != null) {
             this.tags.addAll(tags);
         }
@@ -54,6 +69,9 @@ class JsonAdaptedPerson {
         phone = source.getPhone().value;
         email = source.getEmail().value;
         address = source.getAddress().value;
+        cardDetails = source.getCardDetails() == null ? null : new JsonAdaptedCardDetails(source.getCardDetails());
+        creditScore = source.getCreditScore() == null ? null : source.getCreditScore().toString();
+        debt = source.getDebt() == null ? null : source.getDebt().toString();
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
@@ -103,7 +121,27 @@ class JsonAdaptedPerson {
         final Address modelAddress = new Address(address);
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags);
+        // Files saved before card and financial details were introduced remain valid.
+        if (cardDetails == null && creditScore == null && debt == null) {
+            return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags);
+        }
+        if (cardDetails == null) {
+            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
+                    CardDetails.class.getSimpleName()));
+        }
+        if (creditScore == null) {
+            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
+                    CreditScore.class.getSimpleName()));
+        }
+        if (debt == null) {
+            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Debt.class.getSimpleName()));
+        }
+        try {
+            return new Person(modelName, modelPhone, modelEmail, modelAddress, cardDetails.toModelType(),
+                    new CreditScore(creditScore), new Debt(debt), modelTags);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalValueException(e.getMessage());
+        }
     }
 
 }
