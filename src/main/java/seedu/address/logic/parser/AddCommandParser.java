@@ -1,5 +1,6 @@
 package seedu.address.logic.parser;
 
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CARD_NUMBER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CREDIT_SCORE;
@@ -13,13 +14,8 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PROVIDER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_REFERENCE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.regex.MatchResult;
-import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -35,84 +31,55 @@ import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 
 /**
- * Parses client references and contact fields alongside the existing card, financial, and tag parameters.
+ * Parses input arguments and creates a new AddCommand object
  */
 public class AddCommandParser implements Parser<AddCommand> {
-    public static final String MESSAGE_INVALID_ADD = "Invalid add command. " + AddCommand.MESSAGE_USAGE;
-    public static final String MESSAGE_MISSING_PARAMETER =
-            "Missing required parameter: %s. " + AddCommand.MESSAGE_USAGE;
-    public static final String MESSAGE_REPEATED_PARAMETER = "Parameter %s was specified more than once.";
 
-    private static final List<Prefix> REQUIRED_PREFIXES = List.of(PREFIX_REFERENCE, PREFIX_NAME, PREFIX_PHONE,
-            PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_CARD_NUMBER, PREFIX_CVV, PREFIX_EXPIRY_DATE,
-            PREFIX_PROVIDER, PREFIX_CREDIT_SCORE, PREFIX_DEBT);
-    private static final Pattern PARAMETER_PREFIX = Pattern.compile("(?<!\\S)([a-zA-Z][a-zA-Z0-9_-]*/)");
-
-    @Override
+    /**
+     * Parses the given {@code String} of arguments in the context of the AddCommand
+     * and returns an AddCommand object for execution.
+     * @throws ParseException if the user input does not conform to the expected format
+     */
     public AddCommand parse(String args) throws ParseException {
-        List<Map.Entry<Prefix, String>> fields = extractFields(args);
-        for (Prefix prefix : REQUIRED_PREFIXES) {
-            if (fields.stream().noneMatch(field -> field.getKey().equals(prefix))) {
-                throw new ParseException(String.format(MESSAGE_MISSING_PARAMETER, prefix));
-            }
+        ArgumentMultimap argMultimap =
+                ArgumentTokenizer.tokenize(args, PREFIX_REFERENCE, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
+                        PREFIX_ADDRESS, PREFIX_CARD_NUMBER, PREFIX_CVV, PREFIX_EXPIRY_DATE, PREFIX_PROVIDER,
+                        PREFIX_CREDIT_SCORE, PREFIX_DEBT, PREFIX_TAG);
+
+        if (!arePrefixesPresent(argMultimap, PREFIX_REFERENCE, PREFIX_NAME, PREFIX_ADDRESS, PREFIX_PHONE, PREFIX_EMAIL,
+                PREFIX_CARD_NUMBER, PREFIX_CVV, PREFIX_EXPIRY_DATE, PREFIX_PROVIDER, PREFIX_CREDIT_SCORE, PREFIX_DEBT)
+                || !argMultimap.getPreamble().isEmpty()) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE));
         }
 
-        ClientReference reference = null;
-        Name name = null;
-        Phone phone = null;
-        Email email = null;
-        Address address = null;
-        String cardNumber = null;
-        String cvv = null;
-        String expiryDate = null;
-        String provider = null;
-        CreditScore creditScore = null;
-        Debt debt = null;
-        Set<Tag> tags = new HashSet<>();
-        // Validate in command order, including each occurrence of an optional tag.
-        for (Map.Entry<Prefix, String> field : fields) {
-            String value = field.getValue();
-            switch (field.getKey().getPrefix()) {
-                case "r/" -> reference = ParserUtil.parseClientReference(value);
-                case "n/" -> name = ParserUtil.parseName(value);
-                case "p/" -> phone = ParserUtil.parsePhone(value);
-                case "e/" -> email = ParserUtil.parseEmail(value);
-                case "a/" -> address = ParserUtil.parseAddress(value);
-                case "cn/" -> cardNumber = ParserUtil.parseCardNumber(value);
-                case "cvv/" -> cvv = ParserUtil.parseCvv(value);
-                case "exp/" -> expiryDate = ParserUtil.parseExpiryDate(value);
-                case "provider/" -> provider = ParserUtil.parseProvider(value);
-                case "cs/" -> creditScore = ParserUtil.parseCreditScore(value);
-                case "d/" -> debt = ParserUtil.parseDebt(value);
-                case "t/" -> tags.add(ParserUtil.parseTag(value));
-                default -> throw new ParseException(MESSAGE_INVALID_ADD);
-            }
-        }
-        CardDetails cardDetails = new CardDetails(cardNumber, cvv, expiryDate, provider);
-        return new AddCommand(new Person(reference, name, phone, email, address, cardDetails, creditScore, debt, tags));
+        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_REFERENCE, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
+                PREFIX_ADDRESS, PREFIX_CARD_NUMBER, PREFIX_CVV, PREFIX_EXPIRY_DATE, PREFIX_PROVIDER,
+                PREFIX_CREDIT_SCORE, PREFIX_DEBT);
+        ClientReference reference = ParserUtil.parseClientReference(argMultimap.getValue(PREFIX_REFERENCE).get());
+        Name name = ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get());
+        Phone phone = ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get());
+        Email email = ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get());
+        Address address = ParserUtil.parseAddress(argMultimap.getValue(PREFIX_ADDRESS).get());
+        CardDetails cardDetails = new CardDetails(
+                ParserUtil.parseCardNumber(argMultimap.getValue(PREFIX_CARD_NUMBER).get()),
+                ParserUtil.parseCvv(argMultimap.getValue(PREFIX_CVV).get()),
+                ParserUtil.parseExpiryDate(argMultimap.getValue(PREFIX_EXPIRY_DATE).get()),
+                ParserUtil.parseProvider(argMultimap.getValue(PREFIX_PROVIDER).get()));
+        CreditScore creditScore = ParserUtil.parseCreditScore(argMultimap.getValue(PREFIX_CREDIT_SCORE).get());
+        Debt debt = ParserUtil.parseDebt(argMultimap.getValue(PREFIX_DEBT).get());
+        Set<Tag> tagList = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_TAG));
+
+        Person person = new Person(reference, name, phone, email, address, cardDetails, creditScore, debt, tagList);
+
+        return new AddCommand(person);
     }
 
-    private List<Map.Entry<Prefix, String>> extractFields(String args) throws ParseException {
-        List<MatchResult> matches = PARAMETER_PREFIX.matcher(args).results().toList();
-        int preambleEnd = matches.isEmpty() ? args.length() : matches.getFirst().start();
-        if (!args.substring(0, preambleEnd).isBlank()) {
-            throw new ParseException(MESSAGE_INVALID_ADD);
-        }
-
-        List<Map.Entry<Prefix, String>> fields = new ArrayList<>();
-        Set<Prefix> seen = new HashSet<>();
-        for (int i = 0; i < matches.size(); i++) {
-            MatchResult match = matches.get(i);
-            Prefix prefix = new Prefix(match.group());
-            if (!REQUIRED_PREFIXES.contains(prefix) && !PREFIX_TAG.equals(prefix)) {
-                throw new ParseException(MESSAGE_INVALID_ADD);
-            }
-            if (!seen.add(prefix) && !PREFIX_TAG.equals(prefix)) {
-                throw new ParseException(String.format(MESSAGE_REPEATED_PARAMETER, prefix));
-            }
-            int valueEnd = i + 1 < matches.size() ? matches.get(i + 1).start() : args.length();
-            fields.add(Map.entry(prefix, args.substring(match.end(), valueEnd).trim()));
-        }
-        return fields;
+    /**
+     * Returns true if none of the prefixes contains empty {@code Optional} values in the given
+     * {@code ArgumentMultimap}.
+     */
+    private static boolean arePrefixesPresent(ArgumentMultimap argumentMultimap, Prefix... prefixes) {
+        return Stream.of(prefixes).allMatch(prefix -> argumentMultimap.getValue(prefix).isPresent());
     }
+
 }

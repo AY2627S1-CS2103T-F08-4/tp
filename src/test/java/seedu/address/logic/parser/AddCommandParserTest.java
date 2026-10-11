@@ -1,5 +1,8 @@
 package seedu.address.logic.parser;
 
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
@@ -8,6 +11,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.CardDetails;
@@ -46,22 +50,24 @@ public class AddCommandParserTest {
     }
 
     @Test
-    public void parse_missingRequiredField_reportsItsPrefix() {
+    public void parse_missingRequiredField_reportsInvalidFormat() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE);
         for (int i = 0; i < FIELDS.size(); i++) {
             List<String> fields = new ArrayList<>(FIELDS);
-            String removed = fields.remove(i);
-            assertParseFailure(parser, " " + String.join(" ", fields),
-                    String.format(AddCommandParser.MESSAGE_MISSING_PARAMETER, prefixOf(removed)));
+            fields.remove(i);
+            assertParseFailure(parser, " " + String.join(" ", fields), expectedMessage);
         }
-        assertParseFailure(parser, "", String.format(AddCommandParser.MESSAGE_MISSING_PARAMETER, "r/"));
+        assertParseFailure(parser, "", expectedMessage);
     }
 
     @Test
     public void parse_repeatedRequiredField_reportsItsPrefix() {
         for (String field : FIELDS) {
             assertParseFailure(parser, VALID_ARGUMENTS + " " + field,
-                    String.format(AddCommandParser.MESSAGE_REPEATED_PARAMETER, prefixOf(field)));
+                    Messages.getErrorMessageForDuplicatePrefixes(new Prefix(prefixOf(field))));
         }
+        assertParseFailure(parser, VALID_ARGUMENTS + " p/91234567 n/Mary",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME, PREFIX_PHONE));
     }
 
     @Test
@@ -74,13 +80,31 @@ public class AddCommandParserTest {
     }
 
     @Test
-    public void parse_unknownPrefixOrPreamble_rejected() {
+    public void parse_unknownPrefix_remainsPartOfValue() {
         for (String prefix : List.of("x/", "R/", "future/")) {
             assertParseFailure(parser, VALID_ARGUMENTS + " " + prefix + "value",
-                    AddCommandParser.MESSAGE_INVALID_ADD);
+                    Debt.MESSAGE_CONSTRAINTS);
+            String address = "Blk 30 Geylang Street 29, #06-40 " + prefix + "value";
+            Person expected = new PersonBuilder().withClientReference("C0001").withName("Alex Yeoh")
+                    .withPhone("87438807").withEmail("alex@example.com").withAddress(address).build();
+            assertParseSuccess(parser, VALID_ARGUMENTS.replace(FIELDS.get(4), "a/" + address),
+                    new AddCommand(expected));
         }
-        assertParseFailure(parser, "extra-text" + VALID_ARGUMENTS, AddCommandParser.MESSAGE_INVALID_ADD);
-        assertParseFailure(parser, "extra-text", AddCommandParser.MESSAGE_INVALID_ADD);
+    }
+
+    @Test
+    public void parse_nonEmptyPreamble_reportsInvalidFormat() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, "extra-text" + VALID_ARGUMENTS, expectedMessage);
+        assertParseFailure(parser, "extra-text", expectedMessage);
+    }
+
+    @Test
+    public void parse_prefixWithoutPrecedingSpace_reportsInvalidFormat() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, VALID_ARGUMENTS.stripLeading(), expectedMessage);
+        assertParseFailure(parser, VALID_ARGUMENTS.replace(" n/", "\tn/"), expectedMessage);
+        assertParseFailure(parser, VALID_ARGUMENTS.replace(" n/", "\nn/"), expectedMessage);
     }
 
     @Test
@@ -124,17 +148,19 @@ public class AddCommandParserTest {
     }
 
     @Test
-    public void parse_multipleInvalidValues_reportsFirstInCommandOrder() {
+    public void parse_multipleInvalidValues_reportsFirstInFieldValidationOrder() {
         assertParseFailure(parser, " p/12 n/Alex2 r/C0001 e/alex@example.com a/Main Street" + FINANCIAL_ARGUMENTS,
-                Phone.MESSAGE_CONSTRAINTS);
+                Name.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, " n/Alex2 p/12 r/C0001 e/alex@example.com a/Main Street" + FINANCIAL_ARGUMENTS,
                 Name.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, " a/ n/Alex Yeoh r/1Invalid p/123 e/alex@example.com" + FINANCIAL_ARGUMENTS,
-                Address.MESSAGE_CONSTRAINTS);
+                ClientReference.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, " t/friends " + VALID_ARGUMENTS.replace("87438807", "12") + " t/#invalid",
                 Phone.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, " cs/-1 " + VALID_ARGUMENTS.replace("cs/700", "").replace("Alex Yeoh", "Alex2"),
-                CreditScore.MESSAGE_CONSTRAINTS);
+                Name.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " t/#invalid " + VALID_ARGUMENTS.replace("87438807", "12") + " t/friends",
+                Phone.MESSAGE_CONSTRAINTS);
     }
 
     private String prefixOf(String field) {
