@@ -20,6 +20,11 @@ public interface Logic {
      */
     CommandResult execute(String commandText) throws CommandException, ParseException;
 
+    /** Returns the message shown when the main window opens. */
+    default String getStartupMessage() {
+        return "";
+    }
+
     /** Returns an unmodifiable view of the filtered list of persons */
     ObservableList<Person> getFilteredPersonList();
 

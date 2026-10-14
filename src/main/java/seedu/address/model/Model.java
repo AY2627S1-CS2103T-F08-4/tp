@@ -63,6 +63,11 @@ public interface Model {
     /** Returns an unmodifiable view of the filtered person list */
     ObservableList<Person> getFilteredPersonList();
 
+    /** Returns the predicate used for the displayed person list. */
+    default Predicate<Person> getFilteredPersonListPredicate() {
+        return PREDICATE_SHOW_ALL_PERSONS;
+    }
+
     /**
      * Updates the filter of the filtered person list to filter by the given {@code predicate}.
      * @throws NullPointerException if {@code predicate} is null.
