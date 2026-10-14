@@ -53,38 +53,43 @@ public class MainApp extends Application {
         JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(ADDRESS_BOOK_FILE_PATH);
         storage = new StorageManager(addressBookStorage, userPrefsStorage);
 
-        model = initModelManager(storage, userPrefs);
+        InitialData initialData = initModelManager(storage, userPrefs);
+        model = initialData.model();
 
-        logic = new LogicManager(model, storage);
+        logic = new LogicManager(model, storage, initialData.message(), initialData.protectedMode());
 
         ui = new UiManager(logic, storage.getAddressBookFilePath());
     }
 
     /**
-     * Returns a {@code ModelManager} with the data from {@code storage}'s address book and {@code userPrefs}. <br>
-     * The data from the sample address book will be used instead if {@code storage}'s address book is not found,
-     * or an empty address book will be used instead if errors occur when reading {@code storage}'s address book.
+     * Loads client data and records the startup message and whether changes must be blocked.
      */
-    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
+    InitialData initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
         logger.info("Using data file : " + storage.getAddressBookFilePath());
 
-        Optional<ReadOnlyAddressBook> addressBookOptional;
-        ReadOnlyAddressBook initialData;
         try {
-            addressBookOptional = storage.readAddressBook();
-            if (addressBookOptional.isEmpty()) {
-                logger.info("Creating a new data file " + storage.getAddressBookFilePath()
-                        + " populated with a sample AddressBook.");
+            Optional<ReadOnlyAddressBook> savedData = storage.readAddressBook();
+            if (savedData.isEmpty()) {
+                logger.info("No saved client data found. Showing sample clients.");
+                return new InitialData(new ModelManager(SampleDataUtil.getSampleAddressBook(), userPrefs),
+                        "No saved client data found. Showing sample clients.", false);
             }
-            initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
+            if (savedData.get().getPersonList().isEmpty()) {
+                return new InitialData(new ModelManager(new AddressBook(), userPrefs),
+                        "No saved client data found.", false);
+            }
+            int count = savedData.get().getPersonList().size();
+            return new InitialData(new ModelManager(savedData.get(), userPrefs),
+                    String.format("Loaded %d client(s).", count), false);
         } catch (DataLoadingException e) {
             logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
                     + " Will be starting with an empty AddressBook.");
-            initialData = new AddressBook();
+            return new InitialData(new ModelManager(new AddressBook(), userPrefs),
+                    LogicManager.LOAD_FAILURE_MESSAGE, true);
         }
-
-        return new ModelManager(initialData, userPrefs);
     }
+
+    record InitialData(Model model, String message, boolean protectedMode) { }
 
     /**
      * Returns a {@code UserPrefs} using the file at {@code storage}'s user prefs file path,
