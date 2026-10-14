@@ -13,7 +13,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.CardDetails;
-import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.CreditScore;
 import seedu.address.model.person.Debt;
 import seedu.address.model.person.Email;
@@ -29,8 +28,6 @@ class JsonAdaptedPerson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private final String clientReference;
     private final String name;
     private final String phone;
     private final String email;
@@ -47,13 +44,11 @@ class JsonAdaptedPerson {
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
      */
     @JsonCreator
-    public JsonAdaptedPerson(@JsonProperty("clientReference") String clientReference,
-            @JsonProperty("name") String name, @JsonProperty("phone") String phone,
+    public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
             @JsonProperty("cardDetails") JsonAdaptedCardDetails cardDetails,
             @JsonProperty("creditScore") String creditScore, @JsonProperty("debt") String debt,
             @JsonProperty("tags") List<JsonAdaptedTag> tags) {
-        this.clientReference = clientReference;
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -66,17 +61,10 @@ class JsonAdaptedPerson {
         }
     }
 
-    /** Creates an unreferenced person from the fields used by older data files. */
-    public JsonAdaptedPerson(String name, String phone, String email, String address,
-            JsonAdaptedCardDetails cardDetails, String creditScore, String debt, List<JsonAdaptedTag> tags) {
-        this(null, name, phone, email, address, cardDetails, creditScore, debt, tags);
-    }
-
     /**
      * Converts a given {@code Person} into this class for Jackson use.
      */
     public JsonAdaptedPerson(Person source) {
-        clientReference = source.getClientReference() == null ? null : source.getClientReference().value;
         name = source.getName().fullName;
         phone = source.getPhone().value;
         email = source.getEmail().value;
@@ -95,15 +83,6 @@ class JsonAdaptedPerson {
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
     public Person toModelType() throws IllegalValueException {
-        final ClientReference modelReference;
-        if (clientReference == null) {
-            modelReference = null;
-        } else if (!ClientReference.isValidClientReference(clientReference)) {
-            throw new IllegalValueException(ClientReference.MESSAGE_CONSTRAINTS);
-        } else {
-            modelReference = new ClientReference(clientReference);
-        }
-
         final List<Tag> personTags = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
             personTags.add(tag.toModelType());
@@ -144,11 +123,7 @@ class JsonAdaptedPerson {
         final Set<Tag> modelTags = new HashSet<>(personTags);
         // Files saved before card and financial details were introduced remain valid.
         if (cardDetails == null && creditScore == null && debt == null) {
-            if (modelReference == null) {
-                return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags);
-            }
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
-                    CardDetails.class.getSimpleName()));
+            return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags);
         }
         if (cardDetails == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
@@ -162,10 +137,6 @@ class JsonAdaptedPerson {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Debt.class.getSimpleName()));
         }
         try {
-            if (modelReference != null) {
-                return new Person(modelReference, modelName, modelPhone, modelEmail, modelAddress,
-                        cardDetails.toModelType(), new CreditScore(creditScore), new Debt(debt), modelTags);
-            }
             return new Person(modelName, modelPhone, modelEmail, modelAddress, cardDetails.toModelType(),
                     new CreditScore(creditScore), new Debt(debt), modelTags);
         } catch (IllegalArgumentException e) {

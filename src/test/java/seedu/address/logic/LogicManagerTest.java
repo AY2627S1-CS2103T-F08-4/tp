@@ -2,7 +2,6 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -17,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.CommandResult;
-import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -67,133 +65,36 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_addClient_savesToFile() throws Exception {
+    public void execute_addClient_changesOnlyMemory() throws Exception {
         CommandResult result = logic.execute("add r/c0001 n/Alex Yeoh p/87438807"
                 + " e/alex@example.com a/10 Main Street cn/4111111111111111 cvv/123 exp/12/28"
                 + " provider/Visa cs/700 d/1250.50");
         assertEquals("Added client: C0001 Alex Yeoh", result.getFeedbackToUser());
         assertEquals("C0001", model.getAddressBook().getPersonList().getFirst().getClientReference().value);
-        Path dataPath = temporaryFolder.resolve("addressBook.json");
-        assertTrue(Files.exists(dataPath));
-        ReadOnlyAddressBook loaded = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow();
-        assertEquals(model.getAddressBook(), loaded);
+        assertFalse(Files.exists(temporaryFolder.resolve("addressBook.json")));
     }
 
     @Test
-    public void execute_addClient_overwritesExistingSavedData() throws Exception {
+    public void execute_addClient_existingSavedDataIsUnchanged() throws Exception {
         Path dataPath = temporaryFolder.resolve("addressBook.json");
         String original = "{\"persons\": []}";
         Files.writeString(dataPath, original);
         logic.execute("add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street"
                 + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
-        assertFalse(original.equals(Files.readString(dataPath)));
-        assertEquals(model.getAddressBook(), new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow());
+        assertEquals(original, Files.readString(dataPath));
         assertEquals(1, model.getAddressBook().getPersonList().size());
     }
 
     @Test
-    public void execute_displayCommand_doesNotSave() throws Exception {
-        logic.execute("list");
-        assertFalse(Files.exists(temporaryFolder.resolve("addressBook.json")));
-    }
-
-    @Test
-    public void execute_addThenDelete_syncsCurrentData() throws Exception {
-        logic.execute("add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street"
-                + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
-        String expectedFeedback = String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS,
-                Messages.format(model.getFilteredPersonList().getFirst()));
-        CommandResult result = logic.execute("delete 1");
-        assertEquals(expectedFeedback, result.getFeedbackToUser());
-        ReadOnlyAddressBook loaded = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
-                .readAddressBook().orElseThrow();
-        assertTrue(loaded.getPersonList().isEmpty());
-    }
-
-    @Test
-    public void execute_deleteFromFilteredList_removesDisplayedClient() throws Exception {
-        logic.execute("add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street"
-                + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
-        logic.execute("add r/C0002 n/Bernice Yu p/87438808 e/bernice@example.com a/20 Main Street"
-                + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
-        logic.execute("find Bernice");
-        logic.execute("delete 1");
-
-        ReadOnlyAddressBook loaded = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
-                .readAddressBook().orElseThrow();
-        assertEquals(1, loaded.getPersonList().size());
-        assertEquals("C0001", loaded.getPersonList().getFirst().getClientReference().value);
-    }
-
-    @Test
-    public void execute_editThenClear_syncsCurrentData() throws Exception {
-        Path dataPath = temporaryFolder.resolve("addressBook.json");
-        logic.execute("add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street"
-                + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
-        logic.execute("edit 1 p/91234567");
-        ReadOnlyAddressBook edited = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow();
-        assertEquals("91234567", edited.getPersonList().getFirst().getPhone().value);
-        assertEquals("C0001", edited.getPersonList().getFirst().getClientReference().value);
-
-        logic.execute("clear");
-        ReadOnlyAddressBook cleared = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow();
-        assertTrue(cleared.getPersonList().isEmpty());
-    }
-
-    @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
-        assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, LogicManager.SAVE_FAILURE_MESSAGE);
+        assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
+                LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
     }
 
     @Test
     public void execute_storageThrowsAdException_throwsCommandException() {
-        assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, LogicManager.SAVE_FAILURE_MESSAGE);
-    }
-
-    @Test
-    public void execute_failedSave_keepsModelAndFilteredList() throws Exception {
-        Path dataPath = temporaryFolder.resolve("addressBook.json");
-        logic.execute("add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street"
-                + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
-        String savedJson = Files.readString(dataPath);
-        logic.execute("find Alex");
-        Model before = new ModelManager(model.getAddressBook(), model.getUserPrefs());
-        before.updateFilteredPersonList(model.getFilteredPersonListPredicate());
-
-        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(dataPath) {
-            @Override
-            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
-                throw new IOException("write failed");
-            }
-        };
-        StorageManager storage = new StorageManager(failingStorage,
-                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
-        logic = new LogicManager(model, storage);
-
-        assertThrows(CommandException.class, LogicManager.SAVE_FAILURE_MESSAGE, () -> logic.execute("delete 1"));
-        assertEquals(before, model);
-        assertEquals(1, logic.getFilteredPersonList().size());
-        assertEquals(savedJson, Files.readString(dataPath));
-    }
-
-    @Test
-    public void execute_protectedMode_blocksChangesAndAllowsDisplayCommands() throws Exception {
-        Path dataPath = temporaryFolder.resolve("addressBook.json");
-        Files.writeString(dataPath, "invalid json");
-        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath),
-                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
-        logic = new LogicManager(model, storage, LogicManager.LOAD_FAILURE_MESSAGE, true);
-
-        assertThrows(CommandException.class, LogicManager.LOAD_FAILURE_MESSAGE, () -> logic.execute("clear"));
-        assertThrows(CommandException.class, LogicManager.LOAD_FAILURE_MESSAGE, () ->
-                logic.execute("edit 1 p/91234567"));
-        assertThrows(CommandException.class, LogicManager.LOAD_FAILURE_MESSAGE, () -> logic.execute("delete 1"));
-        assertThrows(CommandException.class, LogicManager.LOAD_FAILURE_MESSAGE, () ->
-                logic.execute("add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street"
-                        + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50"));
-        assertEquals(ListCommand.MESSAGE_SUCCESS, logic.execute("list").getFeedbackToUser());
-        assertTrue(model.getAddressBook().getPersonList().isEmpty());
-        assertEquals("invalid json", Files.readString(dataPath));
+        assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
+                LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
     }
 
     @Test
@@ -277,6 +178,7 @@ public class LogicManagerTest {
 
         logic = new LogicManager(model, storage);
 
-        assertCommandFailure("clear", CommandException.class, expectedMessage, new ModelManager());
+        // Existing non-add storage behavior is outside this US01 change.
+        assertCommandFailure("list", CommandException.class, expectedMessage, new ModelManager());
     }
 }

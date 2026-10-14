@@ -3,17 +3,14 @@ package seedu.address.storage;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.AtomicMoveNotSupportedException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.commons.util.FileUtil;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.ReadOnlyAddressBook;
 
@@ -85,20 +82,8 @@ public class JsonAddressBookStorage {
         requireNonNull(addressBook);
         requireNonNull(filePath);
 
-        Path absolutePath = filePath.toAbsolutePath();
-        Path parent = absolutePath.getParent();
-        Files.createDirectories(parent);
-        Path temporaryFile = Files.createTempFile(parent, "addressbook-", ".tmp");
-        try {
-            Files.writeString(temporaryFile, JsonUtil.toJsonString(new JsonSerializableAddressBook(addressBook)),
-                    StandardCharsets.UTF_8);
-            Files.move(temporaryFile, absolutePath, StandardCopyOption.ATOMIC_MOVE,
-                    StandardCopyOption.REPLACE_EXISTING);
-        } catch (AtomicMoveNotSupportedException e) {
-            throw new IOException("Atomic file replacement is unavailable for " + filePath, e);
-        } finally {
-            Files.deleteIfExists(temporaryFile);
-        }
+        FileUtil.createIfMissing(filePath);
+        JsonUtil.saveJsonFile(new JsonSerializableAddressBook(addressBook), filePath);
     }
 
 }

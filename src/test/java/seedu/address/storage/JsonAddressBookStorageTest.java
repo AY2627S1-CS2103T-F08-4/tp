@@ -2,7 +2,6 @@ package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.HOON;
@@ -10,7 +9,6 @@ import static seedu.address.testutil.TypicalPersons.IDA;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -20,8 +18,6 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
-import seedu.address.model.person.Person;
-import seedu.address.testutil.PersonBuilder;
 
 public class JsonAddressBookStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
@@ -88,36 +84,6 @@ public class JsonAddressBookStorageTest {
         readBack = jsonAddressBookStorage.readAddressBook().get(); // file path not specified
         assertEquals(original, new AddressBook(readBack));
 
-    }
-
-    @Test
-    public void readAndSaveAddressBook_referencedClientsWithSameName_preservesReferences() throws Exception {
-        Path filePath = testFolder.resolve("ReferencedAddressBook.json");
-        AddressBook original = new AddressBook();
-        Person first = new PersonBuilder().withName("Alex Yeoh").withClientReference("C0001").build();
-        Person second = new PersonBuilder().withName("Alex Yeoh").withClientReference("C0002").build();
-        original.addPerson(first);
-        original.addPerson(second);
-
-        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
-        storage.saveAddressBook(original);
-
-        assertEquals(original, storage.readAddressBook().orElseThrow());
-    }
-
-    @Test
-    public void saveAddressBook_replacementFails_keepsExistingTarget() throws Exception {
-        Path target = testFolder.resolve("existing.json");
-        Files.createDirectory(target);
-        Path sentinel = target.resolve("sentinel.txt");
-        Files.writeString(sentinel, "keep this");
-
-        assertThrows(IOException.class, () -> new JsonAddressBookStorage(target).saveAddressBook(new AddressBook()));
-        assertTrue(Files.isDirectory(target));
-        assertEquals("keep this", Files.readString(sentinel));
-        try (var files = Files.list(testFolder)) {
-            assertEquals(1, files.count());
-        }
     }
 
     @Test

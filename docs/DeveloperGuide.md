@@ -360,7 +360,7 @@ testers are expected to do more _exploratory_ testing.
    1. Download the JAR file and copy it into an empty folder.
 
    1. Double-click the JAR file.<br>
-      Expected: The GUI opens with sample clients and `No saved client data found. Showing sample clients.` The window size may not be optimal.
+      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
 
 1. Saving window preferences
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.

@@ -23,7 +23,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
-   A GUI similar to the one below should appear in a few seconds. On a first run, the client list shows sample clients.<br>
+   A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
@@ -31,7 +31,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
    * `list` : Lists all contacts.
 
-   * `add r/C0001 n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/0.00` : Adds a client named `John Doe` to the Address Book.
+   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/0.00` : Adds a contact named `John Doe` to the Address Book.
 
    * `delete 3` : Deletes the 3rd contact shown in the current list.
 
@@ -79,7 +79,6 @@ Format: `help`
 ### Adding a person: `add`
 
 Adds a person to the address book.
-Each new client needs a unique reference (`r/REFERENCE`). References are case-insensitive and are saved in uppercase.
 Credit scores are nonnegative whole numbers. Debt is a nonnegative amount with at most two decimal places;
 The debt is stored with two decimal places; no currency is assigned.
 Card number, CVV, expiry date, and provider are required nonblank fields. They are saved as plain text;
@@ -88,7 +87,7 @@ viewing and editing them are not yet supported.
 Expiry dates must use `MM/YY`, with a month from `01` to `12` (e.g. `12/28`).
 This checks the format only; past expiry dates are accepted.
 
-Format: `add r/REFERENCE n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER cs/CREDIT_SCORE d/DEBT [t/TAG]... `
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER cs/CREDIT_SCORE d/DEBT [t/TAG]... `
 
 <box type="tip" seamless>
 
@@ -96,8 +95,8 @@ Format: `add r/REFERENCE n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS cn/CARD_NUMBER 
 </box>
 
 Examples:
-* `add r/C0001 n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/0.00`
-* `add r/C0002 n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 cn/5555555555554444 cvv/456 exp/11/29 provider/Mastercard cs/725 d/150.50 t/criminal`
+* `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/0.00`
+* `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 cn/5555555555554444 cvv/456 exp/11/29 provider/Mastercard cs/725 d/150.50 t/criminal`
 
 ### Listing all persons: `list`
 
@@ -166,18 +165,16 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every successful `add`, `edit`, `delete`, or `clear` command. You do not need to save manually. If saving fails, it displays `Unable to save client data. No changes were made.` and keeps the list and saved file unchanged.
-
-On startup, saved clients appear in the main window with `Loaded [COUNT] client(s).`. If there is no data file, sample clients appear with `No saved client data found. Showing sample clients.` The sample clients are saved with the next successful data-changing command. An existing but empty data file starts with an empty list and `No saved client data found.`
+AddressBook automatically saves data after every command. You do not need to save manually.
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a plaintext JSON file `[JAR file location]/data/addressbook.json`. This includes client references and card details. Advanced users are welcome to update data directly by editing that data file.
+AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
 
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid or unreadable, AddressBook starts with an empty list in protected mode and shows `Unable to load client data. Existing data was not changed. Add and delete are disabled for this session.` All data-changing commands are disabled until you fix the file and restart; the existing file is not overwritten. Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 
@@ -205,7 +202,7 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add r/REFERENCE n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER cs/CREDIT_SCORE d/DEBT [t/TAG]... ` <br> e.g., `add r/C0001 n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/0.00 t/friend t/colleague`
+**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER cs/CREDIT_SCORE d/DEBT [t/TAG]... ` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/0.00 t/friend t/colleague`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
