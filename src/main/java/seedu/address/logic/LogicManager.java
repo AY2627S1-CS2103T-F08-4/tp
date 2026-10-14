@@ -24,7 +24,7 @@ import seedu.address.storage.Storage;
  */
 public class LogicManager implements Logic {
     public static final String LOAD_FAILURE_MESSAGE = "Unable to load client data. Existing data was not changed. "
-            + "Add and delete are disabled for this session.";
+            + "Add, delete, edit, and clear commands are disabled for this session.";
     public static final String SAVE_FAILURE_MESSAGE = "Unable to save client data. No changes were made.";
     public static final String FILE_OPS_ERROR_FORMAT = AddressBookSync.FILE_OPS_ERROR_FORMAT;
 
@@ -60,7 +60,7 @@ public class LogicManager implements Logic {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
         Command command = addressBookParser.parseCommand(commandText);
-        if (isDataChanging(command)) {
+        if (command.isDataChanging()) {
             if (protectedMode) {
                 throw new CommandException(LOAD_FAILURE_MESSAGE);
             }
@@ -77,11 +77,6 @@ public class LogicManager implements Logic {
             return result;
         }
         return command.execute(model);
-    }
-
-    private boolean isDataChanging(Command command) {
-        return command instanceof AddCommand || command instanceof EditCommand
-                || command instanceof DeleteCommand || command instanceof ClearCommand;
     }
 
     @Override
