@@ -4,6 +4,7 @@
 src/main/resources/docs/
 
 # IDEA files
+src/.idea/
 /.idea/
 /out/
 /*.iml

@@ -282,24 +282,24 @@ Provides a fast and convenient CLI-based method of managing bank clients for ban
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …      | I want to …                                                                              | So that I can…                                                             |
-| -------- | ----------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `* * *`  | bank teller | create a client profile containing a unique client reference, name and contact details   | keep the client's information in one place.                                |
-| `* * *`  | bank teller | view my saved client profiles and their contact details                                  | retrieve the information needed when serving a client.                     |
-| `* * *`  | bank teller | delete a client profile                                                                  | remove records that were created by mistake or are no longer needed.       |
-| `* * *`  | bank teller | access my saved client records after closing and reopening TellerFlow                    | do not have to enter the same information again.                           |
-| `* *`    | bank teller | update a client's contact details without recreating the profile                         | keep the record accurate with less repeated work.                          |
-| `* *`    | bank teller | create a profile before all optional contact details are available                       | record a client without inventing missing information.                     |
-| `* *`    | bank teller | receive a warning when a new profile shares an existing phone number or email address    | check for accidental duplicates while allowing legitimate shared contacts. |
-| `* *`    | bank teller | find clients using all or part of their names                                            | locate a record when I do not remember the exact name.                     |
-| `* *`    | bank teller | find clients using a phone number                                                        | locate a record when the number is the information available to me.        |
-| `* *`    | bank teller | maintain a short service note on a client profile                                        | retain relevant context for the next interaction.                          |
-| `* *`    | bank teller | record a card summary with its last four digits, provider and expiry date under a client | recognise the card being discussed.                                        |
-| `* *`    | bank teller | remove an obsolete card summary from a client profile                                    | do not mistake an old card for a current one.                              |
-| `* *`    | bank teller | see when a client profile was created and last modified                                  | judge how recently its information was maintained.                         |
-| `*`      | bank teller | access help on available commands and their usage                                        | complete tasks when I do not remember the required input.                  |
-| `*`      | bank teller | find clients with recorded cards expiring in a chosen month                              | identify records that may need a follow-up.                                |
-| `*`      | bank teller | sort the displayed client list by name                                                   | scan the records in a predictable order.                                   |
+| Priority | As a …      | I want to …                                                                            | So that I can…                                                             |
+| -------- | ----------- |----------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| `* * *`  | bank teller | create a client profile containing a unique client reference, name and contact details | keep the client's information in one place.                                |
+| `* * *`  | bank teller | view my saved client profiles and their contact details                                | retrieve the information needed when serving a client.                     |
+| `* * *`  | bank teller | delete a client profile                                                                | remove records that were created by mistake or are no longer needed.       |
+| `* * *`  | bank teller | access my saved client records after closing and reopening TellerFlow                  | do not have to enter the same information again.                           |
+| `* *`    | bank teller | update a client's contact details without recreating the profile                       | keep the record accurate with less repeated work.                          |
+| `* *`    | bank teller | create a profile before all optional contact details are available                     | record a client without inventing missing information.                     |
+| `* *`    | bank teller | receive a warning when a new profile shares an existing phone number or email address  | check for accidental duplicates while allowing legitimate shared contacts. |
+| `* *`    | bank teller | find clients using all or part of their names                                          | locate a record when I do not remember the exact name.                     |
+| `* *`    | bank teller | find clients using a phone number                                                      | locate a record when the number is the information available to me.        |
+| `* *`    | bank teller | find clients using a card number                                                       | locate a record when the card number is the information available to me.   |
+| `* *`    | bank teller | maintain a short service note on a client profile                                      | retain relevant context for the next interaction.                          |
+| `* *`    | bank teller | remove an obsolete card summary from a client profile                                  | do not mistake an old card for a current one.                              |
+| `* *`    | bank teller | see when a client profile was created and last modified                                | judge how recently its information was maintained.                         |
+| `*`      | bank teller | access help on available commands and their usage                                      | complete tasks when I do not remember the required input.                  |
+| `*`      | bank teller | find clients with recorded cards expiring in a chosen month                            | identify records that may need a follow-up.                                |
+| `*`      | bank teller | sort the displayed client list by name                                                 | scan the records in a predictable order.                                   |
 
 ### Use cases
 
