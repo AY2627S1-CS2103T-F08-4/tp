@@ -71,7 +71,7 @@ public class DeleteCommand extends Command {
         return model.getAddressBook()
                 .getPersonList()
                 .stream()
-                .filter(person -> person.getClientReference().equals(targetReference))
+                .filter(person -> targetReference.equals(person.getClientReference()))
                 .findFirst()
                 .orElseThrow(() -> new CommandException(String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, MESSAGE_USAGE)));
     }

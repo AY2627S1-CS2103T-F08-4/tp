@@ -36,19 +36,14 @@ public class DeleteCommandParser implements Parser<DeleteCommand> {
     }
 
     private DeleteCommand parseReferenceDelete(String args) throws ParseException {
-        ArgumentMultimap argMultimap =
-                ArgumentTokenizer.tokenize(args, CliSyntax.PREFIX_REFERENCE);
-        if (!args.matches("\\s*r/\\S+\\s*")) {
+        if (!args.matches("r/\\S+")) {
             throw new ParseException(
-                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                            DeleteCommand.MESSAGE_USAGE));
         }
 
-        argMultimap.verifyNoDuplicatePrefixesFor(CliSyntax.PREFIX_REFERENCE);
-
-        String referenceValue = argMultimap
-                .getValue(CliSyntax.PREFIX_REFERENCE)
-                .orElseThrow(() -> new ParseException(
-                        String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE)));
+        String referenceValue = args.substring(
+                CliSyntax.PREFIX_REFERENCE.getPrefix().length());
 
         return new DeleteCommand(ParserUtil.parseClientReference(referenceValue));
     }
