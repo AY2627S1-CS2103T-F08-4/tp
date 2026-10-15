@@ -15,7 +15,7 @@ import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.Person;
 
 /**
- * Deletes a person identified using its displayed index from the address book.
+ * Deletes a person identified using its displayed index from the address book or its unique client reference.
  */
 public class DeleteCommand extends Command {
 
