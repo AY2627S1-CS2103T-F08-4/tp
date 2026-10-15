@@ -81,8 +81,8 @@ public class DeleteCommand extends Command {
                 .stream()
                 .filter(person -> targetReference.equals(person.getClientReference()))
                 .findFirst()
-                .orElseThrow(() -> new CommandException
-                        (String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, MESSAGE_USAGE)));
+                .orElseThrow(() -> new CommandException(
+                        String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, MESSAGE_USAGE)));
     }
 
     @Override
