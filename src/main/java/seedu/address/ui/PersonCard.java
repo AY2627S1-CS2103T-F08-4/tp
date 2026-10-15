@@ -39,6 +39,14 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label email;
     @FXML
+    private Label clientReference;
+    @FXML
+    private Label cardDetails;
+    @FXML
+    private Label creditScore;
+    @FXML
+    private Label debt;
+    @FXML
     private FlowPane tags;
 
     /**
@@ -52,8 +60,29 @@ public class PersonCard extends UiPart<Region> {
         phone.setText(person.getPhone().value);
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
+        clientReference.setText(person.getClientReference() == null
+                ? "" : "Client reference: " + person.getClientReference().value);
+        cardDetails.setText(formatCardDetails(person));
+        creditScore.setText(person.getCreditScore() == null
+                ? "" : "Credit score: " + person.getCreditScore());
+        debt.setText(person.getDebt() == null
+                ? "" : "Debt: " + person.getDebt());
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+    }
+
+    /** Returns a display-safe summary of a person's card details. */
+    static String formatCardDetails(Person person) {
+        if (person.getCardDetails() == null) {
+            return "";
+        }
+        String cardNumber = person.getCardDetails().getCardNumber();
+        String maskedCardNumber = cardNumber.length() <= 4
+                ? cardNumber
+                : "****" + cardNumber.substring(cardNumber.length() - 4);
+        return "Card: " + person.getCardDetails().getProvider()
+                + " " + maskedCardNumber
+                + " exp " + person.getCardDetails().getExpiryDate();
     }
 }
