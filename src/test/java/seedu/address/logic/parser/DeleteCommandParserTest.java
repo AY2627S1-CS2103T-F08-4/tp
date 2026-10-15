@@ -8,6 +8,7 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.DeleteCommand;
+import seedu.address.model.person.ClientReference;
 
 /**
  * As we are only doing white-box testing, our test cases do not cover path variations
@@ -28,5 +29,16 @@ public class DeleteCommandParserTest {
     @Test
     public void parse_invalidArgs_throwsParseException() {
         assertParseFailure(parser, "a", String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parse_lowercaseReference_normalizesToUppercase() {
+        assertParseSuccess(parser, "r/c0001", new DeleteCommand(new ClientReference("C0001")));
+    }
+
+    @Test
+    public void parse_referenceWithExtraText_throwsParseException() {
+        assertParseFailure(parser, "r/C0001 extra",
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
     }
 }

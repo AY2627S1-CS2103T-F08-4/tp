@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
@@ -10,14 +11,25 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.util.HashSet;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
+import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Address;
+import seedu.address.model.person.ClientReference;
+import seedu.address.model.person.Email;
+import seedu.address.model.person.Name;
+import seedu.address.model.person.Phone;
 import seedu.address.model.person.Person;
+import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.TypicalPersons;
 
 /**
  * Contains integration tests (interaction with the Model) and unit tests for
@@ -80,6 +92,72 @@ public class DeleteCommandTest {
     }
 
     @Test
+    public void execute_unknownReference_throwsCommandException() {
+        Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+
+        DeleteCommand command =
+                new DeleteCommand(new ClientReference("C9999"));
+
+        assertThrows(CommandException.class, () -> command.execute(model));
+
+        assertEquals(
+                TypicalPersons.getTypicalPersons(),
+                model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_validReference_deletesMatchingPerson() throws Exception {
+        Person target = new PersonBuilder(TypicalPersons.ALICE)
+                .withClientReference("C0001")
+                .build();
+
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(target);
+        Model model = new ModelManager(addressBook, new UserPrefs());
+
+        DeleteCommand command =
+                new DeleteCommand(target.getClientReference());
+
+        CommandResult result = command.execute(model);
+
+        assertEquals(
+                String.format(
+                        DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS,
+                        Messages.format(target)),
+                result.getFeedbackToUser());
+
+        assertFalse(model.getAddressBook().getPersonList().contains(target));
+    }
+
+    @Test
+    public void execute_referenceLookup_skipsPersonWithNullReference()
+            throws Exception {
+        Person legacyPerson = new Person(
+                new Name("Legacy Client"),
+                new Phone("91234567"),
+                new Email("legacy@example.com"),
+                new Address("Legacy Street"),
+                new HashSet<>());
+
+        Person referencedPerson = new PersonBuilder(TypicalPersons.ALICE)
+                .withClientReference("C0001")
+                .build();
+
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(legacyPerson);
+        addressBook.addPerson(referencedPerson);
+
+        Model model = new ModelManager(addressBook, new UserPrefs());
+
+        DeleteCommand command = new DeleteCommand(referencedPerson.getClientReference());
+
+        command.execute(model);
+
+        assertFalse(model.getAddressBook().getPersonList().contains(referencedPerson));
+        assertTrue(model.getAddressBook().getPersonList().contains(legacyPerson));
+    }
+
+    @Test
     public void equals() {
         DeleteCommand deleteFirstCommand = new DeleteCommand(INDEX_FIRST_PERSON);
         DeleteCommand deleteSecondCommand = new DeleteCommand(INDEX_SECOND_PERSON);
@@ -99,13 +177,19 @@ public class DeleteCommandTest {
 
         // different person -> returns false
         assertFalse(deleteFirstCommand.equals(deleteSecondCommand));
+
+        // same client reference -> returns true
+        DeleteCommand first = new DeleteCommand(new ClientReference("C0001"));
+        DeleteCommand second = new DeleteCommand(new ClientReference("c0001"));
+        assertEquals(first, second);
     }
 
     @Test
     public void toStringMethod() {
         Index targetIndex = Index.fromOneBased(1);
         DeleteCommand deleteCommand = new DeleteCommand(targetIndex);
-        String expected = DeleteCommand.class.getCanonicalName() + "{targetIndex=" + targetIndex + "}";
+        String expected = DeleteCommand.class.getCanonicalName()
+                + "{targetIndex=" + targetIndex + ", targetReference=null}";
         assertEquals(expected, deleteCommand.toString());
     }
 
