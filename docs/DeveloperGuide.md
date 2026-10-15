@@ -282,65 +282,227 @@ Provides a fast and convenient CLI-based method of managing bank clients for ban
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …      | I want to …                                                                            | So that I can…                                                             |
-| -------- | ----------- |----------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| `* * *`  | bank teller | create a client profile containing a unique client reference, name and contact details | keep the client's information in one place.                                |
-| `* * *`  | bank teller | view my saved client profiles and their contact details                                | retrieve the information needed when serving a client.                     |
-| `* * *`  | bank teller | delete a client profile                                                                | remove records that were created by mistake or are no longer needed.       |
-| `* * *`  | bank teller | access my saved client records after closing and reopening TellerFlow                  | do not have to enter the same information again.                           |
-| `* *`    | bank teller | update a client's contact details without recreating the profile                       | keep the record accurate with less repeated work.                          |
-| `* *`    | bank teller | create a profile before all optional contact details are available                     | record a client without inventing missing information.                     |
-| `* *`    | bank teller | receive a warning when a new profile shares an existing phone number or email address  | check for accidental duplicates while allowing legitimate shared contacts. |
-| `* *`    | bank teller | find clients using all or part of their names                                          | locate a record when I do not remember the exact name.                     |
-| `* *`    | bank teller | find clients using a phone number                                                      | locate a record when the number is the information available to me.        |
-| `* *`    | bank teller | find clients using a card number                                                       | locate a record when the card number is the information available to me.   |
-| `* *`    | bank teller | maintain a short service note on a client profile                                      | retain relevant context for the next interaction.                          |
-| `* *`    | bank teller | remove an obsolete card summary from a client profile                                  | do not mistake an old card for a current one.                              |
-| `* *`    | bank teller | see when a client profile was created and last modified                                | judge how recently its information was maintained.                         |
-| `*`      | bank teller | access help on available commands and their usage                                      | complete tasks when I do not remember the required input.                  |
-| `*`      | bank teller | find clients with recorded cards expiring in a chosen month                            | identify records that may need a follow-up.                                |
-| `*`      | bank teller | sort the displayed client list by name                                                 | scan the records in a predictable order.                                   |
+| Priority | As a …      | I want to …                                                                                     | So that I can…                                                             |
+| -------- | ----------- |-------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| `* * *`  | bank teller | create a client profile containing a unique client reference, name, contact and contact details | keep the client's information in one place.                                |
+| `* * *`  | bank teller | view my saved client profiles and their card and contact details                                | retrieve the information needed when serving a client.                     |
+| `* * *`  | bank teller | delete a client profile                                                                         | remove records that were created by mistake or are no longer needed.       |
+| `* * *`  | bank teller | access my saved client records after closing and reopening TellerFlow                           | do not have to enter the same information again.                           |
+| `* *`    | bank teller | update a client's contact details without recreating the profile                                | keep the record accurate with less repeated work.                          |
+| `* *`    | bank teller | create a profile before all optional contact details are available                              | record a client without inventing missing information.                     |
+| `* *`    | bank teller | receive a warning when a new profile shares an existing phone number or email address           | check for accidental duplicates while allowing legitimate shared contacts. |
+| `* *`    | bank teller | find clients using all or part of their names                                                   | locate a record when I do not remember the exact name.                     |
+| `* *`    | bank teller | find clients using a phone number                                                               | locate a record when the number is the information available to me.        |
+| `* *`    | bank teller | find clients using a card number                                                                | locate a record when the card number is the information available to me.   |
+| `* *`    | bank teller | maintain a short service note on a client profile                                               | retain relevant context for the next interaction.                          |
+| `* *`    | bank teller | remove an obsolete card summary from a client profile                                           | do not mistake an old card for a current one.                              |
+| `* *`    | bank teller | see when a client profile was created and last modified                                         | judge how recently its information was maintained.                         |
+| `* *`    | bank teller | store my clients' personal and card details securely                                            | keep their private details confidential.                                   |
+| `*`      | bank teller | access help on available commands and their usage                                               | complete tasks when I do not remember the required input.                  |
+| `*`      | bank teller | find clients with recorded cards expiring in a month                                            | identify records that may need a follow-up.                                |
+| `*`      | bank teller | sort the displayed client list by name                                                          | scan the records in a predictable order.                                   |
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+For all use cases below, the **Actor** is the bank teller and the **System** is TellerFlow. These use cases describe the intended product, including features that are not yet available.
 
-**Use case: Delete a person**
+#### Use case: Create a client profile
 
-**MSS**
+##### Main success scenario (MSS)
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1. Bank teller enters a unique client reference, name, contact and card details.
+2. TellerFlow creates the profile and saves it.
+3. TellerFlow shows the new profile.
 
-    Use case ends.
+##### Extensions
 
-**Extensions**
+- 1a. An optional contact detail is unavailable. Bank teller omits it; the use case resumes at step 2.
+- 2a. The reference already belongs to another profile or a required value is invalid. TellerFlow explains the problem and requests a correction; the use case resumes at step 1.
+- 2b. A phone number or email address matches an existing profile. TellerFlow warns the bank teller, who checks the match and chooses whether to continue creating the profile or cancel.
+- 2c. Saving fails. TellerFlow reports the failure and leaves the saved profiles unchanged; the use case ends.
 
-- 2a. The list is empty.
+#### Use case: View client profiles
 
-  Use case ends.
+##### Main success scenario (MSS)
 
-- 3a. The given index is invalid.
-  - 3a1. AddressBook shows an error message.
+1. Bank teller requests the client list.
+2. TellerFlow displays the saved profiles and their contact details.
 
-    Use case resumes at step 2.
+##### Extensions
 
-_{More to be added}_
+- 2a. No profiles are saved. TellerFlow displays an empty list; the use case ends.
+
+#### Use case: Delete a client profile
+
+##### Main success scenario (MSS)
+
+1. Bank teller requests the client list or searches for a client.
+2. TellerFlow displays matching profiles.
+3. Bank teller selects a client to delete by providing the client reference number.
+4. TellerFlow deletes the profile and saves the change.
+
+##### Extensions
+
+- 2a. The list is empty. TellerFlow shows that there is no profile to delete; the use case ends.
+- 3a. The selection does not identify a displayed profile. TellerFlow reports the error; the use case resumes at step 3.
+- 4a. Saving fails. TellerFlow reports the failure and retains the profile; the use case ends.
+
+#### Use case: Reopen saved client records
+
+##### Main success scenario (MSS)
+
+1. Bank teller closes TellerFlow after saving client profiles.
+2. Bank teller starts TellerFlow again.
+3. TellerFlow loads the saved profiles.
+4. Bank teller views the profiles and their contact details.
+
+##### Extensions
+
+- 3a. The saved data cannot be read. TellerFlow reports the problem and protects the existing data from being overwritten; the use case ends.
+
+#### Use case: Update a client's contact details
+
+##### Main success scenario (MSS)
+
+1. Bank teller locates a client profile and supplies updated contact details.
+2. TellerFlow updates the selected profile and saves the change.
+3. TellerFlow shows the updated profile.
+
+##### Extensions
+
+- 1a. The selection is invalid or an updated value is invalid. TellerFlow reports the problem and requests a correction; the use case resumes at step 1.
+- 2a. Saving fails. TellerFlow reports the failure and retains the previous details; the use case ends.
+
+#### Use case: Find clients by name
+
+##### Main success scenario (MSS)
+
+1. Bank teller supplies all or part of a client's name.
+2. TellerFlow displays profiles with matching names.
+
+##### Extensions
+
+- 2a. No name matches. TellerFlow displays an empty list; the use case ends.
+
+#### Use case: Find clients by phone number
+
+##### Main success scenario (MSS)
+
+1. Bank teller supplies a phone number.
+2. TellerFlow displays profiles with that phone number.
+
+##### Extensions
+
+- 2a. No phone number matches. TellerFlow displays an empty list; the use case ends.
+
+#### Use case: Find clients by card number
+
+##### Main success scenario (MSS)
+
+1. Bank teller supplies a card number.
+2. TellerFlow displays profiles with that recorded card number.
+
+##### Extensions
+
+- 2a. No card number matches. TellerFlow displays an empty list; the use case ends.
+
+#### Use case: Maintain a service note
+
+##### Main success scenario (MSS)
+
+1. Bank teller locates a client profile and enters or revises a short service note.
+2. TellerFlow saves the note on that profile.
+3. TellerFlow shows the current note when the profile is viewed.
+
+##### Extensions
+
+- 1a. The selected profile does not exist. TellerFlow reports the error; the use case ends.
+- 2a. Saving fails. TellerFlow reports the failure and retains the previous note; the use case ends.
+
+#### Use case: Remove an obsolete card summary
+
+##### Main success scenario (MSS)
+
+1. Bank teller locates a client profile and identifies an obsolete card summary.
+2. Bank teller requests its removal.
+3. TellerFlow removes the summary and saves the profile.
+
+##### Extensions
+
+- 1a. The selected profile or card summary does not exist. TellerFlow reports the error; the use case ends.
+- 3a. Saving fails. TellerFlow reports the failure and retains the card summary; the use case ends.
+
+#### Use case: View profile timestamps
+
+##### Main success scenario (MSS)
+
+1. Bank teller views a client profile.
+2. TellerFlow shows when the profile was created and last modified.
+
+##### Extensions
+
+- 1a. The selected profile does not exist. TellerFlow reports the error; the use case ends.
+
+#### Use case: Access help
+
+##### Main success scenario (MSS)
+
+1. Bank teller requests help.
+2. TellerFlow shows the available commands and how to use them.
+
+#### Use case: Find clients with cards expiring in a month
+
+##### Main success scenario (MSS)
+
+1. Bank teller supplies an expiry month.
+2. TellerFlow displays profiles with recorded cards expiring in that month.
+
+##### Extensions
+
+- 1a. The month is invalid. TellerFlow reports the error and requests a valid month; the use case resumes at step 1.
+- 2a. No cards match. TellerFlow reports that no profiles were found; the use case ends.
+
+#### Use case: Sort the client list by name
+
+##### Main success scenario (MSS)
+
+1. Bank teller requests the client list sorted by name.
+2. TellerFlow displays the profiles in name order.
+
+##### Extensions
+
+- 2a. No profiles are saved. TellerFlow displays an empty list; the use case ends.
 
 ### Non-Functional Requirements
 
 1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
 2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
 3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-_{More to be added}_
+4.  If saving a change fails, both the displayed client records and the saved data file should remain in their previous valid state.
+5.  If saved client data cannot be read, the application should explain the problem without overwriting the file, so the data can be repaired and loaded after a restart.
+6.  Invalid input and failed operations should produce clear feedback that tells the bank teller what needs correction.
+7.  Stored client and card details should be protected from unauthorized access using SHA-256 encryption, and sensitive values should not appear in logs or error messages.
+8.  The system must maintain an uptime of 99.9%. During an outage or a crash, the local stored data can still be accessed and modified.
+9.  The system must load all client information in under 5 seconds.
 
 ### Glossary
 
+- **API**: The interface through which one software component provides functionality to other components.
+- **Card summary**: A recorded description of a client's card that can be removed when it becomes obsolete.
+- **Client profile**: A saved record containing a client's reference, name, and available contact and card details.
+- **Client reference**: A unique identifier used to distinguish one client profile from another.
+- **Component**: A part of the application with a distinct responsibility, such as `UI`, `Logic`, `Model`, or `Storage`.
+- **Contact detail**: Information used to reach a client, such as a phone number or email address.
+- **Created/last modified timestamps**: The recorded times when a profile was first created and most recently changed.
+- **Exploratory testing**: Testing in which the tester investigates the application beyond the prescribed manual test cases.
+- **Extension**: An alternative path from a numbered step in a use case, such as invalid input or a failed save.
+- **Filtered list**: The subset of client records currently selected for display, such as search results.
+- **JSON**: A text format used by `Storage` to save and load application data.
+- **Main success scenario (MSS)**: The numbered steps describing how a use case normally succeeds.
 - **Mainstream OS**: Windows, Linux, Unix, or macOS
-- **Private contact detail**: A contact detail that is not meant to be shared with others
+- **Non-functional requirement**: A constraint on the application's quality or operation, such as performance or data integrity.
+- **Observable list**: A list whose changes can be observed so the UI can update when displayed data changes.
+- **Service note**: A short note on a client profile that preserves context for a later interaction.
 
 ---
 
