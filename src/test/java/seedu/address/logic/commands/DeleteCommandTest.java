@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
-import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.commands.exceptions.ClientReferenceNotFoundException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -26,8 +26,8 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
-import seedu.address.model.person.Phone;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.Phone;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.TypicalPersons;
 
@@ -92,13 +92,18 @@ public class DeleteCommandTest {
     }
 
     @Test
-    public void execute_unknownReference_throwsCommandException() {
+    public void execute_unknownReference_throwsClientReferenceNotFoundException() {
         Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        ClientReference missingReference = new ClientReference("C9999");
 
-        DeleteCommand command =
-                new DeleteCommand(new ClientReference("C9999"));
+        DeleteCommand command = new DeleteCommand(missingReference);
 
-        assertThrows(CommandException.class, () -> command.execute(model));
+        ClientReferenceNotFoundException exception = assertThrows(
+                ClientReferenceNotFoundException.class, () -> command.execute(model));
+
+        assertEquals(
+                "No person found with client reference: C9999",
+                exception.getMessage());
 
         assertEquals(
                 TypicalPersons.getTypicalPersons(),

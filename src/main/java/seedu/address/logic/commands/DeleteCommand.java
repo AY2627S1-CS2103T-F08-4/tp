@@ -8,6 +8,7 @@ import java.util.Objects;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
+import seedu.address.logic.commands.exceptions.ClientReferenceNotFoundException;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.ClientReference;
@@ -81,8 +82,7 @@ public class DeleteCommand extends Command {
                 .stream()
                 .filter(person -> targetReference.equals(person.getClientReference()))
                 .findFirst()
-                .orElseThrow(() -> new CommandException(
-                        String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, MESSAGE_USAGE)));
+                .orElseThrow(() -> new ClientReferenceNotFoundException(targetReference));
     }
 
     @Override
