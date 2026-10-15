@@ -60,12 +60,12 @@ public class PersonCard extends UiPart<Region> {
         phone.setText(person.getPhone().value);
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
-        clientReference.setText(person.getClientReference() == null
+        setOptionalLabel(clientReference, person.getClientReference() == null
                 ? "" : "Client reference: " + person.getClientReference().value);
-        cardDetails.setText(formatCardDetails(person));
-        creditScore.setText(person.getCreditScore() == null
+        setOptionalLabel(cardDetails, formatCardDetails(person));
+        setOptionalLabel(creditScore, person.getCreditScore() == null
                 ? "" : "Credit score: " + person.getCreditScore());
-        debt.setText(person.getDebt() == null
+        setOptionalLabel(debt, person.getDebt() == null
                 ? "" : "Debt: " + person.getDebt());
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
@@ -84,5 +84,12 @@ public class PersonCard extends UiPart<Region> {
         return "Card: " + person.getCardDetails().getProvider()
                 + " " + maskedCardNumber
                 + " exp " + person.getCardDetails().getExpiryDate();
+    }
+
+    private static void setOptionalLabel(Label label, String text) {
+        boolean hasValue = ((text != null) && (!text.isBlank()));
+        label.setText(text);
+        label.setVisible(hasValue);
+        label.setManaged(hasValue);
     }
 }
