@@ -10,8 +10,8 @@ import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
-import seedu.address.model.person.Person;
 import seedu.address.model.person.ClientReference;
+import seedu.address.model.person.Person;
 
 /**
  * Deletes a person identified using its displayed index from the address book.
@@ -31,11 +31,19 @@ public class DeleteCommand extends Command {
     private final Index targetIndex;
     private final ClientReference targetReference;
 
+    /**
+     * Creates {@code DeleteCommand} object for {@code Person} deletion via index
+     * @param targetIndex Index of {@code Person} to delete
+     */
     public DeleteCommand(Index targetIndex) {
         this.targetIndex = requireNonNull(targetIndex);
         this.targetReference = null;
     }
 
+    /**
+     * Creates {@code DeleteCommand} object for {@code Person} deletion via {@code ClientReference}
+     * @param targetReference {@code ClientReference} of {@code Person} to delete
+     */
     public DeleteCommand(ClientReference targetReference) {
         this.targetIndex = null;
         this.targetReference = requireNonNull(targetReference);
@@ -73,7 +81,8 @@ public class DeleteCommand extends Command {
                 .stream()
                 .filter(person -> targetReference.equals(person.getClientReference()))
                 .findFirst()
-                .orElseThrow(() -> new CommandException(String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, MESSAGE_USAGE)));
+                .orElseThrow(() -> new CommandException
+                        (String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, MESSAGE_USAGE)));
     }
 
     @Override
