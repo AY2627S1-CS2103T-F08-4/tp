@@ -297,6 +297,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | bank teller | maintain a short service note on a client profile                                               | retain relevant context for the next interaction.                          |
 | `* *`    | bank teller | remove an obsolete card summary from a client profile                                           | do not mistake an old card for a current one.                              |
 | `* *`    | bank teller | see when a client profile was created and last modified                                         | judge how recently its information was maintained.                         |
+| `* *`    | bank teller | store my clients' personal and card details securely                                            | keep their private details confidential.                                   |
 | `*`      | bank teller | access help on available commands and their usage                                               | complete tasks when I do not remember the required input.                  |
 | `*`      | bank teller | find clients with recorded cards expiring in a month                                            | identify records that may need a follow-up.                                |
 | `*`      | bank teller | sort the displayed client list by name                                                          | scan the records in a predictable order.                                   |
@@ -381,7 +382,7 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 
 ##### Extensions
 
-- 2a. No name matches. TellerFlow reports that no profiles were found; the use case ends.
+- 2a. No name matches. TellerFlow displays an empty list; the use case ends.
 
 #### Use case: Find clients by phone number
 
@@ -392,7 +393,7 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 
 ##### Extensions
 
-- 2a. No phone number matches. TellerFlow reports that no profiles were found; the use case ends.
+- 2a. No phone number matches. TellerFlow displays an empty list; the use case ends.
 
 #### Use case: Find clients by card number
 
@@ -403,7 +404,7 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 
 ##### Extensions
 
-- 2a. No card number matches. TellerFlow reports that no profiles were found; the use case ends.
+- 2a. No card number matches. TellerFlow displays an empty list; the use case ends.
 
 #### Use case: Maintain a service note
 
