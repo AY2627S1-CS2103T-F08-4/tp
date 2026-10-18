@@ -1,30 +1,35 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
-import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.FindPersonPredicate;
 
 /**
- * Finds and lists all persons in the address book whose name contains any of the argument keywords.
- * Keywords match any substring of the name, ignoring case.
+ * Finds persons by partial name keywords and/or full phone numbers.
+ * Keywords within a field are alternatives; both fields must match when both are supplied.
  */
 public class FindCommand extends Command {
 
     public static final String COMMAND_WORD = "find";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds all persons whose names contain any of "
-            + "the specified keywords (case-insensitive, partial matches allowed) "
-            + "and displays them as a list with index numbers.\n"
-            + "Parameters: KEYWORD [MORE_KEYWORDS]...\n"
-            + "Example: " + COMMAND_WORD + " alice bob charlie";
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds persons by name and/or phone number "
+            + "and displays them as a list with index numbers. Names allow case-insensitive partial matches; "
+            + "phone numbers must match in full. Both fields must match when both are supplied.\n"
+            + "Parameters: [" + PREFIX_NAME + "KEYWORD [MORE_KEYWORDS]...] [" + PREFIX_PHONE
+            + "PHONE_NUMBER [MORE_PHONE_NUMBERS]...]\n"
+            + "At least one prefix is required; each prefix may appear only once.\n"
+            + "Example: " + COMMAND_WORD + " " + PREFIX_NAME + "alice bob\n"
+            + "Example: " + COMMAND_WORD + " " + PREFIX_PHONE + "91234567";
 
-    private final NameContainsKeywordsPredicate predicate;
+    private final FindPersonPredicate predicate;
 
-    public FindCommand(NameContainsKeywordsPredicate predicate) {
-        this.predicate = predicate;
+    public FindCommand(FindPersonPredicate predicate) {
+        this.predicate = requireNonNull(predicate);
     }
 
     @Override

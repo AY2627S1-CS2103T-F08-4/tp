@@ -377,23 +377,29 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 
 ##### Main success scenario (MSS)
 
-1. Bank teller supplies one or more space-separated keywords containing all or part of a client's name.
+1. Bank teller supplies `find n/` followed by one or more space-separated keywords containing all or part of a client's name.
 2. TellerFlow displays profiles whose names contain at least one keyword as a case-insensitive substring.
+   If `p/` numbers are also supplied, each profile must additionally match at least one full phone number.
 
 ##### Extensions
 
-- 2a. No name matches. TellerFlow displays an empty list; the use case ends.
+- 1a. A required prefix is missing, a field is empty, or a prefix is repeated. TellerFlow reports the invalid input
+  and requests a correction; the use case resumes at step 1.
+- 2a. No profile matches the supplied criteria. TellerFlow displays an empty list; the use case ends.
 
 #### Use case: Find clients by phone number
 
 ##### Main success scenario (MSS)
 
-1. Bank teller supplies a phone number.
-2. TellerFlow displays profiles with that phone number.
+1. Bank teller supplies `find p/` followed by one or more space-separated full phone numbers.
+2. TellerFlow displays profiles whose phone number exactly matches any supplied number, including leading zeros.
+   If `n/` keywords are also supplied, each profile must additionally match at least one name keyword.
 
 ##### Extensions
 
-- 2a. No phone number matches. TellerFlow displays an empty list; the use case ends.
+- 1a. A supplied phone number is invalid, a field is empty, or a prefix is repeated. TellerFlow reports the invalid
+  input and requests a correction; the use case resumes at step 1.
+- 2a. No profile matches the supplied criteria. TellerFlow displays an empty list; the use case ends.
 
 #### Use case: Find clients by card number
 
