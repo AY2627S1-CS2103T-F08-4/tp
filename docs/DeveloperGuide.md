@@ -377,8 +377,8 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 
 ##### Main success scenario (MSS)
 
-1. Bank teller supplies all or part of a client's name.
-2. TellerFlow displays profiles with matching names.
+1. Bank teller supplies one or more space-separated keywords containing all or part of a client's name.
+2. TellerFlow displays profiles whose names contain at least one keyword as a case-insensitive substring.
 
 ##### Extensions
 
