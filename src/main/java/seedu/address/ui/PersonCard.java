@@ -4,6 +4,7 @@ import java.util.Comparator;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -57,11 +58,17 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
+        name.setTooltip(new Tooltip(person.getName().fullName));
         phone.setText(person.getPhone().value);
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
-        setOptionalLabel(clientReference, person.getClientReference() == null
-                ? "" : "Client reference: " + person.getClientReference().value);
+        if (person.getClientReference() == null) {
+            setOptionalLabel(clientReference, "");
+        } else {
+            String reference = person.getClientReference().value;
+            setOptionalLabel(clientReference, reference);
+            clientReference.setTooltip(new Tooltip("Client reference: " + reference));
+        }
         setOptionalLabel(cardDetails, formatCardDetails(person));
         setOptionalLabel(creditScore, person.getCreditScore() == null
                 ? "" : "Credit score: " + person.getCreditScore());

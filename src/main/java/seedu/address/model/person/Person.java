@@ -64,11 +64,11 @@ public class Person {
     }
 
     /**
-     * Creates a referenced client while retaining its card, financial, and tag details.
+     * Creates a referenced client. Card details may be absent after a card is removed.
      */
     public Person(ClientReference clientReference, Name name, Phone phone, Email email, Address address,
             CardDetails cardDetails, CreditScore creditScore, Debt debt, Set<Tag> tags) {
-        requireAllNonNull(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags);
+        requireAllNonNull(clientReference, name, phone, email, address, creditScore, debt, tags);
         this.clientReference = clientReference;
         this.name = name;
         this.phone = phone;
@@ -100,7 +100,7 @@ public class Person {
         return address;
     }
 
-    /** Returns the card details, or null for a legacy profile. */
+    /** Returns the card details, or null if the profile has no card. */
     public CardDetails getCardDetails() {
         return cardDetails;
     }

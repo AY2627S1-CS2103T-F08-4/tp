@@ -35,4 +35,14 @@ class PersonCardTest {
 
         assertEquals("", PersonCard.formatCardDetails(person));
     }
+
+    @Test
+    void formatCardDetails_referencedPersonWithoutCard_returnsEmptyText() {
+        var withCard = new PersonBuilder().withClientReference("C0001").build();
+        var withoutCard = new Person(withCard.getClientReference(), withCard.getName(), withCard.getPhone(),
+                withCard.getEmail(), withCard.getAddress(), null, withCard.getCreditScore(),
+                withCard.getDebt(), withCard.getTags());
+
+        assertEquals("", PersonCard.formatCardDetails(withoutCard));
+    }
 }

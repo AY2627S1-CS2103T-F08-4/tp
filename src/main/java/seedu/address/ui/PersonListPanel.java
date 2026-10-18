@@ -8,6 +8,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.Person;
 
 /**
@@ -27,6 +28,23 @@ public class PersonListPanel extends UiPart<Region> {
         super(FXML);
         personListView.setItems(personList);
         personListView.setCellFactory(listView -> new PersonListViewCell());
+    }
+
+    /** Returns the reference of the selected client, if one is selected. */
+    ClientReference getSelectedClientReference() {
+        Person selected = personListView.getSelectionModel().getSelectedItem();
+        return selected == null ? null : selected.getClientReference();
+    }
+
+    /** Restores selection after the list replaces a client with updated details. */
+    void selectClientByReference(ClientReference reference) {
+        if (reference == null) {
+            return;
+        }
+        personListView.getItems().stream()
+                .filter(person -> reference.equals(person.getClientReference()))
+                .findFirst()
+                .ifPresent(person -> personListView.getSelectionModel().select(person));
     }
 
     /**
