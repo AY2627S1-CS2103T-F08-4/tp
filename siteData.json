@@ -118,7 +118,7 @@
         "listing-all-persons-list": "Listing all persons: list",
         "viewing-client-timestamps": "Viewing client timestamps",
         "editing-a-person-edit": "Editing a person: edit",
-        "locating-persons-by-name-find": "Locating persons by name: find",
+        "locating-persons-by-name-phone-number-or-card-number-find": "Locating persons by name, phone number or card number: find",
         "deleting-a-person-delete": "Deleting a person: delete",
         "clearing-all-entries-clear": "Clearing all entries: clear",
         "exiting-the-program-exit": "Exiting the program: exit",
