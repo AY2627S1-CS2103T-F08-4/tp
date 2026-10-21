@@ -68,9 +68,9 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
-        phone.setText(person.getPhone().map(value -> value.value).orElse(""));
-        address.setText(person.getAddress().map(value -> value.value).orElse(""));
-        email.setText(person.getEmail().map(value -> value.value).orElse(""));
+        setOptionalLabel(phone, person.getPhone().map(value -> value.value).orElse(""));
+        setOptionalLabel(address, person.getAddress().map(value -> value.value).orElse(""));
+        setOptionalLabel(email, person.getEmail().map(value -> value.value).orElse(""));
         setOptionalLabel(clientReference, person.getClientReference() == null
                 ? "" : "Client reference: " + person.getClientReference().value);
         setOptionalLabel(cardDetails, formatCardDetails(person));
