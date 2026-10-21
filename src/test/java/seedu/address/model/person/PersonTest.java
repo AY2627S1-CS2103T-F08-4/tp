@@ -12,6 +12,8 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.time.Instant;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.testutil.PersonBuilder;
@@ -44,6 +46,16 @@ public class PersonTest {
         assertEquals(client, sameClient);
         assertEquals(client.hashCode(), sameClient.hashCode());
         assertFalse(client.equals(new PersonBuilder(client).withClientReference("C0002").build()));
+    }
+
+    @Test
+    public void timestamps_affectValueEqualityButNotIdentity() {
+        Person original = new PersonBuilder(ALICE).withClientReference("C0001").build();
+        Person stamped = original.withTimestamps(Instant.parse("2026-03-15T01:42:00Z"),
+                Instant.parse("2026-10-12T06:18:00Z"));
+
+        assertTrue(original.isSamePerson(stamped));
+        assertFalse(original.equals(stamped));
     }
 
     @Test

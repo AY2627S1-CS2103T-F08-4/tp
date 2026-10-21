@@ -1,5 +1,8 @@
 package seedu.address.logic;
 
+import static java.util.Objects.requireNonNull;
+
+import java.time.Clock;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -37,21 +40,28 @@ public class LogicManager implements Logic {
     private final AddressBookParser addressBookParser;
     private final String startupMessage;
     private final boolean protectedMode;
+    private final Clock clock;
 
     /**
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
      */
     public LogicManager(Model model, Storage storage) {
-        this(model, storage, "", false);
+        this(model, storage, "", false, Clock.systemUTC());
     }
 
     /** Creates logic with the result of loading client data at startup. */
     public LogicManager(Model model, Storage storage, String startupMessage, boolean protectedMode) {
+        this(model, storage, startupMessage, protectedMode, Clock.systemUTC());
+    }
+
+    /** Creates logic with a clock shared by each staged model. */
+    LogicManager(Model model, Storage storage, String startupMessage, boolean protectedMode, Clock clock) {
         this.model = model;
         this.addressBookSync = new AddressBookSync(storage);
         addressBookParser = new AddressBookParser();
         this.startupMessage = startupMessage;
         this.protectedMode = protectedMode;
+        this.clock = requireNonNull(clock);
     }
 
     @Override
@@ -64,7 +74,7 @@ public class LogicManager implements Logic {
                 throw new CommandException(command instanceof NoteCommand
                         ? NOTE_LOAD_FAILURE_MESSAGE : LOAD_FAILURE_MESSAGE);
             }
-            Model stagedModel = new ModelManager(model.getAddressBook(), model.getUserPrefs());
+            ModelManager stagedModel = new ModelManager(model.getAddressBook(), model.getUserPrefs(), clock);
             stagedModel.updateFilteredPersonList(model.getFilteredPersonListPredicate());
             CommandResult result = command.execute(stagedModel);
             try {
@@ -74,6 +84,11 @@ public class LogicManager implements Logic {
             }
             model.setAddressBook(stagedModel.getAddressBook());
             model.updateFilteredPersonList(stagedModel.getFilteredPersonListPredicate());
+            stagedModel.getTimestampChange().ifPresent(change -> {
+                String reference = change.reference() == null ? "unreferenced profile" : change.reference();
+                logger.info("Timestamp " + change.action() + " for " + reference
+                        + ": createdAt=" + change.createdAt() + ", lastModifiedAt=" + change.lastModifiedAt());
+            });
             return result;
         }
         return command.execute(model);

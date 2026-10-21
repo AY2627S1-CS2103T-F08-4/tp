@@ -108,6 +108,19 @@ Shows a list of all persons in the address book.
 
 Format: `list`
 
+### Viewing client timestamps
+
+Client cards show read-only `Created` and `Last Modified` times below the other client details. They appear automatically when clients are displayed after `add`, `list`, or `find`; there is no timestamp command. Times use your computer's local time in `yyyy-MM-dd HH:mm` format. For example:
+
+```text
+Created:        2026-03-15 09:42
+Last Modified:  2026-10-12 14:18
+```
+
+For a newly added client, both times are the same. A successful `edit` changes `Last Modified` even when the entered values match the existing values, while `Created` stays the same. Viewing clients with `list` or `find` does not change either time. Timestamps cannot be edited through commands.
+
+Older saved profiles may lack timestamps. If one time is available, the card shows only that time. If both are unavailable, it shows `Timestamp information is unavailable for this profile.` once. Editing an older profile adds a `Last Modified` time but does not invent a `Created` time.
+
 ### Editing a person: `edit`
 
 Edits an existing person in the address book.
@@ -193,7 +206,7 @@ AddressBook data is saved automatically as a plaintext JSON file `[JAR file loca
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid or unreadable, AddressBook starts with an empty list in protected mode and shows `Unable to load client data. Existing data was not changed. Add and delete are disabled for this session.` All data-changing commands are disabled until you fix the file and restart; the existing file is not overwritten. Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid or unreadable, including a malformed timestamp value, AddressBook starts with an empty list in protected mode and shows `Unable to load client data. Existing data was not changed. Add, delete, edit, and clear commands are disabled for this session.` All data-changing commands are disabled until you fix the file and restart; the existing file is not overwritten. Still, we recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 
