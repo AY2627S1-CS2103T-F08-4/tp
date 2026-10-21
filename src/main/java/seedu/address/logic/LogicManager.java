@@ -7,6 +7,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.NoteCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -22,6 +23,8 @@ public class LogicManager implements Logic {
     public static final String LOAD_FAILURE_MESSAGE = "Unable to load client data. Existing data was not changed. "
             + "Add, delete, edit, and clear commands are disabled for this session.";
     public static final String SAVE_FAILURE_MESSAGE = "Unable to save client data. No changes were made.";
+    public static final String NOTE_LOAD_FAILURE_MESSAGE = "Client data is unavailable because saved data could not "
+            + "be loaded. Restart TellerFlow after resolving the data problem.";
     public static final String FILE_OPS_ERROR_FORMAT = AddressBookSync.FILE_OPS_ERROR_FORMAT;
 
     public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
@@ -58,7 +61,8 @@ public class LogicManager implements Logic {
         Command command = addressBookParser.parseCommand(commandText);
         if (command.isDataChanging()) {
             if (protectedMode) {
-                throw new CommandException(LOAD_FAILURE_MESSAGE);
+                throw new CommandException(command instanceof NoteCommand
+                        ? NOTE_LOAD_FAILURE_MESSAGE : LOAD_FAILURE_MESSAGE);
             }
             Model stagedModel = new ModelManager(model.getAddressBook(), model.getUserPrefs());
             stagedModel.updateFilteredPersonList(model.getFilteredPersonListPredicate());

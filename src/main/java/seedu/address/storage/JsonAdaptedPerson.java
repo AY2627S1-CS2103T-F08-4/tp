@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Address;
@@ -20,6 +22,7 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.ServiceNote;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -41,6 +44,8 @@ class JsonAdaptedPerson {
     private final String creditScore;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private final String debt;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private final JsonNode serviceNote;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     /**
@@ -52,7 +57,8 @@ class JsonAdaptedPerson {
             @JsonProperty("email") String email, @JsonProperty("address") String address,
             @JsonProperty("cardDetails") JsonAdaptedCardDetails cardDetails,
             @JsonProperty("creditScore") String creditScore, @JsonProperty("debt") String debt,
-            @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+            @JsonProperty("tags") List<JsonAdaptedTag> tags,
+            @JsonProperty("serviceNote") JsonNode serviceNote) {
         this.clientReference = clientReference;
         this.name = name;
         this.phone = phone;
@@ -61,6 +67,7 @@ class JsonAdaptedPerson {
         this.cardDetails = cardDetails;
         this.creditScore = creditScore;
         this.debt = debt;
+        this.serviceNote = serviceNote;
         if (tags != null) {
             this.tags.addAll(tags);
         }
@@ -69,7 +76,12 @@ class JsonAdaptedPerson {
     /** Creates an unreferenced person from the fields used by older data files. */
     public JsonAdaptedPerson(String name, String phone, String email, String address,
             JsonAdaptedCardDetails cardDetails, String creditScore, String debt, List<JsonAdaptedTag> tags) {
-        this(null, name, phone, email, address, cardDetails, creditScore, debt, tags);
+        this(null, name, phone, email, address, cardDetails, creditScore, debt, tags, null);
+    }
+
+    public JsonAdaptedPerson(String clientReference, String name, String phone, String email, String address,
+            JsonAdaptedCardDetails cardDetails, String creditScore, String debt, List<JsonAdaptedTag> tags) {
+        this(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags, null);
     }
 
     /**
@@ -84,6 +96,7 @@ class JsonAdaptedPerson {
         cardDetails = source.getCardDetails() == null ? null : new JsonAdaptedCardDetails(source.getCardDetails());
         creditScore = source.getCreditScore() == null ? null : source.getCreditScore().toString();
         debt = source.getDebt() == null ? null : source.getDebt().toString();
+        serviceNote = source.getServiceNote() == null ? null : TextNode.valueOf(source.getServiceNote().value);
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
@@ -95,6 +108,15 @@ class JsonAdaptedPerson {
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
     public Person toModelType() throws IllegalValueException {
+        final ServiceNote modelNote;
+        if (serviceNote == null || serviceNote.isNull()) {
+            modelNote = null;
+        } else if (!serviceNote.isTextual()
+                || !ServiceNote.isValidServiceNote(serviceNote.textValue())) {
+            throw new IllegalValueException(ServiceNote.MESSAGE_CONSTRAINTS);
+        } else {
+            modelNote = new ServiceNote(serviceNote.textValue());
+        }
         final ClientReference modelReference;
         if (clientReference == null) {
             modelReference = null;
@@ -145,7 +167,7 @@ class JsonAdaptedPerson {
         // Files saved before card and financial details were introduced remain valid.
         if (cardDetails == null && creditScore == null && debt == null) {
             if (modelReference == null) {
-                return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags);
+                return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelNote);
             }
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
                     CardDetails.class.getSimpleName()));
@@ -164,10 +186,10 @@ class JsonAdaptedPerson {
         try {
             if (modelReference != null) {
                 return new Person(modelReference, modelName, modelPhone, modelEmail, modelAddress,
-                        cardDetails.toModelType(), new CreditScore(creditScore), new Debt(debt), modelTags);
+                        cardDetails.toModelType(), new CreditScore(creditScore), new Debt(debt), modelTags, modelNote);
             }
             return new Person(modelName, modelPhone, modelEmail, modelAddress, cardDetails.toModelType(),
-                    new CreditScore(creditScore), new Debt(debt), modelTags);
+                    new CreditScore(creditScore), new Debt(debt), modelTags, modelNote);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
         }

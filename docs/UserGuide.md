@@ -27,13 +27,16 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
    ![Ui](images/Ui.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
+   Click a client in the list to see their details and service note in the pane beside it.
    Some example commands you can try:
 
    * `list` : Lists all contacts.
 
    * `add r/C0001 n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/0.00` : Adds a client named `John Doe` to the Address Book.
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+    * `delete 3` : Deletes the 3rd contact shown in the current list.
+
+    * `note r/C0001 s/Prefers morning appointments` : Adds or replaces that client's service note.
 
    * `clear` : Deletes all contacts.
 
@@ -138,6 +141,19 @@ Examples:
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
+### Maintaining a service note: `note`
+
+Each client can have one service note. The selected client's details pane shows the note below Address, or `(none)` when no note is saved.
+
+Format: `note r/REFERENCE s/NOTE`
+
+Both prefixes are required, in either order. The reference is case-insensitive. A note can contain up to 200 printable characters on one line; leading and trailing spaces are removed. Setting a note replaces the previous one. Use `s/` with no value to clear it.
+
+Examples:
+* `note r/C0001 s/Prefers morning appointments`
+* `note s/Hearing impaired, speak clearly r/c0001`
+* `note r/C0001 s/`
+
 ### Deleting a person: `delete`
 
 Deletes the specified person from the address book.
@@ -211,4 +227,5 @@ Action     | Format, Examples
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
+**Note**   | `note r/REFERENCE s/NOTE`<br> e.g., `note r/C0001 s/Prefers morning appointments`
 **Help**   | `help`

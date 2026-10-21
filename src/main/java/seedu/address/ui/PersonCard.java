@@ -1,10 +1,7 @@
 package seedu.address.ui;
 
-import java.util.Comparator;
-
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import seedu.address.model.person.Person;
@@ -33,21 +30,7 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label id;
     @FXML
-    private Label phone;
-    @FXML
-    private Label address;
-    @FXML
-    private Label email;
-    @FXML
     private Label clientReference;
-    @FXML
-    private Label cardDetails;
-    @FXML
-    private Label creditScore;
-    @FXML
-    private Label debt;
-    @FXML
-    private FlowPane tags;
 
     /**
      * Creates a {@code PersonCard} with the given {@code Person} and index to display.
@@ -57,19 +40,10 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
-        phone.setText(person.getPhone().value);
-        address.setText(person.getAddress().value);
-        email.setText(person.getEmail().value);
-        setOptionalLabel(clientReference, person.getClientReference() == null
-                ? "" : "Client reference: " + person.getClientReference().value);
-        setOptionalLabel(cardDetails, formatCardDetails(person));
-        setOptionalLabel(creditScore, person.getCreditScore() == null
-                ? "" : "Credit score: " + person.getCreditScore());
-        setOptionalLabel(debt, person.getDebt() == null
-                ? "" : "Debt: " + person.getDebt());
-        person.getTags().stream()
-                .sorted(Comparator.comparing(tag -> tag.tagName))
-                .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+        clientReference.setText(person.getClientReference() == null
+                ? "" : person.getClientReference().value);
+        clientReference.setVisible(person.getClientReference() != null);
+        clientReference.setManaged(person.getClientReference() != null);
     }
 
     /** Returns a display-safe summary of a person's card details. */
@@ -86,10 +60,4 @@ public class PersonCard extends UiPart<Region> {
                 + " exp " + person.getCardDetails().getExpiryDate();
     }
 
-    private static void setOptionalLabel(Label label, String text) {
-        boolean hasValue = ((text != null) && (!text.isBlank()));
-        label.setText(text);
-        label.setVisible(hasValue);
-        label.setManaged(hasValue);
-    }
 }

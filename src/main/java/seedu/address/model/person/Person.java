@@ -28,12 +28,18 @@ public class Person {
     private final CardDetails cardDetails;
     private final CreditScore creditScore;
     private final Debt debt;
+    private final ServiceNote serviceNote;
     private final Set<Tag> tags = new HashSet<>();
 
     /**
      * Creates a legacy profile without card or financial details.
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
+        this(name, phone, email, address, tags, null);
+    }
+
+    /** Creates a legacy profile with an optional service note. */
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, ServiceNote serviceNote) {
         requireAllNonNull(name, phone, email, address, tags);
         this.clientReference = null;
         this.name = name;
@@ -43,6 +49,7 @@ public class Person {
         this.cardDetails = null;
         this.creditScore = null;
         this.debt = null;
+        this.serviceNote = serviceNote;
         this.tags.addAll(tags);
     }
 
@@ -51,6 +58,12 @@ public class Person {
      */
     public Person(Name name, Phone phone, Email email, Address address, CardDetails cardDetails,
             CreditScore creditScore, Debt debt, Set<Tag> tags) {
+        this(name, phone, email, address, cardDetails, creditScore, debt, tags, null);
+    }
+
+    /** Creates an unreferenced profile with card details and an optional service note. */
+    public Person(Name name, Phone phone, Email email, Address address, CardDetails cardDetails,
+            CreditScore creditScore, Debt debt, Set<Tag> tags, ServiceNote serviceNote) {
         requireAllNonNull(name, phone, email, address, cardDetails, creditScore, debt, tags);
         this.clientReference = null;
         this.name = name;
@@ -60,6 +73,7 @@ public class Person {
         this.cardDetails = cardDetails;
         this.creditScore = creditScore;
         this.debt = debt;
+        this.serviceNote = serviceNote;
         this.tags.addAll(tags);
     }
 
@@ -68,6 +82,12 @@ public class Person {
      */
     public Person(ClientReference clientReference, Name name, Phone phone, Email email, Address address,
             CardDetails cardDetails, CreditScore creditScore, Debt debt, Set<Tag> tags) {
+        this(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags, null);
+    }
+
+    /** Creates a referenced client with an optional service note. */
+    public Person(ClientReference clientReference, Name name, Phone phone, Email email, Address address,
+            CardDetails cardDetails, CreditScore creditScore, Debt debt, Set<Tag> tags, ServiceNote serviceNote) {
         requireAllNonNull(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags);
         this.clientReference = clientReference;
         this.name = name;
@@ -77,6 +97,7 @@ public class Person {
         this.cardDetails = cardDetails;
         this.creditScore = creditScore;
         this.debt = debt;
+        this.serviceNote = serviceNote;
         this.tags.addAll(tags);
     }
 
@@ -113,6 +134,10 @@ public class Person {
     /** Returns the debt, or null for a legacy profile. */
     public Debt getDebt() {
         return debt;
+    }
+
+    public ServiceNote getServiceNote() {
+        return serviceNote;
     }
 
     /**
@@ -164,13 +189,15 @@ public class Person {
                 && Objects.equals(cardDetails, otherPerson.cardDetails)
                 && Objects.equals(creditScore, otherPerson.creditScore)
                 && Objects.equals(debt, otherPerson.debt)
+                && Objects.equals(serviceNote, otherPerson.serviceNote)
                 && tags.equals(otherPerson.tags);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags);
+        return Objects.hash(clientReference, name, phone, email, address, cardDetails, creditScore, debt,
+                serviceNote, tags);
     }
 
     @Override
