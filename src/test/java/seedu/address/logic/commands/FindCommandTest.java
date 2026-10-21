@@ -24,6 +24,7 @@ import seedu.address.model.UserPrefs;
 import seedu.address.model.person.FindPersonPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.testutil.PersonBuilder;
 
 /**
  * Contains integration tests (interaction with the Model) for {@code FindCommand}.
@@ -105,6 +106,27 @@ public class FindCommandTest {
     @Test
     public void execute_phoneNumbers_multiplePersonsFound() throws ParseException {
         assertSearchResult("p/95352563 9482427", List.of(CARL, FIONA));
+    }
+
+    @Test
+    public void execute_cardNumber_findsAllProfilesWithFullNumber() throws ParseException {
+        Person first = new PersonBuilder(CARL).withCardDetails("0012  3456", "123", "12/28", "Visa").build();
+        Person second = new PersonBuilder(FIONA).withCardDetails("0012  3456", "456", "11/29", "Visa").build();
+        Person legacy = new Person(ELLE.getName(), ELLE.getPhone(), ELLE.getEmail(), ELLE.getAddress(), ELLE.getTags());
+        model.setPerson(CARL, first);
+        model.setPerson(FIONA, second);
+        model.setPerson(ELLE, legacy);
+        expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+
+        assertSearchResult("cn/0012  3456", List.of(first, second));
+        assertSearchResult("cn/3456", List.of());
+        assertSearchResult("cn/12  3456", List.of());
+        assertSearchResult("cn/0012  3456 n/arl", List.of(first));
+        assertSearchResult("p/9482427 cn/0012  3456", List.of(second));
+        assertSearchResult("n/arl p/95352563 cn/0012  3456", List.of(first));
+        assertSearchResult("n/arl p/9482427 cn/0012  3456", List.of());
+        assertSearchResult("n/arl cn/9999", List.of());
+        assertSearchResult("p/95352563", List.of(first));
     }
 
     @Test

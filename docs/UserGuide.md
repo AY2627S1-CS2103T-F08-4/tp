@@ -121,22 +121,26 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
 
-### Locating persons by name or phone number: `find`
+### Locating persons by name, phone number or card number: `find`
 
-Finds persons by partial name keywords, full phone numbers, or both.
+Finds persons by partial name keywords, full phone numbers, a full card number, or a combination of these.
 
-Format: `find [n/KEYWORD [MORE_KEYWORDS]...] [p/PHONE_NUMBER [MORE_PHONE_NUMBERS]...]`
+Format: `find [n/KEYWORD [MORE_KEYWORDS]...] [p/PHONE_NUMBER [MORE_PHONE_NUMBERS]...] [cn/CARD_NUMBER]`
 
-* Supply at least one of `n/` or `p/`. Each prefix may appear only once and must have at least one value.
+* Supply at least one of `n/`, `p/` or `cn/`. Each prefix may appear only once and must have a nonblank value.
 * Use `n/` for names. Bare keywords such as `find Alice` are invalid; use `find n/Alice`.
 * Name searches are case-insensitive; for example, `find n/hans` matches `Hans`.
 * Name keywords match any contiguous part of a name word; for example, `Han`, `ans` and `ns` all match `Hans`.
 * Use `p/` for phone numbers. Each number must contain 3-15 digits and must match the entire stored number,
   including leading zeros. Phone fragments do not match longer numbers.
+* Use `cn/` for one complete card number. It must match the stored value exactly, including leading zeros,
+  internal spaces and hyphens. Leading and trailing whitespace is ignored. Partial or masked numbers do not match.
+  Profiles without recorded card details do not match a card search.
 * Separate multiple name keywords or phone numbers with spaces. Within each field, matching any value is enough
   (an `OR` search). For example, `find n/Hans Bo` returns `Hans Gruber` and `Bo Yang`.
-* When both `n/` and `p/` are supplied, a person must match at least one name keyword **and** at least one phone number.
-* The prefixes and the values within each field may be in any order.
+* When multiple prefixes are supplied, a person must match every supplied field (an `AND` search).
+  For example, `n/` and `p/` together require at least one name keyword **and** at least one phone number to match.
+* The prefixes may be in any order, as may name keywords and phone-number alternatives.
 * Each prefix searches only its own field. Other fields such as email, address and tags are not searched.
 
 Examples:
@@ -146,6 +150,9 @@ Examples:
 * `find p/91234567` returns all persons whose phone number is exactly `91234567`.
 * `find p/91234567 98765432` returns persons with either phone number.
 * `find n/lic p/91234567` returns persons whose names contain `lic` and whose phone number is `91234567`.
+* `find cn/4111111111111111` returns all persons with that exact recorded card number.
+* `find cn/4111 1111 1111 1111` matches the card number stored with those spaces.
+* `find n/lic p/91234567 cn/4111111111111111` returns persons matching all three fields.
 
 ### Deleting a person: `delete`
 
@@ -218,6 +225,6 @@ Action     | Format, Examples
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
-**Find**   | `find [n/KEYWORD [MORE_KEYWORDS]...] [p/PHONE_NUMBER [MORE_PHONE_NUMBERS]...]` (at least one prefix required)<br> e.g., `find n/Jam Jak` or `find p/91234567`
+**Find**   | `find [n/KEYWORD [MORE_KEYWORDS]...] [p/PHONE_NUMBER [MORE_PHONE_NUMBERS]...] [cn/CARD_NUMBER]` (at least one prefix required)<br> e.g., `find n/Jam Jak`, `find p/91234567` or `find cn/4111111111111111`
 **List**   | `list`
 **Help**   | `help`

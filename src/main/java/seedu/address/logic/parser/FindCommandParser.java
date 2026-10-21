@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CARD_NUMBER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
@@ -23,19 +24,27 @@ public class FindCommandParser implements Parser<FindCommand> {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public FindCommand parse(String args) throws ParseException {
-        // The tokenizer requires a space before each prefix, including the first one. This replaces
-        // tabs and newlines with a single space for robustness
-        String normalizedArgs = " " + args.replaceAll("\\s+", " ");
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(normalizedArgs, PREFIX_NAME, PREFIX_PHONE);
+        // Normalize whitespace before prefixes while preserving whitespace within stored card numbers.
+        String normalizedArgs = " " + args.replaceAll("\\s+(?=(?:n|p|cn)/)", " ");
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(normalizedArgs,
+                PREFIX_NAME, PREFIX_PHONE, PREFIX_CARD_NUMBER);
         if (!argMultimap.getPreamble().isEmpty()) {
             throw new ParseException(
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }
 
-        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE);
+        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_CARD_NUMBER);
         List<String> nameKeywords = parseKeywords(argMultimap, PREFIX_NAME);
         List<String> phoneKeywords = parseKeywords(argMultimap, PREFIX_PHONE);
-        if (nameKeywords.isEmpty() && phoneKeywords.isEmpty()) {
+        String cardNumber = null;
+        if (argMultimap.getValue(PREFIX_CARD_NUMBER).isPresent()) {
+            String value = argMultimap.getValue(PREFIX_CARD_NUMBER).get();
+            if (value.contains("/")) {
+                throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+            }
+            cardNumber = ParserUtil.parseCardNumber(value);
+        }
+        if (nameKeywords.isEmpty() && phoneKeywords.isEmpty() && cardNumber == null) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }
 
@@ -43,7 +52,7 @@ public class FindCommandParser implements Parser<FindCommand> {
         for (String phoneKeyword : phoneKeywords) {
             phoneNumbers.add(ParserUtil.parsePhone(phoneKeyword));
         }
-        return new FindCommand(new FindPersonPredicate(nameKeywords, phoneNumbers));
+        return new FindCommand(new FindPersonPredicate(nameKeywords, phoneNumbers, cardNumber));
     }
 
     /**

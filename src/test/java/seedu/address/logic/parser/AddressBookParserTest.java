@@ -83,6 +83,12 @@ public class AddressBookParserTest {
     }
 
     @Test
+    public void parseCommand_findByCard() throws Exception {
+        FindCommand command = (FindCommand) parser.parseCommand("find cn/0012345678901234");
+        assertEquals(new FindCommand(new FindPersonPredicate(List.of(), List.of(), "0012345678901234")), command);
+    }
+
+    @Test
     public void parseCommand_help() throws Exception {
         assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD) instanceof HelpCommand);
         assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD + " 3") instanceof HelpCommand);

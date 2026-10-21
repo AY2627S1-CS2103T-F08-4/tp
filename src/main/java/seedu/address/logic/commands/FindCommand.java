@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CARD_NUMBER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
@@ -10,21 +11,23 @@ import seedu.address.model.Model;
 import seedu.address.model.person.FindPersonPredicate;
 
 /**
- * Finds persons by partial name keywords and/or full phone numbers.
- * Keywords within a field are alternatives; both fields must match when both are supplied.
+ * Finds persons by partial name keywords, full phone numbers, and/or a full card number.
+ * Keywords within a field are alternatives; all supplied fields must match.
  */
 public class FindCommand extends Command {
 
     public static final String COMMAND_WORD = "find";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds persons by name and/or phone number "
+    public static final String MESSAGE_USAGE = COMMAND_WORD
+            + ": Finds persons by name, phone number and/or card number "
             + "and displays them as a list with index numbers. Names allow case-insensitive partial matches; "
-            + "phone numbers must match in full. Both fields must match when both are supplied.\n"
+            + "phone and card numbers must match in full. All supplied fields must match.\n"
             + "Parameters: [" + PREFIX_NAME + "KEYWORD [MORE_KEYWORDS]...] [" + PREFIX_PHONE
-            + "PHONE_NUMBER [MORE_PHONE_NUMBERS]...]\n"
+            + "PHONE_NUMBER [MORE_PHONE_NUMBERS]...] [" + PREFIX_CARD_NUMBER + "CARD_NUMBER]\n"
             + "At least one prefix is required; each prefix may appear only once.\n"
             + "Example: " + COMMAND_WORD + " " + PREFIX_NAME + "alice bob\n"
-            + "Example: " + COMMAND_WORD + " " + PREFIX_PHONE + "91234567";
+            + "Example: " + COMMAND_WORD + " " + PREFIX_PHONE + "91234567\n"
+            + "Example: " + COMMAND_WORD + " " + PREFIX_CARD_NUMBER + "4111111111111111";
 
     private final FindPersonPredicate predicate;
 

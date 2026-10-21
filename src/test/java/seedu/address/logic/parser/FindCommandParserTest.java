@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.getErrorMessageForDuplicatePrefixes;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CARD_NUMBER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
@@ -12,6 +13,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.FindCommand;
+import seedu.address.model.person.CardDetails;
 import seedu.address.model.person.FindPersonPredicate;
 import seedu.address.model.person.Phone;
 
@@ -53,6 +55,37 @@ public class FindCommandParserTest {
     }
 
     @Test
+    public void parse_cardNumber_preservesFullValue() {
+        for (String card : List.of("0012345678901234", "4111  1111 1111 1111", "4111-1111-1111-1111")) {
+            FindCommand expected = new FindCommand(new FindPersonPredicate(List.of(), List.of(), card));
+            assertParseSuccess(parser, "cn/" + card, expected);
+            assertParseSuccess(parser, " \t cn/ " + card + " \n ", expected);
+        }
+    }
+
+    @Test
+    public void parse_cardWithOtherFields_inAnyOrder() {
+        FindCommand expected = new FindCommand(new FindPersonPredicate(List.of("lic"),
+                List.of(new Phone("91234567")), "4111111111111111"));
+        for (String args : List.of("n/lic p/91234567 cn/4111111111111111",
+                "cn/4111111111111111 n/lic p/91234567", "p/91234567 cn/4111111111111111 n/lic",
+                "\tn/lic\np/91234567\tcn/4111111111111111")) {
+            assertParseSuccess(parser, args, expected);
+        }
+        assertParseSuccess(parser, "n/lic cn/4111111111111111",
+                new FindCommand(new FindPersonPredicate(List.of("lic"), List.of(), "4111111111111111")));
+        assertParseSuccess(parser, "cn/4111111111111111 p/91234567",
+                new FindCommand(new FindPersonPredicate(List.of(), List.of(new Phone("91234567")),
+                        "4111111111111111")));
+    }
+
+    @Test
+    public void parse_emptyCard_throwsParseException() {
+        assertParseFailure(parser, "cn/ \t ", CardDetails.CARD_NUMBER_MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "cn/ n/Alice", CardDetails.CARD_NUMBER_MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
     public void parse_missingPrefixOrUnexpectedPreamble_throwsParseException() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "Alice Bob", expectedMessage);
@@ -77,6 +110,8 @@ public class FindCommandParserTest {
         assertParseFailure(parser, "p/91234567 p/98765432", getErrorMessageForDuplicatePrefixes(PREFIX_PHONE));
         assertParseFailure(parser, "n/Alice p/91234567 n/Bob p/98765432",
                 getErrorMessageForDuplicatePrefixes(PREFIX_NAME, PREFIX_PHONE));
+        assertParseFailure(parser, "cn/4111111111111111 cn/5555555555554444",
+                getErrorMessageForDuplicatePrefixes(PREFIX_CARD_NUMBER));
     }
 
     @Test
@@ -86,6 +121,8 @@ public class FindCommandParserTest {
         assertParseFailure(parser, "n/Alice t/friends", expectedMessage);
         assertParseFailure(parser, "p/91234567 e/alice@example.com", expectedMessage);
         assertParseFailure(parser, "n/Alice p/91234567 t/friends", expectedMessage);
+        assertParseFailure(parser, "cn/4111111111111111 cvv/123", expectedMessage);
+        assertParseFailure(parser, "cn/4111111111111111\te/alice@example.com", expectedMessage);
     }
 
     @Test
