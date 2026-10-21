@@ -14,8 +14,9 @@ import seedu.address.model.tag.Tag;
 
 /**
  * Represents a Person in the address book.
- * Guarantees: contact details are present, field values are validated, immutable.
- * Legacy profiles may have no card or financial details.
+ * Guarantees: name and tags are non-null, supplied field values are validated, immutable.
+ * Contact, card, and financial details may be absent independently. A present card contains all four card fields.
+ * Referenced clients require a client reference; legacy profiles may remain unreferenced.
  */
 public class Person {
 
@@ -35,29 +36,20 @@ public class Person {
     private final Instant lastModifiedAt;
 
     /**
-     * Creates a legacy profile without card or financial details.
+     * Creates an unreferenced legacy profile without card or financial details.
+     * Name and tags must be non-null; contact details may be null when not recorded.
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, address, tags);
-        this.clientReference = null;
-        this.name = name;
-        this.phone = phone;
-        this.email = email;
-        this.address = address;
-        this.cardDetails = null;
-        this.creditScore = null;
-        this.debt = null;
-        this.tags.addAll(tags);
-        this.createdAt = null;
-        this.lastModifiedAt = null;
+        this(name, phone, email, address, null, null, null, tags);
     }
 
     /**
-     * Every field must be present and not null.
+     * Creates an unreferenced legacy profile, retaining any recorded details.
+     * Name and tags must be non-null; contact, card, and financial details may each be null when not recorded.
      */
     public Person(Name name, Phone phone, Email email, Address address, CardDetails cardDetails,
             CreditScore creditScore, Debt debt, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, address, cardDetails, creditScore, debt, tags);
+        requireAllNonNull(name, tags);
         this.clientReference = null;
         this.name = name;
         this.phone = phone;
@@ -72,11 +64,12 @@ public class Person {
     }
 
     /**
-     * Creates a referenced client while retaining its card, financial, and tag details.
+     * Creates a referenced client with a non-null reference, name, and tag set.
+     * Contact, card, and financial details may each be null when not recorded.
      */
     public Person(ClientReference clientReference, Name name, Phone phone, Email email, Address address,
             CardDetails cardDetails, CreditScore creditScore, Debt debt, Set<Tag> tags) {
-        requireAllNonNull(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags);
+        requireAllNonNull(clientReference, name, tags);
         this.clientReference = clientReference;
         this.name = name;
         this.phone = phone;
@@ -117,32 +110,32 @@ public class Person {
         return name;
     }
 
-    /** Returns a non-null Optional containing the required phone. */
+    /** Returns a non-null Optional, empty when no phone is recorded. */
     public Optional<Phone> getPhone() {
         return Optional.ofNullable(phone);
     }
 
-    /** Returns a non-null Optional containing the required email. */
+    /** Returns a non-null Optional, empty when no email is recorded. */
     public Optional<Email> getEmail() {
         return Optional.ofNullable(email);
     }
 
-    /** Returns a non-null Optional containing the required address. */
+    /** Returns a non-null Optional, empty when no address is recorded. */
     public Optional<Address> getAddress() {
         return Optional.ofNullable(address);
     }
 
-    /** Returns a non-null Optional, empty when the legacy profile has no card details. */
+    /** Returns a non-null Optional, empty when no card details are recorded. */
     public Optional<CardDetails> getCardDetails() {
         return Optional.ofNullable(cardDetails);
     }
 
-    /** Returns a non-null Optional, empty when the legacy profile has no credit score. */
+    /** Returns a non-null Optional, empty when no credit score is recorded. */
     public Optional<CreditScore> getCreditScore() {
         return Optional.ofNullable(creditScore);
     }
 
-    /** Returns a non-null Optional, empty when the legacy profile has no debt recorded. */
+    /** Returns a non-null Optional, empty when no debt is recorded. */
     public Optional<Debt> getDebt() {
         return Optional.ofNullable(debt);
     }
@@ -200,9 +193,9 @@ public class Person {
 
         return Objects.equals(clientReference, otherPerson.clientReference)
                 && name.equals(otherPerson.name)
-                && phone.equals(otherPerson.phone)
-                && email.equals(otherPerson.email)
-                && address.equals(otherPerson.address)
+                && Objects.equals(phone, otherPerson.phone)
+                && Objects.equals(email, otherPerson.email)
+                && Objects.equals(address, otherPerson.address)
                 && Objects.equals(cardDetails, otherPerson.cardDetails)
                 && Objects.equals(creditScore, otherPerson.creditScore)
                 && Objects.equals(debt, otherPerson.debt)
