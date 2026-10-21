@@ -106,9 +106,6 @@ public class EditCommand extends Command {
                     updatedAddress, personToEdit.getCardDetails().orElse(null),
                     personToEdit.getCreditScore().orElse(null), personToEdit.getDebt().orElse(null), updatedTags);
         }
-        if (personToEdit.getCardDetails().isEmpty()) {
-            return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags);
-        }
         return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress,
                 personToEdit.getCardDetails().orElse(null), personToEdit.getCreditScore().orElse(null),
                 personToEdit.getDebt().orElse(null), updatedTags);
