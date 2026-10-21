@@ -8,6 +8,9 @@ import static seedu.address.testutil.Assert.assertThrows;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,6 +68,40 @@ public class NoteCommandIntegrationTest {
         assertNull(loadedNote());
         assertThrows(CommandException.class, "Client C0001 has no service note to clear.", () ->
                 logic.execute("note r/C0001 s/"));
+    }
+
+    @Test
+    public void execute_noteAndEdit_preserveNoteAndCreationTimeAcrossReloads() throws Exception {
+        Instant createdAt = model.getAddressBook().getPersonList().getFirst().getCreatedAt();
+        Instant noteAddedAt = createdAt.plusSeconds(60);
+        Instant editedAt = createdAt.plusSeconds(120);
+        Instant noteUpdatedAt = createdAt.plusSeconds(180);
+        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json")));
+
+        logic = new LogicManager(model, storage, "", false, Clock.fixed(noteAddedAt, ZoneOffset.UTC));
+        logic.execute("note r/C0001 s/Prefers mornings");
+        var savedAfterNote = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow()
+                .getPersonList().getFirst();
+        assertEquals("Prefers mornings", savedAfterNote.getServiceNote().value);
+        assertEquals(createdAt, savedAfterNote.getCreatedAt());
+        assertEquals(noteAddedAt, savedAfterNote.getLastModifiedAt());
+
+        logic = new LogicManager(model, storage, "", false, Clock.fixed(editedAt, ZoneOffset.UTC));
+        logic.execute("edit 1 p/91234567");
+        var savedAfterEdit = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow()
+                .getPersonList().getFirst();
+        assertEquals("Prefers mornings", savedAfterEdit.getServiceNote().value);
+        assertEquals(createdAt, savedAfterEdit.getCreatedAt());
+        assertEquals(editedAt, savedAfterEdit.getLastModifiedAt());
+
+        logic = new LogicManager(model, storage, "", false, Clock.fixed(noteUpdatedAt, ZoneOffset.UTC));
+        logic.execute("note r/C0001 s/Prefers afternoons");
+        var savedAfterUpdate = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow()
+                .getPersonList().getFirst();
+        assertEquals("Prefers afternoons", savedAfterUpdate.getServiceNote().value);
+        assertEquals(createdAt, savedAfterUpdate.getCreatedAt());
+        assertEquals(noteUpdatedAt, savedAfterUpdate.getLastModifiedAt());
     }
 
     @Test

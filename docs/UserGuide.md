@@ -27,7 +27,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
    ![Ui](images/Ui.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
-   Click a client in the list to see their details and service note in the pane beside it.
+   Click a client in the list to see their details, timestamps, and service note in the pane beside it.
    Some example commands you can try:
 
    * `list` : Lists all contacts.
@@ -110,7 +110,7 @@ Format: `list`
 
 ### Viewing client timestamps
 
-Client cards show read-only `Created` and `Last Modified` times below the other client details. They appear automatically when clients are displayed after `add`, `list`, or `find`; there is no timestamp command. Times use your computer's local time in `yyyy-MM-dd HH:mm` format. For example:
+Select a client to see read-only `Created` and `Last Modified` times under **Profile history** in the side panel. They appear after `add`, `list`, or `find` when a client is selected; there is no timestamp command. Times use your computer's local time in `yyyy-MM-dd HH:mm` format. For example:
 
 ```text
 Created:        2026-03-15 09:42
@@ -119,7 +119,7 @@ Last Modified:  2026-10-12 14:18
 
 For a newly added client, both times are the same. A successful `edit` changes `Last Modified` even when the entered values match the existing values, while `Created` stays the same. Viewing clients with `list` or `find` does not change either time. Timestamps cannot be edited through commands.
 
-Older saved profiles may lack timestamps. If one time is available, the card shows only that time. If both are unavailable, it shows `Timestamp information is unavailable for this profile.` once. Editing an older profile adds a `Last Modified` time but does not invent a `Created` time.
+Older saved profiles may lack timestamps. If one time is available, the side panel shows only that time. If both are unavailable, it shows `Timestamp information is unavailable for this profile.` once. Editing an older profile adds a `Last Modified` time but does not invent a `Created` time.
 
 ### Editing a person: `edit`
 
@@ -156,7 +156,7 @@ Examples:
 
 ### Maintaining a service note: `note`
 
-Each client can have one service note. The selected client's details pane shows the note below Address, or `(none)` when no note is saved.
+Each client can have one service note. It appears in the last section of the selected client's details pane, or as `(none)` when no note is saved.
 
 Format: `note r/REFERENCE s/NOTE`
 

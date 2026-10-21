@@ -119,6 +119,7 @@ public class Person {
         this.cardDetails = source.cardDetails;
         this.creditScore = source.creditScore;
         this.debt = source.debt;
+        this.serviceNote = source.serviceNote;
         this.tags.addAll(source.tags);
         this.createdAt = createdAt;
         this.lastModifiedAt = lastModifiedAt;

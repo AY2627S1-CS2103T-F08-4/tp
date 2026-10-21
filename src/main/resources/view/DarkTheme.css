@@ -327,7 +327,55 @@
 .client-details .label {
     -fx-font-family: "Segoe UI";
     -fx-font-size: 13px;
-    -fx-text-fill: white;
+    -fx-text-fill: #e8eef1;
+    -fx-opacity: 1;
+}
+
+.client-details .details-name {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 23px;
+    -fx-text-fill: #ffffff;
+}
+
+.client-details .details-reference {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 12px;
+    -fx-text-fill: #83c9dc;
+}
+
+.client-details .details-section {
+    -fx-border-color: #505b60 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 12 0 0 0;
+}
+
+.client-details .details-section-title {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 11px;
+    -fx-text-fill: #83c9dc;
+}
+
+.client-details .details-caption,
+.client-details .details-muted,
+.client-details .details-empty {
+    -fx-text-fill: #aebcc2;
+}
+
+.client-details .details-value,
+.client-details .details-note-text {
+    -fx-text-fill: #e8eef1;
+}
+
+.client-details .details-note-block {
+    -fx-background-color: #414b50;
+    -fx-background-radius: 4;
+    -fx-border-color: transparent transparent transparent #3e7b91;
+    -fx-border-width: 0 0 0 3;
+    -fx-padding: 12;
+}
+
+.client-details .details-note-text {
+    -fx-font-size: 14px;
 }
 
 .client-details #tags .label {

@@ -90,15 +90,18 @@ class JsonAdaptedPerson {
         this(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags, null, null, null);
     }
 
-    /** Creates an unreferenced person from the fields used by older data files. */
-    public JsonAdaptedPerson(String name, String phone, String email, String address,
-                             JsonAdaptedCardDetails cardDetails, String creditScore, String debt, List<JsonAdaptedTag> tags) {
-        this(null, name, phone, email, address, cardDetails, creditScore, debt, tags, null, null, null);
+    /** Creates a person with timestamps and no service note. */
+    public JsonAdaptedPerson(String clientReference, String name, String phone, String email, String address,
+            JsonAdaptedCardDetails cardDetails, String creditScore, String debt, List<JsonAdaptedTag> tags,
+            String createdAt, String lastModifiedAt) {
+        this(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags,
+                createdAt, lastModifiedAt, null);
     }
 
-    public JsonAdaptedPerson(String clientReference, String name, String phone, String email, String address,
+    /** Creates an unreferenced person from the fields used by older data files. */
+    public JsonAdaptedPerson(String name, String phone, String email, String address,
             JsonAdaptedCardDetails cardDetails, String creditScore, String debt, List<JsonAdaptedTag> tags) {
-        this(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags, null, null, null);
+        this(null, name, phone, email, address, cardDetails, creditScore, debt, tags, null, null, null);
     }
 
     /**
@@ -128,6 +131,8 @@ class JsonAdaptedPerson {
      */
     public Person toModelType() throws IllegalValueException {
         final ServiceNote modelNote;
+        // Jackson also supplies NullNode when an optional creator property is absent.
+        // JsonAddressBookStorage rejects explicit JSON null before reaching this adapter.
         if (serviceNote == null || serviceNote.isNull()) {
             modelNote = null;
         } else if (!serviceNote.isTextual()
@@ -188,8 +193,7 @@ class JsonAdaptedPerson {
         // Files saved before card and financial details were introduced remain valid.
         if (cardDetails == null && creditScore == null && debt == null) {
             if (modelReference == null) {
-                return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelNote);
-                return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags)
+                return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelNote)
                         .withTimestamps(modelCreatedAt, modelLastModifiedAt);
             }
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
@@ -209,13 +213,11 @@ class JsonAdaptedPerson {
         try {
             if (modelReference != null) {
                 return new Person(modelReference, modelName, modelPhone, modelEmail, modelAddress,
-                        cardDetails.toModelType(), new CreditScore(creditScore), new Debt(debt), modelTags, modelNote);
-                        cardDetails.toModelType(), new CreditScore(creditScore), new Debt(debt), modelTags)
+                        cardDetails.toModelType(), new CreditScore(creditScore), new Debt(debt), modelTags, modelNote)
                         .withTimestamps(modelCreatedAt, modelLastModifiedAt);
             }
             return new Person(modelName, modelPhone, modelEmail, modelAddress, cardDetails.toModelType(),
-                    new CreditScore(creditScore), new Debt(debt), modelTags, modelNote);
-                    new CreditScore(creditScore), new Debt(debt), modelTags)
+                    new CreditScore(creditScore), new Debt(debt), modelTags, modelNote)
                     .withTimestamps(modelCreatedAt, modelLastModifiedAt);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
