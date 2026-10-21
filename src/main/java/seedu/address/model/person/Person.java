@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
@@ -116,31 +117,34 @@ public class Person {
         return name;
     }
 
-    public Phone getPhone() {
-        return phone;
+    /** Returns a non-null Optional containing the required phone. */
+    public Optional<Phone> getPhone() {
+        return Optional.ofNullable(phone);
     }
 
-    public Email getEmail() {
-        return email;
+    /** Returns a non-null Optional containing the required email. */
+    public Optional<Email> getEmail() {
+        return Optional.ofNullable(email);
     }
 
-    public Address getAddress() {
-        return address;
+    /** Returns a non-null Optional containing the required address. */
+    public Optional<Address> getAddress() {
+        return Optional.ofNullable(address);
     }
 
-    /** Returns the card details, or null for a legacy profile. */
-    public CardDetails getCardDetails() {
-        return cardDetails;
+    /** Returns a non-null Optional, empty when the legacy profile has no card details. */
+    public Optional<CardDetails> getCardDetails() {
+        return Optional.ofNullable(cardDetails);
     }
 
-    /** Returns the credit score, or null for a legacy profile. */
-    public CreditScore getCreditScore() {
-        return creditScore;
+    /** Returns a non-null Optional, empty when the legacy profile has no credit score. */
+    public Optional<CreditScore> getCreditScore() {
+        return Optional.ofNullable(creditScore);
     }
 
-    /** Returns the debt, or null for a legacy profile. */
-    public Debt getDebt() {
-        return debt;
+    /** Returns a non-null Optional, empty when the legacy profile has no debt recorded. */
+    public Optional<Debt> getDebt() {
+        return Optional.ofNullable(debt);
     }
 
     /**

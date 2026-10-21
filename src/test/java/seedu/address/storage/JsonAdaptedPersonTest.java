@@ -1,6 +1,7 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static seedu.address.storage.JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -13,7 +14,10 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.CardDetails;
 import seedu.address.model.person.ClientReference;
@@ -21,6 +25,7 @@ import seedu.address.model.person.CreditScore;
 import seedu.address.model.person.Debt;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.testutil.PersonBuilder;
 
@@ -32,13 +37,13 @@ public class JsonAdaptedPersonTest {
     private static final String INVALID_TAG = "#friend";
 
     private static final String VALID_NAME = BENSON.getName().toString();
-    private static final String VALID_PHONE = BENSON.getPhone().toString();
-    private static final String VALID_EMAIL = BENSON.getEmail().toString();
-    private static final String VALID_ADDRESS = BENSON.getAddress().toString();
+    private static final String VALID_PHONE = BENSON.getPhone().orElseThrow().toString();
+    private static final String VALID_EMAIL = BENSON.getEmail().orElseThrow().toString();
+    private static final String VALID_ADDRESS = BENSON.getAddress().orElseThrow().toString();
     private static final JsonAdaptedCardDetails VALID_CARD_DETAILS =
-            new JsonAdaptedCardDetails(BENSON.getCardDetails());
-    private static final String VALID_CREDIT_SCORE = BENSON.getCreditScore().toString();
-    private static final String VALID_DEBT = BENSON.getDebt().toString();
+            new JsonAdaptedCardDetails(BENSON.getCardDetails().orElseThrow());
+    private static final String VALID_CREDIT_SCORE = BENSON.getCreditScore().orElseThrow().toString();
+    private static final String VALID_DEBT = BENSON.getDebt().orElseThrow().toString();
     private static final List<JsonAdaptedTag> VALID_TAGS = BENSON.getTags().stream()
             .map(JsonAdaptedTag::new)
             .collect(Collectors.toList());
@@ -74,6 +79,37 @@ public class JsonAdaptedPersonTest {
 
         assertThrows(IllegalValueException.class, JsonAdaptedPerson.INVALID_TIMESTAMP_MESSAGE,
                 adapted::toModelType);
+    }
+
+    @Test
+    public void serialization_completeProfile_writesPlainValues() throws Exception {
+        String serialized = JsonUtil.toJsonString(new JsonAdaptedPerson(BENSON));
+        JsonNode json = JsonUtil.fromJsonString(serialized, JsonNode.class);
+
+        assertEquals(VALID_PHONE, json.get("phone").textValue());
+        assertEquals(VALID_EMAIL, json.get("email").textValue());
+        assertEquals(VALID_ADDRESS, json.get("address").textValue());
+        assertEquals(JsonUtil.fromJsonString(JsonUtil.toJsonString(VALID_CARD_DETAILS), JsonNode.class),
+                json.get("cardDetails"));
+        assertEquals(VALID_CREDIT_SCORE, json.get("creditScore").textValue());
+        assertEquals(VALID_DEBT, json.get("debt").textValue());
+        assertEquals(BENSON, JsonUtil.fromJsonString(serialized, JsonAdaptedPerson.class).toModelType());
+    }
+
+    @Test
+    public void serialization_legacyProfile_omitsCardAndFinancialDetails() throws Exception {
+        Person legacy = new Person(BENSON.getName(), BENSON.getPhone().orElseThrow(),
+                BENSON.getEmail().orElseThrow(), BENSON.getAddress().orElseThrow(), BENSON.getTags());
+        String serialized = JsonUtil.toJsonString(new JsonAdaptedPerson(legacy));
+        JsonNode json = JsonUtil.fromJsonString(serialized, JsonNode.class);
+
+        assertEquals(VALID_PHONE, json.get("phone").textValue());
+        assertEquals(VALID_EMAIL, json.get("email").textValue());
+        assertEquals(VALID_ADDRESS, json.get("address").textValue());
+        assertFalse(json.has("cardDetails"));
+        assertFalse(json.has("creditScore"));
+        assertFalse(json.has("debt"));
+        assertEquals(legacy, JsonUtil.fromJsonString(serialized, JsonAdaptedPerson.class).toModelType());
     }
 
     @Test

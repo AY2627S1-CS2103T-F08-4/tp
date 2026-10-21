@@ -41,6 +41,24 @@ public class EditCommandTest {
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs(), TEST_CLOCK);
 
     @Test
+    public void execute_legacyProfile_preservesMissingCardAndFinancialDetails() {
+        Person source = model.getFilteredPersonList().getFirst();
+        Person legacy = new Person(source.getName(), source.getPhone().orElseThrow(), source.getEmail().orElseThrow(),
+                source.getAddress().orElseThrow(), source.getTags());
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(legacy);
+        model = new ModelManager(addressBook, new UserPrefs(), TEST_CLOCK);
+        Person editedPerson = new PersonBuilder(legacy).withPhone(VALID_PHONE_BOB).build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build());
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), TEST_CLOCK);
+        expectedModel.setPerson(legacy, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
         Person editedPerson = new PersonBuilder().build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(editedPerson).build();

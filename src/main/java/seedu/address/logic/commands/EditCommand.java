@@ -96,21 +96,22 @@ public class EditCommand extends Command {
         assert personToEdit != null;
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
-        Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone());
-        Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail());
-        Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
+        Phone updatedPhone = editPersonDescriptor.getPhone().or(personToEdit::getPhone).orElse(null);
+        Email updatedEmail = editPersonDescriptor.getEmail().or(personToEdit::getEmail).orElse(null);
+        Address updatedAddress = editPersonDescriptor.getAddress().or(personToEdit::getAddress).orElse(null);
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
         if (personToEdit.getClientReference() != null) {
             return new Person(personToEdit.getClientReference(), updatedName, updatedPhone, updatedEmail,
-                    updatedAddress, personToEdit.getCardDetails(), personToEdit.getCreditScore(),
-                    personToEdit.getDebt(), updatedTags);
+                    updatedAddress, personToEdit.getCardDetails().orElse(null),
+                    personToEdit.getCreditScore().orElse(null), personToEdit.getDebt().orElse(null), updatedTags);
         }
-        if (personToEdit.getCardDetails() == null) {
+        if (personToEdit.getCardDetails().isEmpty()) {
             return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags);
         }
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, personToEdit.getCardDetails(),
-                personToEdit.getCreditScore(), personToEdit.getDebt(), updatedTags);
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress,
+                personToEdit.getCardDetails().orElse(null), personToEdit.getCreditScore().orElse(null),
+                personToEdit.getDebt().orElse(null), updatedTags);
     }
 
     @Override

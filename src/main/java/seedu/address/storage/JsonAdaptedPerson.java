@@ -95,12 +95,12 @@ class JsonAdaptedPerson {
     public JsonAdaptedPerson(Person source) {
         clientReference = source.getClientReference() == null ? null : source.getClientReference().value;
         name = source.getName().fullName;
-        phone = source.getPhone().value;
-        email = source.getEmail().value;
-        address = source.getAddress().value;
-        cardDetails = source.getCardDetails() == null ? null : new JsonAdaptedCardDetails(source.getCardDetails());
-        creditScore = source.getCreditScore() == null ? null : source.getCreditScore().toString();
-        debt = source.getDebt() == null ? null : source.getDebt().toString();
+        phone = source.getPhone().map(value -> value.value).orElse(null);
+        email = source.getEmail().map(value -> value.value).orElse(null);
+        address = source.getAddress().map(value -> value.value).orElse(null);
+        cardDetails = source.getCardDetails().map(JsonAdaptedCardDetails::new).orElse(null);
+        creditScore = source.getCreditScore().map(Object::toString).orElse(null);
+        debt = source.getDebt().map(Object::toString).orElse(null);
         createdAt = source.getCreatedAt() == null ? null : source.getCreatedAt().toString();
         lastModifiedAt = source.getLastModifiedAt() == null ? null : source.getLastModifiedAt().toString();
         tags.addAll(source.getTags().stream()

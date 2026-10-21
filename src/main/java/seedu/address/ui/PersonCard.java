@@ -68,16 +68,14 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
-        phone.setText(person.getPhone().value);
-        address.setText(person.getAddress().value);
-        email.setText(person.getEmail().value);
+        phone.setText(person.getPhone().map(value -> value.value).orElse(""));
+        address.setText(person.getAddress().map(value -> value.value).orElse(""));
+        email.setText(person.getEmail().map(value -> value.value).orElse(""));
         setOptionalLabel(clientReference, person.getClientReference() == null
                 ? "" : "Client reference: " + person.getClientReference().value);
         setOptionalLabel(cardDetails, formatCardDetails(person));
-        setOptionalLabel(creditScore, person.getCreditScore() == null
-                ? "" : "Credit score: " + person.getCreditScore());
-        setOptionalLabel(debt, person.getDebt() == null
-                ? "" : "Debt: " + person.getDebt());
+        setOptionalLabel(creditScore, person.getCreditScore().map(value -> "Credit score: " + value).orElse(""));
+        setOptionalLabel(debt, person.getDebt().map(value -> "Debt: " + value).orElse(""));
         TimestampDisplay timestamps = formatTimestamps(person, ZoneId.systemDefault());
         setOptionalLabel(createdAt, timestamps.created());
         setOptionalLabel(lastModifiedAt, timestamps.lastModified());
@@ -89,16 +87,15 @@ public class PersonCard extends UiPart<Region> {
 
     /** Returns a display-safe summary of a person's card details. */
     static String formatCardDetails(Person person) {
-        if (person.getCardDetails() == null) {
-            return "";
-        }
-        String cardNumber = person.getCardDetails().getCardNumber();
-        String maskedCardNumber = cardNumber.length() <= 4
-                ? cardNumber
-                : "****" + cardNumber.substring(cardNumber.length() - 4);
-        return "Card: " + person.getCardDetails().getProvider()
-                + " " + maskedCardNumber
-                + " exp " + person.getCardDetails().getExpiryDate();
+        return person.getCardDetails().map(details -> {
+            String cardNumber = details.getCardNumber();
+            String maskedCardNumber = cardNumber.length() <= 4
+                    ? cardNumber
+                    : "****" + cardNumber.substring(cardNumber.length() - 4);
+            return "Card: " + details.getProvider()
+                    + " " + maskedCardNumber
+                    + " exp " + details.getExpiryDate();
+        }).orElse("");
     }
 
     /** Returns the visible timestamp text for all combinations of known values. */

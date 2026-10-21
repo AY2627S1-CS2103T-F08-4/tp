@@ -31,15 +31,15 @@ public class AddCommandIntegrationTest {
         Person client = model.getAddressBook().getPersonList().getFirst();
         assertEquals("C0001", client.getClientReference().value);
         assertEquals("Alex Yeoh", client.getName().fullName);
-        assertEquals("87438807", client.getPhone().value);
-        assertEquals("alex@example.com", client.getEmail().value);
-        assertEquals("10 Main Street", client.getAddress().value);
-        assertEquals("4111111111111111", client.getCardDetails().getCardNumber());
-        assertEquals("123", client.getCardDetails().getCvv());
-        assertEquals("12/28", client.getCardDetails().getExpiryDate());
-        assertEquals("Visa", client.getCardDetails().getProvider());
-        assertEquals("700", client.getCreditScore().toString());
-        assertEquals("1250.50", client.getDebt().toString());
+        assertEquals("87438807", client.getPhone().orElseThrow().value);
+        assertEquals("alex@example.com", client.getEmail().orElseThrow().value);
+        assertEquals("10 Main Street", client.getAddress().orElseThrow().value);
+        assertEquals("4111111111111111", client.getCardDetails().orElseThrow().getCardNumber());
+        assertEquals("123", client.getCardDetails().orElseThrow().getCvv());
+        assertEquals("12/28", client.getCardDetails().orElseThrow().getExpiryDate());
+        assertEquals("Visa", client.getCardDetails().orElseThrow().getProvider());
+        assertEquals("700", client.getCreditScore().orElseThrow().toString());
+        assertEquals("1250.50", client.getDebt().orElseThrow().toString());
         assertEquals(1, client.getTags().size());
         assertFalse(result.isShowHelp());
         assertFalse(result.isExit());
@@ -79,7 +79,7 @@ public class AddCommandIntegrationTest {
         assertEquals(before.getCreditScore(), after.getCreditScore());
         assertEquals(before.getDebt(), after.getDebt());
         assertEquals(before.getTags(), after.getTags());
-        assertEquals("91234567", after.getPhone().value);
+        assertEquals("91234567", after.getPhone().orElseThrow().value);
     }
 
     @Test

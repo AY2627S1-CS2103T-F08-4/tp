@@ -13,12 +13,43 @@ import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonTest {
+
+    @Test
+    public void getters_completeProfile_returnPresentOptionals() {
+        Person person = new PersonBuilder().build();
+
+        assertEquals(Optional.of(new Phone(PersonBuilder.DEFAULT_PHONE)), person.getPhone());
+        assertEquals(Optional.of(new Email(PersonBuilder.DEFAULT_EMAIL)), person.getEmail());
+        assertEquals(Optional.of(new Address(PersonBuilder.DEFAULT_ADDRESS)), person.getAddress());
+        assertEquals(Optional.of(new CardDetails(PersonBuilder.DEFAULT_CARD_NUMBER, PersonBuilder.DEFAULT_CVV,
+                PersonBuilder.DEFAULT_EXPIRY_DATE, PersonBuilder.DEFAULT_PROVIDER)), person.getCardDetails());
+        assertEquals(Optional.of(new CreditScore(PersonBuilder.DEFAULT_CREDIT_SCORE)), person.getCreditScore());
+        assertEquals(Optional.of(new Debt(PersonBuilder.DEFAULT_DEBT)), person.getDebt());
+    }
+
+    @Test
+    public void getters_legacyProfile_returnPresentContactsAndEmptyCardAndFinancialOptionals() {
+        Phone phone = new Phone(PersonBuilder.DEFAULT_PHONE);
+        Email email = new Email(PersonBuilder.DEFAULT_EMAIL);
+        Address address = new Address(PersonBuilder.DEFAULT_ADDRESS);
+        Person person = new Person(new Name(PersonBuilder.DEFAULT_NAME), phone, email, address, Collections.emptySet());
+
+        assertEquals(Optional.of(phone), person.getPhone());
+        assertEquals(Optional.of(email), person.getEmail());
+        assertEquals(Optional.of(address), person.getAddress());
+        assertEquals(Optional.empty(), person.getCardDetails());
+        assertEquals(Optional.empty(), person.getCreditScore());
+        assertEquals(Optional.empty(), person.getDebt());
+        assertEquals(person, new PersonBuilder(person).build());
+    }
 
     @Test
     public void isSamePerson_referencedClients_usesOnlyNormalizedReference() {
@@ -56,6 +87,7 @@ public class PersonTest {
 
         assertTrue(original.isSamePerson(stamped));
         assertFalse(original.equals(stamped));
+        assertEquals(stamped, new PersonBuilder(stamped).build());
     }
 
     @Test
@@ -143,8 +175,9 @@ public class PersonTest {
 
     @Test
     public void toStringMethod() {
-        String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags() + "}";
+        String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName()
+                + ", phone=" + ALICE.getPhone().orElseThrow() + ", email=" + ALICE.getEmail().orElseThrow()
+                + ", address=" + ALICE.getAddress().orElseThrow() + ", tags=" + ALICE.getTags() + "}";
         assertEquals(expected, ALICE.toString());
     }
 }
