@@ -3,6 +3,9 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -19,17 +22,31 @@ import seedu.address.model.person.Person;
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
 
+    /** The kind of timestamp change made by a data-changing command. */
+    public enum TimestampAction { ADD, EDIT }
+
+    /** Timestamp values to log once the staged change has been saved. */
+    public record TimestampChange(TimestampAction action, String reference,
+            Instant createdAt, Instant lastModifiedAt) { }
+
     private final AddressBook addressBook;
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
     private final SortedList<Person> displayedPersons;
     private SortOrder sortOrder = SortOrder.ORIGINAL;
+    private final Clock clock;
+    private TimestampChange timestampChange;
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
      */
     public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs) {
-        requireAllNonNull(addressBook, userPrefs);
+        this(addressBook, userPrefs, Clock.systemUTC());
+    }
+
+    /** Initializes a ModelManager with an injectable clock for record timestamps. */
+    public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs, Clock clock) {
+        requireAllNonNull(addressBook, userPrefs, clock);
 
         logger.fine("Initializing with address book: " + addressBook + " and user prefs " + userPrefs);
 
@@ -37,6 +54,7 @@ public class ModelManager implements Model {
         this.userPrefs = new UserPrefs(userPrefs);
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
         displayedPersons = new SortedList<>(filteredPersons);
+        this.clock = clock;
     }
 
     public ModelManager() {
@@ -86,7 +104,11 @@ public class ModelManager implements Model {
 
     @Override
     public void addPerson(Person person) {
-        addressBook.addPerson(person);
+        requireNonNull(person);
+        Instant now = clock.instant();
+        Person stamped = person.withTimestamps(now, now);
+        addressBook.addPerson(stamped);
+        timestampChange = new TimestampChange(TimestampAction.ADD, referenceOf(stamped), now, now);
         updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
     }
 
@@ -94,7 +116,19 @@ public class ModelManager implements Model {
     public void setPerson(Person target, Person editedPerson) {
         requireAllNonNull(target, editedPerson);
 
-        addressBook.setPerson(target, editedPerson);
+        Person stamped = editedPerson.withTimestamps(target.getCreatedAt(), clock.instant());
+        addressBook.setPerson(target, stamped);
+        timestampChange = new TimestampChange(TimestampAction.EDIT, referenceOf(stamped),
+                stamped.getCreatedAt(), stamped.getLastModifiedAt());
+    }
+
+    /** Returns the latest staged timestamp change, if this model made one. */
+    public Optional<TimestampChange> getTimestampChange() {
+        return Optional.ofNullable(timestampChange);
+    }
+
+    private static String referenceOf(Person person) {
+        return person.getClientReference() == null ? null : person.getClientReference().value;
     }
 
     //=========== Filtered Person List Accessors =============================================================
