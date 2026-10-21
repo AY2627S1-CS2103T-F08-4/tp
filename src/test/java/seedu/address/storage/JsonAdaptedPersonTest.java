@@ -1,10 +1,12 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static seedu.address.storage.JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,6 +47,33 @@ public class JsonAdaptedPersonTest {
     public void toModelType_validPersonDetails_returnsPerson() throws Exception {
         JsonAdaptedPerson person = new JsonAdaptedPerson(BENSON);
         assertEquals(BENSON, person.toModelType());
+    }
+
+    @Test
+    public void toModelType_timestamps_preservesBothValues() throws Exception {
+        Instant created = Instant.parse("2026-03-15T01:42:00Z");
+        Instant modified = Instant.parse("2026-10-12T06:18:00Z");
+        var source = BENSON.withTimestamps(created, modified);
+
+        assertEquals(source, new JsonAdaptedPerson(source).toModelType());
+    }
+
+    @Test
+    public void toModelType_oldFormat_keepsTimestampsUnknown() throws Exception {
+        var adapted = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
+                VALID_CARD_DETAILS, VALID_CREDIT_SCORE, VALID_DEBT, VALID_TAGS);
+
+        assertNull(adapted.toModelType().getCreatedAt());
+        assertNull(adapted.toModelType().getLastModifiedAt());
+    }
+
+    @Test
+    public void toModelType_malformedTimestamp_throwsIllegalValueException() {
+        var adapted = new JsonAdaptedPerson(null, VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
+                VALID_CARD_DETAILS, VALID_CREDIT_SCORE, VALID_DEBT, VALID_TAGS, "not-a-timestamp", null);
+
+        assertThrows(IllegalValueException.class, JsonAdaptedPerson.INVALID_TIMESTAMP_MESSAGE,
+                adapted::toModelType);
     }
 
     @Test
