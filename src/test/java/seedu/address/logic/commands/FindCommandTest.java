@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.parser.FindCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -113,10 +114,12 @@ public class FindCommandTest {
         Person first = new PersonBuilder(CARL).withCardDetails("0012  3456", "123", "12/28", "Visa").build();
         Person second = new PersonBuilder(FIONA).withCardDetails("0012  3456", "456", "11/29", "Visa").build();
         Person legacy = new Person(ELLE.getName(), ELLE.getPhone(), ELLE.getEmail(), ELLE.getAddress(), ELLE.getTags());
-        model.setPerson(CARL, first);
-        model.setPerson(FIONA, second);
-        model.setPerson(ELLE, legacy);
-        expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        AddressBook addressBook = getTypicalAddressBook();
+        addressBook.setPerson(CARL, first);
+        addressBook.setPerson(FIONA, second);
+        addressBook.setPerson(ELLE, legacy);
+        model = new ModelManager(addressBook, new UserPrefs());
+        expectedModel = new ModelManager(addressBook, new UserPrefs());
 
         assertSearchResult("cn/0012  3456", List.of(first, second));
         assertSearchResult("cn/3456", List.of());

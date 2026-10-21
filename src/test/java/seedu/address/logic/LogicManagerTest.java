@@ -104,7 +104,8 @@ public class LogicManagerTest {
         assertEquals(CREATED, added.getCreatedAt());
         assertEquals(CREATED, added.getLastModifiedAt());
         logic.execute("list");
-        logic.execute("find Alex");
+        logic.execute("find n/Alex");
+        logic.execute("find cn/4111111111111111");
         assertEquals(added, model.getAddressBook().getPersonList().getFirst());
 
         logic = new LogicManager(model, storage, "", false, Clock.fixed(MODIFIED, ZoneOffset.UTC));
@@ -131,7 +132,8 @@ public class LogicManagerTest {
                     + ", lastModifiedAt=" + CREATED), handler.messages);
 
             logic.execute("list");
-            logic.execute("find Alex");
+            logic.execute("find n/Alex");
+            logic.execute("find cn/4111111111111111");
             assertEquals(1, handler.messages.size());
 
             logic = new LogicManager(model, storage, "", false, Clock.fixed(MODIFIED, ZoneOffset.UTC));
