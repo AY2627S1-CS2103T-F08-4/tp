@@ -167,6 +167,24 @@ Data-changing commands execute against a staged `ModelManager`. `LogicManager` s
 
 `JsonAdaptedPerson` writes the instants as ISO-8601 UTC strings in the `createdAt` and `lastModifiedAt` JSON properties. Missing properties in older data files remain `null`; editing such a record supplies its modification time without fabricating a creation time. An invalid non-null timestamp causes loading to fail, so startup follows the existing protected-mode path. `PersonCard` converts known instants to the viewer's local time zone and formats them as `yyyy-MM-dd HH:mm`. It shows each known value independently, or one unavailable message if both are missing.
 
+### Incomplete client profiles
+
+`add` requires only a valid, unique client reference and name. References are normalized to uppercase and compared case-insensitively. Its syntax is:
+
+```text
+add r/REFERENCE n/NAME [p/PHONE] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [t/TAG]...
+```
+
+`AddCommandParser` parses supplied optional fields using the existing validators and passes null for omitted details. Supplying an empty prefix still fails validation. Card details form one optional group: any non-empty proper subset of the four card prefixes is rejected with a message listing the required group. Duplicate single-valued prefixes and non-empty preambles are rejected as before.
+
+`Person` stores missing contact, card, and financial details as nullable fields and exposes them through non-null `Optional` getters. Each detail can be supplied independently, including a credit score or debt without a card. A supplied zero financial value remains distinct from absence. Required name and tag collections remain non-null; the referenced constructor also requires a reference. Unreferenced legacy records retain their existing name-based identity.
+
+`PersonCard` hides absent labels and removes their layout space. Messages omit missing contact fields and their labels. Supplied card numbers remain masked and CVV is omitted from display. `JsonAdaptedPerson` serializes plain values, omits absent optional fields, and accepts missing or JSON-null optional details. A present card object must contain all four valid fields. Complete profiles and supported legacy files continue to load.
+
+For example, `add r/C0001 n/John Doe` creates a minimal profile, while `add r/C0002 n/Jane Doe e/jane@example.com d/0` records an email and explicit zero debt. Data-changing commands save automatically. Existing `edit` can fill missing contact details while preserving the reference and other recorded or missing values. Editing card or financial details and clearing contact, card, or financial details remain separate follow-up work.
+
+Regression tests cover all 64 combinations of optional details, all 14 non-empty proper subsets of card prefixes, JSON file round trips, and add followed by automatic save, fresh load, contact edit, and reload. Existing duplicate detection and storage-failure protections remain in place.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -318,13 +336,13 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 
 ##### Main success scenario (MSS)
 
-1. Bank teller enters a unique client reference, name, contact and card details.
+1. Bank teller enters a unique client reference, name, and any available optional details.
 2. TellerFlow creates the profile and saves it.
 3. TellerFlow shows the new profile.
 
 ##### Extensions
 
-- 1a. An optional contact detail is unavailable. Bank teller omits it; the use case resumes at step 2.
+- 1a. An optional contact, card, or financial detail is unavailable. Bank teller omits it; card details must be omitted as a group. The use case resumes at step 2.
 - 2a. The reference already belongs to another profile or a required value is invalid. TellerFlow explains the problem and requests a correction; the use case resumes at step 1.
 - 2b. A phone number or email address matches an existing profile. TellerFlow warns the bank teller, who checks the match and chooses whether to continue creating the profile or cancel.
 - 2c. Saving fails. TellerFlow reports the failure and leaves the saved profiles unchanged; the use case ends.
