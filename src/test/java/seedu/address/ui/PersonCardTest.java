@@ -1,10 +1,18 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.InputStream;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.junit.jupiter.api.Test;
+import org.w3c.dom.NodeList;
 
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
@@ -14,6 +22,10 @@ import seedu.address.model.person.Phone;
 import seedu.address.testutil.PersonBuilder;
 
 class PersonCardTest {
+    private static final ZoneId DISPLAY_ZONE = ZoneId.of("Asia/Singapore");
+    private static final Instant CREATED = Instant.parse("2026-03-15T01:42:00Z");
+    private static final Instant MODIFIED = Instant.parse("2026-10-12T06:18:00Z");
+
 
     @Test
     void formatCardDetails_completeCardDetails_masksCardNumberAndOmitsCvv() {
@@ -34,5 +46,52 @@ class PersonCardTest {
                 Collections.emptySet());
 
         assertEquals("", PersonCard.formatCardDetails(person));
+    }
+
+    @Test
+    void formatTimestamp_usesViewerTimeZone() {
+        assertEquals("2026-03-15 09:42", PersonCard.formatTimestamp(
+                CREATED, DISPLAY_ZONE));
+    }
+
+    @Test
+    void formatTimestamps_bothKnown_showsBoth() {
+        var person = new PersonBuilder().build().withTimestamps(CREATED, MODIFIED);
+
+        assertEquals(new PersonCard.TimestampDisplay("Created: 2026-03-15 09:42",
+                "Last Modified: 2026-10-12 14:18", ""), PersonCard.formatTimestamps(person, DISPLAY_ZONE));
+    }
+
+    @Test
+    void formatTimestamps_oneKnown_showsOnlyKnownField() {
+        var person = new PersonBuilder().build();
+
+        assertEquals(new PersonCard.TimestampDisplay("", "Last Modified: 2026-10-12 14:18", ""),
+                PersonCard.formatTimestamps(person.withTimestamps(null, MODIFIED), DISPLAY_ZONE));
+        assertEquals(new PersonCard.TimestampDisplay("Created: 2026-03-15 09:42", "", ""),
+                PersonCard.formatTimestamps(person.withTimestamps(CREATED, null), DISPLAY_ZONE));
+    }
+
+    @Test
+    void formatTimestamps_noneKnown_showsOneMessage() {
+        var person = new PersonBuilder().build();
+
+        assertEquals(new PersonCard.TimestampDisplay("", "",
+                "Timestamp information is unavailable for this profile."),
+                PersonCard.formatTimestamps(person, DISPLAY_ZONE));
+    }
+
+    @Test
+    void timestampLabels_existInCardFxml() throws Exception {
+        Set<String> ids = new HashSet<>();
+        try (InputStream stream = PersonCard.class.getResourceAsStream("/view/PersonListCard.fxml")) {
+            NodeList labels = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(stream)
+                    .getElementsByTagName("Label");
+            for (int i = 0; i < labels.getLength(); i++) {
+                ids.add(labels.item(i).getAttributes().getNamedItem("fx:id") == null ? ""
+                        : labels.item(i).getAttributes().getNamedItem("fx:id").getNodeValue());
+            }
+        }
+        assertTrue(ids.containsAll(Set.of("createdAt", "lastModifiedAt", "timestampUnavailable")));
     }
 }

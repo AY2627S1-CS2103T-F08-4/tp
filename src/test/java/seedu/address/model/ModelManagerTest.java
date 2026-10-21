@@ -2,12 +2,16 @@ package seedu.address.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -15,8 +19,12 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.testutil.AddressBookBuilder;
+import seedu.address.testutil.PersonBuilder;
 
 public class ModelManagerTest {
+
+    private static final Instant CREATED = Instant.parse("2026-03-15T01:42:00Z");
+    private static final Instant MODIFIED = Instant.parse("2026-10-12T06:18:00Z");
 
     private ModelManager modelManager = new ModelManager();
 
@@ -66,6 +74,47 @@ public class ModelManagerTest {
     public void hasPerson_personInAddressBook_returnsTrue() {
         modelManager.addPerson(ALICE);
         assertTrue(modelManager.hasPerson(ALICE));
+    }
+
+    @Test
+    public void addPerson_setsBothTimestamps() {
+        ModelManager stampedModel = new ModelManager(new AddressBook(), new UserPrefs(),
+                Clock.fixed(CREATED, ZoneOffset.UTC));
+        stampedModel.addPerson(new PersonBuilder().withClientReference("C0001").build());
+
+        var saved = stampedModel.getAddressBook().getPersonList().getFirst();
+        assertEquals(CREATED, saved.getCreatedAt());
+        assertEquals(CREATED, saved.getLastModifiedAt());
+    }
+
+    @Test
+    public void setPerson_preservesCreationAndRefreshesModificationForUnchangedEdit() {
+        var original = new PersonBuilder().withClientReference("C0001").build()
+                .withTimestamps(CREATED, CREATED);
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(original);
+        ModelManager stampedModel = new ModelManager(addressBook, new UserPrefs(),
+                Clock.fixed(MODIFIED, ZoneOffset.UTC));
+
+        stampedModel.setPerson(original, original);
+
+        var saved = stampedModel.getAddressBook().getPersonList().getFirst();
+        assertEquals(CREATED, saved.getCreatedAt());
+        assertEquals(MODIFIED, saved.getLastModifiedAt());
+    }
+
+    @Test
+    public void setPerson_legacyRecord_keepsUnknownCreation() {
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(ALICE);
+        ModelManager stampedModel = new ModelManager(addressBook, new UserPrefs(),
+                Clock.fixed(MODIFIED, ZoneOffset.UTC));
+
+        stampedModel.setPerson(ALICE, new PersonBuilder(ALICE).withPhone("91234567").build());
+
+        var saved = stampedModel.getAddressBook().getPersonList().getFirst();
+        assertNull(saved.getCreatedAt());
+        assertEquals(MODIFIED, saved.getLastModifiedAt());
     }
 
     @Test
