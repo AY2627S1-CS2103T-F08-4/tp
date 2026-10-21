@@ -5,11 +5,17 @@ import static java.util.Objects.requireNonNull;
 import java.util.Objects;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.person.Person;
 
 /**
  * Represents the result of a command execution.
  */
 public class CommandResult {
+
+    /** Selection action requested after a successful command refreshes the displayed list. */
+    public enum SelectionRequest {
+        NONE, PRESERVE_OR_FIRST, SELECT_PERSON
+    }
 
     private final String feedbackToUser;
 
@@ -18,14 +24,23 @@ public class CommandResult {
 
     /** The application should exit. */
     private final boolean exit;
+    private final SelectionRequest selectionRequest;
+    private final Person personToSelect;
 
     /**
      * Constructs a {@code CommandResult} with the specified fields.
      */
     public CommandResult(String feedbackToUser, boolean showHelp, boolean exit) {
+        this(feedbackToUser, showHelp, exit, SelectionRequest.NONE, null);
+    }
+
+    private CommandResult(String feedbackToUser, boolean showHelp, boolean exit,
+            SelectionRequest selectionRequest, Person personToSelect) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
+        this.selectionRequest = requireNonNull(selectionRequest);
+        this.personToSelect = personToSelect;
     }
 
     /**
@@ -34,6 +49,16 @@ public class CommandResult {
      */
     public CommandResult(String feedbackToUser) {
         this(feedbackToUser, false, false);
+    }
+
+    /** Returns a result that keeps the selected client, or selects the first displayed client. */
+    public static CommandResult preserveSelectionOrFirst(String feedbackToUser) {
+        return new CommandResult(feedbackToUser, false, false, SelectionRequest.PRESERVE_OR_FIRST, null);
+    }
+
+    /** Returns a result that selects a specific client after the list refreshes. */
+    public static CommandResult selectPerson(String feedbackToUser, Person person) {
+        return new CommandResult(feedbackToUser, false, false, SelectionRequest.SELECT_PERSON, requireNonNull(person));
     }
 
     public String getFeedbackToUser() {
@@ -46,6 +71,14 @@ public class CommandResult {
 
     public boolean isExit() {
         return exit;
+    }
+
+    public SelectionRequest getSelectionRequest() {
+        return selectionRequest;
+    }
+
+    public Person getPersonToSelect() {
+        return personToSelect;
     }
 
     @Override
@@ -61,12 +94,14 @@ public class CommandResult {
 
         return feedbackToUser.equals(otherCommandResult.feedbackToUser)
                 && showHelp == otherCommandResult.showHelp
-                && exit == otherCommandResult.exit;
+                && exit == otherCommandResult.exit
+                && selectionRequest == otherCommandResult.selectionRequest
+                && Objects.equals(personToSelect, otherCommandResult.personToSelect);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit);
+        return Objects.hash(feedbackToUser, showHelp, exit, selectionRequest, personToSelect);
     }
 
     @Override
@@ -75,6 +110,8 @@ public class CommandResult {
                 .add("feedbackToUser", feedbackToUser)
                 .add("showHelp", showHelp)
                 .add("exit", exit)
+                .add("selectionRequest", selectionRequest)
+                .add("personToSelect", personToSelect)
                 .toString();
     }
 
