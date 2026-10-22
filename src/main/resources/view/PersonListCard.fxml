@@ -43,6 +43,9 @@
       <Label fx:id="cardDetails" styleClass="cell_small_label" />
       <Label fx:id="creditScore" styleClass="cell_small_label" />
       <Label fx:id="debt" styleClass="cell_small_label" />
+      <Label fx:id="createdAt" styleClass="cell_small_label" />
+      <Label fx:id="lastModifiedAt" styleClass="cell_small_label" />
+      <Label fx:id="timestampUnavailable" styleClass="cell_small_label" />
     </VBox>
   </GridPane>
 </HBox>

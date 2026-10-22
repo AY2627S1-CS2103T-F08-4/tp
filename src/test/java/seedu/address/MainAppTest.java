@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -85,6 +86,25 @@ public class MainAppTest {
         assertTrue(initialData.model().getAddressBook().getPersonList().isEmpty());
         assertTrue(initialData.protectedMode());
         assertEquals("invalid json", Files.readString(dataPath));
+    }
+
+    @Test
+    public void load_invalidTimestamp_startsProtectedWithoutChangingFile() throws Exception {
+        Path dataPath = testFolder.resolve("badTimestamp.json");
+        AddressBook saved = new AddressBook();
+        saved.addPerson(new PersonBuilder().withClientReference("C0001").build()
+                .withTimestamps(Instant.parse("2026-03-15T01:42:00Z"),
+                        Instant.parse("2026-03-15T01:42:00Z")));
+        new JsonAddressBookStorage(dataPath).saveAddressBook(saved);
+        String corrupted = Files.readString(dataPath).replace("2026-03-15T01:42:00Z", "bad date");
+        Files.writeString(dataPath, corrupted);
+
+        MainApp.InitialData initialData = load(dataPath);
+
+        assertEquals(LogicManager.LOAD_FAILURE_MESSAGE, initialData.message());
+        assertTrue(initialData.protectedMode());
+        assertTrue(initialData.model().getAddressBook().getPersonList().isEmpty());
+        assertEquals(corrupted, Files.readString(dataPath));
     }
 
     @Test

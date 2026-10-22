@@ -2,6 +2,7 @@ package seedu.address.model.person;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
@@ -29,6 +30,8 @@ public class Person {
     private final CreditScore creditScore;
     private final Debt debt;
     private final Set<Tag> tags = new HashSet<>();
+    private final Instant createdAt;
+    private final Instant lastModifiedAt;
 
     /**
      * Creates a legacy profile without card or financial details.
@@ -44,6 +47,8 @@ public class Person {
         this.creditScore = null;
         this.debt = null;
         this.tags.addAll(tags);
+        this.createdAt = null;
+        this.lastModifiedAt = null;
     }
 
     /**
@@ -61,6 +66,8 @@ public class Person {
         this.creditScore = creditScore;
         this.debt = debt;
         this.tags.addAll(tags);
+        this.createdAt = null;
+        this.lastModifiedAt = null;
     }
 
     /**
@@ -78,6 +85,27 @@ public class Person {
         this.creditScore = creditScore;
         this.debt = debt;
         this.tags.addAll(tags);
+        this.createdAt = null;
+        this.lastModifiedAt = null;
+    }
+
+    private Person(Person source, Instant createdAt, Instant lastModifiedAt) {
+        this.clientReference = source.clientReference;
+        this.name = source.name;
+        this.phone = source.phone;
+        this.email = source.email;
+        this.address = source.address;
+        this.cardDetails = source.cardDetails;
+        this.creditScore = source.creditScore;
+        this.debt = source.debt;
+        this.tags.addAll(source.tags);
+        this.createdAt = createdAt;
+        this.lastModifiedAt = lastModifiedAt;
+    }
+
+    /** Returns a copy with the given timestamps; missing legacy timestamps may be null. */
+    public Person withTimestamps(Instant createdAt, Instant lastModifiedAt) {
+        return new Person(this, createdAt, lastModifiedAt);
     }
 
     public ClientReference getClientReference() {
@@ -123,6 +151,16 @@ public class Person {
         return Collections.unmodifiableSet(tags);
     }
 
+    /** Returns the creation instant, or null if it was not recorded. */
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    /** Returns the most recent edit instant, or null if it was not recorded. */
+    public Instant getLastModifiedAt() {
+        return lastModifiedAt;
+    }
+
     /**
      * US01 clients share an identity only when their normalized references match.
      * Existing records without references retain their name-based identity.
@@ -164,13 +202,16 @@ public class Person {
                 && Objects.equals(cardDetails, otherPerson.cardDetails)
                 && Objects.equals(creditScore, otherPerson.creditScore)
                 && Objects.equals(debt, otherPerson.debt)
-                && tags.equals(otherPerson.tags);
+                && tags.equals(otherPerson.tags)
+                && Objects.equals(createdAt, otherPerson.createdAt)
+                && Objects.equals(lastModifiedAt, otherPerson.lastModifiedAt);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags);
+        return Objects.hash(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags,
+                createdAt, lastModifiedAt);
     }
 
     @Override

@@ -1,5 +1,8 @@
 package seedu.address.ui;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 
 import javafx.fxml.FXML;
@@ -16,6 +19,8 @@ import seedu.address.model.person.Person;
 public class PersonCard extends UiPart<Region> {
 
     private static final String FXML = "PersonListCard.fxml";
+    private static final String TIMESTAMP_UNAVAILABLE = "Timestamp information is unavailable for this profile.";
+    private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -48,6 +53,12 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label debt;
     @FXML
+    private Label createdAt;
+    @FXML
+    private Label lastModifiedAt;
+    @FXML
+    private Label timestampUnavailable;
+    @FXML
     private FlowPane tags;
 
     /**
@@ -74,6 +85,10 @@ public class PersonCard extends UiPart<Region> {
                 ? "" : "Credit score: " + person.getCreditScore());
         setOptionalLabel(debt, person.getDebt() == null
                 ? "" : "Debt: " + person.getDebt());
+        TimestampDisplay timestamps = formatTimestamps(person, ZoneId.systemDefault());
+        setOptionalLabel(createdAt, timestamps.created());
+        setOptionalLabel(lastModifiedAt, timestamps.lastModified());
+        setOptionalLabel(timestampUnavailable, timestamps.unavailable());
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
@@ -92,6 +107,25 @@ public class PersonCard extends UiPart<Region> {
                 + " " + maskedCardNumber
                 + " exp " + person.getCardDetails().getExpiryDate();
     }
+
+    /** Returns the visible timestamp text for all combinations of known values. */
+    static TimestampDisplay formatTimestamps(Person person, ZoneId displayZone) {
+        Instant created = person.getCreatedAt();
+        Instant modified = person.getLastModifiedAt();
+        if (created == null && modified == null) {
+            return new TimestampDisplay("", "", TIMESTAMP_UNAVAILABLE);
+        }
+        String createdText = created == null ? "" : "Created: " + formatTimestamp(created, displayZone);
+        String modifiedText = modified == null ? "" : "Last Modified: " + formatTimestamp(modified, displayZone);
+        return new TimestampDisplay(createdText, modifiedText, "");
+    }
+
+    /** Formats a known instant in the viewer's time zone. */
+    static String formatTimestamp(Instant timestamp, ZoneId displayZone) {
+        return TIMESTAMP_FORMAT.format(timestamp.atZone(displayZone));
+    }
+
+    record TimestampDisplay(String created, String lastModified, String unavailable) { }
 
     private static void setOptionalLabel(Label label, String text) {
         boolean hasValue = ((text != null) && (!text.isBlank()));

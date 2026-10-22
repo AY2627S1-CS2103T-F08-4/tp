@@ -1,5 +1,7 @@
 package seedu.address.storage;
 
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -28,6 +30,7 @@ import seedu.address.model.tag.Tag;
 class JsonAdaptedPerson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
+    public static final String INVALID_TIMESTAMP_MESSAGE = "Timestamp information is invalid for this profile.";
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private final String clientReference;
@@ -41,6 +44,10 @@ class JsonAdaptedPerson {
     private final String creditScore;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private final String debt;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private final String createdAt;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private final String lastModifiedAt;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     /**
@@ -52,7 +59,9 @@ class JsonAdaptedPerson {
             @JsonProperty("email") String email, @JsonProperty("address") String address,
             @JsonProperty("cardDetails") JsonAdaptedCardDetails cardDetails,
             @JsonProperty("creditScore") String creditScore, @JsonProperty("debt") String debt,
-            @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+            @JsonProperty("tags") List<JsonAdaptedTag> tags,
+            @JsonProperty("createdAt") String createdAt,
+            @JsonProperty("lastModifiedAt") String lastModifiedAt) {
         this.clientReference = clientReference;
         this.name = name;
         this.phone = phone;
@@ -61,9 +70,17 @@ class JsonAdaptedPerson {
         this.cardDetails = cardDetails;
         this.creditScore = creditScore;
         this.debt = debt;
+        this.createdAt = createdAt;
+        this.lastModifiedAt = lastModifiedAt;
         if (tags != null) {
             this.tags.addAll(tags);
         }
+    }
+
+    /** Creates a person in the older JSON format without timestamps. */
+    public JsonAdaptedPerson(String clientReference, String name, String phone, String email, String address,
+            JsonAdaptedCardDetails cardDetails, String creditScore, String debt, List<JsonAdaptedTag> tags) {
+        this(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags, null, null);
     }
 
     /** Creates an unreferenced person from the fields used by older data files. */
@@ -84,6 +101,8 @@ class JsonAdaptedPerson {
         cardDetails = source.getCardDetails() == null ? null : new JsonAdaptedCardDetails(source.getCardDetails());
         creditScore = source.getCreditScore() == null ? null : source.getCreditScore().toString();
         debt = source.getDebt() == null ? null : source.getDebt().toString();
+        createdAt = source.getCreatedAt() == null ? null : source.getCreatedAt().toString();
+        lastModifiedAt = source.getLastModifiedAt() == null ? null : source.getLastModifiedAt().toString();
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
@@ -95,6 +114,8 @@ class JsonAdaptedPerson {
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
     public Person toModelType() throws IllegalValueException {
+        final Instant modelCreatedAt = parseTimestamp(createdAt);
+        final Instant modelLastModifiedAt = parseTimestamp(lastModifiedAt);
         final ClientReference modelReference;
         if (clientReference == null) {
             modelReference = null;
@@ -145,7 +166,8 @@ class JsonAdaptedPerson {
         // Files saved before card and financial details were introduced remain valid.
         if (cardDetails == null && creditScore == null && debt == null) {
             if (modelReference == null) {
-                return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags);
+                return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags)
+                        .withTimestamps(modelCreatedAt, modelLastModifiedAt);
             }
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
                     CardDetails.class.getSimpleName()));
@@ -164,13 +186,26 @@ class JsonAdaptedPerson {
         try {
             if (modelReference != null) {
                 return new Person(modelReference, modelName, modelPhone, modelEmail, modelAddress,
-                        cardDetails == null ? null : cardDetails.toModelType(),
-                        new CreditScore(creditScore), new Debt(debt), modelTags);
+                        cardDetails == null ? null : cardDetails.toModelType(), new CreditScore(creditScore),
+                        new Debt(debt), modelTags)
+                        .withTimestamps(modelCreatedAt, modelLastModifiedAt);
             }
             return new Person(modelName, modelPhone, modelEmail, modelAddress, cardDetails.toModelType(),
-                    new CreditScore(creditScore), new Debt(debt), modelTags);
+                    new CreditScore(creditScore), new Debt(debt), modelTags)
+                    .withTimestamps(modelCreatedAt, modelLastModifiedAt);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
+        }
+    }
+
+    private static Instant parseTimestamp(String value) throws IllegalValueException {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return Instant.parse(value);
+        } catch (DateTimeParseException e) {
+            throw new IllegalValueException(INVALID_TIMESTAMP_MESSAGE);
         }
     }
 

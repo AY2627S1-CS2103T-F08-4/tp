@@ -1,29 +1,38 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CARD_NUMBER;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
-import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.FindPersonPredicate;
 
 /**
- * Finds and lists all persons in the address book whose name contains any of the argument keywords.
- * Keyword matching is case insensitive.
+ * Finds persons by partial name keywords, full phone numbers, and/or a full card number.
+ * Keywords within a field are alternatives; all supplied fields must match.
  */
 public class FindCommand extends Command {
 
     public static final String COMMAND_WORD = "find";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds all persons whose names contain any of "
-            + "the specified keywords (case-insensitive) and displays them as a list with index numbers.\n"
-            + "Parameters: KEYWORD [MORE_KEYWORDS]...\n"
-            + "Example: " + COMMAND_WORD + " alice bob charlie";
+    public static final String MESSAGE_USAGE = COMMAND_WORD
+            + ": Finds persons by name, phone number and/or card number "
+            + "and displays them as a list with index numbers. Names allow case-insensitive partial matches; "
+            + "phone and card numbers must match in full. All supplied fields must match.\n"
+            + "Parameters: [" + PREFIX_NAME + "KEYWORD [MORE_KEYWORDS]...] [" + PREFIX_PHONE
+            + "PHONE_NUMBER [MORE_PHONE_NUMBERS]...] [" + PREFIX_CARD_NUMBER + "CARD_NUMBER]\n"
+            + "At least one prefix is required; each prefix may appear only once.\n"
+            + "Example: " + COMMAND_WORD + " " + PREFIX_NAME + "alice bob\n"
+            + "Example: " + COMMAND_WORD + " " + PREFIX_PHONE + "91234567\n"
+            + "Example: " + COMMAND_WORD + " " + PREFIX_CARD_NUMBER + "4111111111111111";
 
-    private final NameContainsKeywordsPredicate predicate;
+    private final FindPersonPredicate predicate;
 
-    public FindCommand(NameContainsKeywordsPredicate predicate) {
-        this.predicate = predicate;
+    public FindCommand(FindPersonPredicate predicate) {
+        this.predicate = requireNonNull(predicate);
     }
 
     @Override

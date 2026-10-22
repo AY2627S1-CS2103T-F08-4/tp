@@ -159,6 +159,14 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Client creation and modification timestamps
+
+`Person` stores `createdAt` and `lastModifiedAt` as `Instant` values. `ModelManager#addPerson` stamps both with the same clock instant. `ModelManager#setPerson` copies the existing `createdAt` and stamps a new `lastModifiedAt`; this also applies when a valid edit supplies unchanged values. Read-only commands such as `list` and `find` do not stamp records. These fields are not part of command input or client uniqueness checks.
+
+Data-changing commands execute against a staged `ModelManager`. `LogicManager` saves the staged address book before committing it to the active model. Only after a successful save does it emit an INFO log entry for an add or edit timestamp change, including the client reference and both stored instants. A failed save leaves the active record unchanged and emits no timestamp-change log entry.
+
+`JsonAdaptedPerson` writes the instants as ISO-8601 UTC strings in the `createdAt` and `lastModifiedAt` JSON properties. Missing properties in older data files remain `null`; editing such a record supplies its modification time without fabricating a creation time. An invalid non-null timestamp causes loading to fail, so startup follows the existing protected-mode path. `PersonCard` converts known instants to the viewer's local time zone and formats them as `yyyy-MM-dd HH:mm`. It shows each known value independently, or one unavailable message if both are missing.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -383,33 +391,45 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 
 ##### Main success scenario (MSS)
 
-1. Bank teller supplies all or part of a client's name.
-2. TellerFlow displays profiles with matching names.
+1. Bank teller supplies `find n/` followed by one or more space-separated keywords containing all or part of a client's name.
+2. TellerFlow displays profiles whose names contain at least one keyword as a case-insensitive substring.
+   If `p/` numbers are also supplied, each profile must additionally match at least one full phone number.
+   If `cn/` is supplied, each profile must additionally match the full recorded card number.
 
 ##### Extensions
 
-- 2a. No name matches. TellerFlow displays an empty list; the use case ends.
+- 1a. A required prefix is missing, a field is empty, or a prefix is repeated. TellerFlow reports the invalid input
+  and requests a correction; the use case resumes at step 1.
+- 2a. No profile matches the supplied criteria. TellerFlow displays an empty list; the use case ends.
 
 #### Use case: Find clients by phone number
 
 ##### Main success scenario (MSS)
 
-1. Bank teller supplies a phone number.
-2. TellerFlow displays profiles with that phone number.
+1. Bank teller supplies `find p/` followed by one or more space-separated full phone numbers.
+2. TellerFlow displays profiles whose phone number exactly matches any supplied number, including leading zeros.
+   If `n/` keywords are also supplied, each profile must additionally match at least one name keyword.
+   If `cn/` is supplied, each profile must additionally match the full recorded card number.
 
 ##### Extensions
 
-- 2a. No phone number matches. TellerFlow displays an empty list; the use case ends.
+- 1a. A supplied phone number is invalid, a field is empty, or a prefix is repeated. TellerFlow reports the invalid
+  input and requests a correction; the use case resumes at step 1.
+- 2a. No profile matches the supplied criteria. TellerFlow displays an empty list; the use case ends.
 
 #### Use case: Find clients by card number
 
 ##### Main success scenario (MSS)
 
-1. Bank teller supplies a card number.
-2. TellerFlow displays profiles with that recorded card number.
+1. Bank teller supplies `find cn/` followed by one full card number.
+2. TellerFlow displays profiles with exactly that recorded card number, preserving leading zeros, internal spaces
+   and hyphens. Leading and trailing whitespace is ignored. Profiles without card details do not match.
+   If `n/` and/or `p/` are also supplied, each profile must additionally match each supplied field.
 
 ##### Extensions
 
+- 1a. The card number is blank or a prefix is repeated or unsupported. TellerFlow reports the invalid input
+  and requests a correction; the use case resumes at step 1.
 - 2a. No card number matches. TellerFlow displays an empty list; the use case ends.
 
 #### Use case: Maintain a service note
@@ -445,12 +465,13 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 
 ##### Main success scenario (MSS)
 
-1. Bank teller views a client profile.
-2. TellerFlow shows when the profile was created and last modified.
+1. Bank teller adds a client or displays client cards with `list` or `find`.
+2. TellerFlow shows the available creation and last-modified times on each displayed card, without changing either time.
 
 ##### Extensions
 
-- 1a. The selected profile does not exist. TellerFlow reports the error; the use case ends.
+- 2a. Only one time is available. TellerFlow shows that time and hides the unavailable field.
+- 2b. Neither time is available. TellerFlow shows `Timestamp information is unavailable for this profile.` once.
 
 #### Use case: Access help
 
@@ -574,6 +595,25 @@ testers are expected to do more _exploratory_ testing.
    Expected: The protected-mode message appears and the file is not overwritten.
 
 ### Saving data
+
+1. Viewing client timestamps
+   1. Add a client using the example `add` command in the User Guide.<br>
+      Expected: Its card shows equal `Created` and `Last Modified` times in local `yyyy-MM-dd HH:mm` format.
+
+   1. Run `list`, then `find John` for that client.<br>
+      Expected: Both times remain unchanged on the displayed card.
+
+   1. After the clock reaches the next minute, run `edit 1 p/91234567` while the client is the first search result.<br>
+      Expected: `Created` remains unchanged and `Last Modified` reflects the successful edit. The corresponding INFO log includes the client reference and stored UTC instants.
+
+   1. Relaunch the app.<br>
+      Expected: The saved times are restored and shown in local time.
+
+   1. Back up the saved data file, remove both timestamp properties from the test client's entry, and relaunch.<br>
+      Expected: That card shows `Timestamp information is unavailable for this profile.` once. If only one property is removed, it shows only the remaining time.
+
+   1. Replace one timestamp in the saved data file with invalid text and relaunch.<br>
+      Expected: The app enters protected mode and disables `add`, `delete`, `edit`, and `clear` for the session without overwriting the file. Restore the backup after this test.
 
 1. Dealing with missing/corrupted data files
    1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
