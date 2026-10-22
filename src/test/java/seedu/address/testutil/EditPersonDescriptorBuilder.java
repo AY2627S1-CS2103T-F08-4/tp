@@ -6,6 +6,9 @@ import java.util.stream.Stream;
 
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.model.person.Address;
+import seedu.address.model.person.ClientReference;
+import seedu.address.model.person.CreditScore;
+import seedu.address.model.person.Debt;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
@@ -37,6 +40,15 @@ public class EditPersonDescriptorBuilder {
         descriptor.setEmail(person.getEmail());
         descriptor.setAddress(person.getAddress());
         descriptor.setTags(person.getTags());
+        descriptor.setClientReference(person.getClientReference());
+        descriptor.setCreditScore(person.getCreditScore());
+        descriptor.setDebt(person.getDebt());
+        if (person.getCardDetails() != null) {
+            descriptor.setCardNumber(person.getCardDetails().getCardNumber());
+            descriptor.setCvv(person.getCardDetails().getCvv());
+            descriptor.setExpiryDate(person.getCardDetails().getExpiryDate());
+            descriptor.setProvider(person.getCardDetails().getProvider());
+        }
     }
 
     /**
@@ -68,6 +80,41 @@ public class EditPersonDescriptorBuilder {
      */
     public EditPersonDescriptorBuilder withAddress(String address) {
         descriptor.setAddress(new Address(address));
+        return this;
+    }
+
+    public EditPersonDescriptorBuilder withClientReference(String reference) {
+        descriptor.setClientReference(new ClientReference(reference));
+        return this;
+    }
+
+    public EditPersonDescriptorBuilder withCardNumber(String cardNumber) {
+        descriptor.setCardNumber(cardNumber);
+        return this;
+    }
+
+    public EditPersonDescriptorBuilder withCvv(String cvv) {
+        descriptor.setCvv(cvv);
+        return this;
+    }
+
+    public EditPersonDescriptorBuilder withExpiryDate(String expiryDate) {
+        descriptor.setExpiryDate(expiryDate);
+        return this;
+    }
+
+    public EditPersonDescriptorBuilder withProvider(String provider) {
+        descriptor.setProvider(provider);
+        return this;
+    }
+
+    public EditPersonDescriptorBuilder withCreditScore(String creditScore) {
+        descriptor.setCreditScore(new CreditScore(creditScore));
+        return this;
+    }
+
+    public EditPersonDescriptorBuilder withDebt(String debt) {
+        descriptor.setDebt(new Debt(debt));
         return this;
     }
 
