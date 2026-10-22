@@ -122,10 +122,13 @@ public class EditCommandTest {
         command.execute(model);
 
         Person edited = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        assertEquals(original.getCardDetails().getCardNumber(), edited.getCardDetails().getCardNumber());
-        assertEquals("456", edited.getCardDetails().getCvv());
-        assertEquals(original.getCardDetails().getExpiryDate(), edited.getCardDetails().getExpiryDate());
-        assertEquals(original.getCardDetails().getProvider(), edited.getCardDetails().getProvider());
+        assertEquals(original.getCardDetails().orElse(null).getCardNumber(),
+                edited.getCardDetails().orElse(null).getCardNumber());
+        assertEquals("456", edited.getCardDetails().orElse(null).getCvv());
+        assertEquals(original.getCardDetails().orElse(null).getExpiryDate(),
+                edited.getCardDetails().orElse(null).getExpiryDate());
+        assertEquals(original.getCardDetails().orElse(null).getProvider(),
+                edited.getCardDetails().orElse(null).getProvider());
     }
 
     @Test
@@ -138,10 +141,10 @@ public class EditCommandTest {
         command.execute(model);
 
         Person edited = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        assertEquals("5555555555554444", edited.getCardDetails().getCardNumber());
-        assertEquals("456", edited.getCardDetails().getCvv());
-        assertEquals("12/28", edited.getCardDetails().getExpiryDate());
-        assertEquals("Visa", edited.getCardDetails().getProvider());
+        assertEquals("5555555555554444", edited.getCardDetails().orElse(null).getCardNumber());
+        assertEquals("456", edited.getCardDetails().orElse(null).getCvv());
+        assertEquals("12/28", edited.getCardDetails().orElse(null).getExpiryDate());
+        assertEquals("Visa", edited.getCardDetails().orElse(null).getProvider());
     }
 
     @Test

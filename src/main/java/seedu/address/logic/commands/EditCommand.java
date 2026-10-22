@@ -132,7 +132,7 @@ public class EditCommand extends Command {
         Address updatedAddress = editPersonDescriptor.getAddress().or(personToEdit::getAddress).orElse(null);
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
-        CardDetails existingCardDetails = personToEdit.getCardDetails();
+        CardDetails existingCardDetails = personToEdit.getCardDetails().orElse(null);
         String updatedCardNumber;
         if (editPersonDescriptor.getCardNumber().isPresent()) {
             updatedCardNumber = editPersonDescriptor.getCardNumber().get();
@@ -187,14 +187,14 @@ public class EditCommand extends Command {
         if (editPersonDescriptor.getCreditScore().isPresent()) {
             updatedCreditScore = editPersonDescriptor.getCreditScore().get();
         } else {
-            updatedCreditScore = personToEdit.getCreditScore();
+            updatedCreditScore = personToEdit.getCreditScore().orElse(null);
         }
 
         Debt updatedDebt;
         if (editPersonDescriptor.getDebt().isPresent()) {
             updatedDebt = editPersonDescriptor.getDebt().get();
         } else {
-            updatedDebt = personToEdit.getDebt();
+            updatedDebt = personToEdit.getDebt().orElse(null);
         }
 
         ServiceNote updatedServiceNote;
@@ -215,7 +215,9 @@ public class EditCommand extends Command {
         }
 
         if (updatedCardDetails == null) {
-            return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags, updatedServiceNote);
+            return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress,
+                    updatedCardDetails, updatedCreditScore, updatedDebt,
+                    updatedTags, updatedServiceNote);
         }
         return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedCardDetails,
                 updatedCreditScore, updatedDebt, updatedTags, updatedServiceNote);

@@ -41,13 +41,13 @@ public class EditPersonDescriptorBuilder {
         descriptor.setAddress(person.getAddress().orElse(null));
         descriptor.setTags(person.getTags());
         descriptor.setClientReference(person.getClientReference());
-        descriptor.setCreditScore(person.getCreditScore());
-        descriptor.setDebt(person.getDebt());
-        if (person.getCardDetails() != null) {
-            descriptor.setCardNumber(person.getCardDetails().getCardNumber());
-            descriptor.setCvv(person.getCardDetails().getCvv());
-            descriptor.setExpiryDate(person.getCardDetails().getExpiryDate());
-            descriptor.setProvider(person.getCardDetails().getProvider());
+        descriptor.setCreditScore(person.getCreditScore().orElse(null));
+        descriptor.setDebt(person.getDebt().orElse(null));
+        if (person.getCardDetails().orElse(null) != null) {
+            descriptor.setCardNumber(person.getCardDetails().orElse(null).getCardNumber());
+            descriptor.setCvv(person.getCardDetails().orElse(null).getCvv());
+            descriptor.setExpiryDate(person.getCardDetails().orElse(null).getExpiryDate());
+            descriptor.setProvider(person.getCardDetails().orElse(null).getProvider());
         }
     }
 
