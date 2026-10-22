@@ -26,6 +26,14 @@ public class PersonDetailsPanel extends UiPart<Region> {
     @FXML
     private VBox financialSection;
     @FXML
+    private VBox contactSection;
+    @FXML
+    private HBox phoneRow;
+    @FXML
+    private HBox emailRow;
+    @FXML
+    private HBox addressRow;
+    @FXML
     private Label reference;
     @FXML
     private Label name;
@@ -84,9 +92,10 @@ public class PersonDetailsPanel extends UiPart<Region> {
         reference.setText(person.getClientReference() == null
                 ? "(none)" : person.getClientReference().value);
         name.setText(person.getName().toString());
-        phone.setText(person.getPhone().map(Object::toString).orElse(""));
-        email.setText(person.getEmail().map(Object::toString).orElse(""));
-        address.setText(person.getAddress().map(Object::toString).orElse(""));
+        setOptionalRow(phoneRow, phone, person.getPhone().map(Object::toString).orElse(""));
+        setOptionalRow(emailRow, email, person.getEmail().map(Object::toString).orElse(""));
+        setOptionalRow(addressRow, address, person.getAddress().map(Object::toString).orElse(""));
+        setShown(contactSection, phoneRow.isManaged() || emailRow.isManaged() || addressRow.isManaged());
         setOptionalRow(cardDetailsRow, cardDetails, formatCardDetails(person));
         setOptionalRow(creditScoreRow, creditScore, person.getCreditScore().map(Object::toString).orElse(""));
         setOptionalRow(debtRow, debt, person.getDebt().map(Object::toString).orElse(""));
