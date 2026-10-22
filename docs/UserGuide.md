@@ -138,17 +138,21 @@ Older saved profiles may lack timestamps. If one time is available, the side pan
 
 Edits an existing person in the address book.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
+Format: `edit INDEX [r/REFERENCE] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL a/ADDRESS] [cn/CARD_NUMBER] [cvv/CVV] [exp/EXPIRY_DATE] [provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [s/NOTE] [t/TAG]...`
 
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
+* Client must have a full set of card details for individual card detail editing to be allowed.
+* To edit card details of a client who has no card details, every card detail field must be provided.
 * Existing values will be updated to the input values.
 * When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
 * To remove all of a person's tags, enter `t/` without a tag after it.
+* To remove a service note, enter `s/` without a note after it.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
+*  `edit 3 cn/1111222233334444 cvv/123 exp/12/28 provider/TestBank` Edits every card detail of the 3rd person to be the values as shown, even if they do not have any existing card details.
 
 ### Locating persons by name, phone number or card number: `find`
 
@@ -209,6 +213,15 @@ Format: `delete INDEX`
 Examples:
 * `list` followed by `delete 2` deletes the 2nd person in the address book.
 * `find n/Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+
+Format: `delete r/REFERENCE`
+
+* Deletes the person with the specified `REFERENCE`.
+* The `REFERENCE` refers to the reference number of a client.
+* The `REFERENCE` must be an **existing reference number** assigned to a client.
+
+Examples:
+* `delete r/C0001` deletes the client with reference number C0001.
 
 ### Clearing all entries: `clear`
 
