@@ -114,6 +114,37 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_editOnlyCvv_preservesOtherCardFields() throws Exception {
+        Person original = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+
+        EditCommand command = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withCvv("456").build());
+        command.execute(model);
+
+        Person edited = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        assertEquals(original.getCardDetails().getCardNumber(), edited.getCardDetails().getCardNumber());
+        assertEquals("456", edited.getCardDetails().getCvv());
+        assertEquals(original.getCardDetails().getExpiryDate(), edited.getCardDetails().getExpiryDate());
+        assertEquals(original.getCardDetails().getProvider(), edited.getCardDetails().getProvider());
+    }
+
+    @Test
+    public void execute_editMultipleCardFields_preservesUneditedFields() throws Exception {
+        EditCommand command = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder()
+                        .withCardNumber("5555555555554444")
+                        .withCvv("456")
+                        .build());
+        command.execute(model);
+
+        Person edited = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        assertEquals("5555555555554444", edited.getCardDetails().getCardNumber());
+        assertEquals("456", edited.getCardDetails().getCvv());
+        assertEquals("12/28", edited.getCardDetails().getExpiryDate());
+        assertEquals("Visa", edited.getCardDetails().getProvider());
+    }
+
+    @Test
     public void execute_noFieldSpecifiedUnfilteredList_success() {
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptor());
         Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());

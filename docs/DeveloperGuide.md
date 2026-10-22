@@ -371,7 +371,7 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 
 1. Bank teller requests the client list or searches for a client.
 2. TellerFlow displays matching profiles.
-3. Bank teller selects a client to delete by providing the client reference number.
+3. Bank teller selects a client to delete by providing the index or client reference number.
 4. TellerFlow deletes the profile and saves the change.
 
 ##### Extensions
