@@ -83,14 +83,20 @@ Format: `help`
 ### Adding a person: `add`
 
 Adds a person to the address book.
-Each new client needs a unique reference (`r/REFERENCE`). References are case-insensitive and are saved in uppercase.
-Credit scores are nonnegative whole numbers. Debt is a nonnegative amount with at most two decimal places;
-The debt is stored with two decimal places; no currency is assigned.
-Card number, CVV, expiry date, and provider are required nonblank fields when adding a client. They are saved as plain text, and command input is trimmed at its edges. The client list displays the provider, expiry date, and a masked card number. A card can be removed with `removecard`.
+Each new client needs a unique reference (`r/REFERENCE`) and a name (`n/NAME`). References are case-insensitive and are saved in uppercase.
+Phone, email, address, card details, credit score, debt, and tags are optional. Omitted details mean unknown or not recorded;
+they are hidden in the client details panel and are saved without fabricated values. A supplied value must be valid: for example, omitting `p/` is allowed, but an empty `p/` is rejected.
+Credit scores are nonnegative whole numbers. Debt is a nonnegative amount with at most two decimal places.
+The debt is stored with two decimal places; no currency is assigned. An explicit `cs/0` or `d/0` records zero, which is different from an omitted value.
+Card details form one optional group: supply all four of `cn/`, `cvv/`, `exp/`, and `provider/`, or omit all four.
+Card number, CVV, and provider must be nonblank. Card details are saved as plain text; command input is trimmed at its edges.
+The client details panel shows a masked card number, provider, expiry date, credit score, and debt when supplied. CVV is not displayed. A card can be removed with `removecard`.
 Expiry dates must use `MM/YY`, with a month from `01` to `12` (e.g. `12/28`).
 This checks the format only; past expiry dates are accepted.
 
-Format: `add r/REFERENCE n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER cs/CREDIT_SCORE d/DEBT [t/TAG]... `
+Format: `add r/REFERENCE n/NAME [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [t/TAG]...`
+
+Missing phone, email, or address details can be filled using `edit`. Editing card details, credit score, or debt is follow-up work and is not currently supported. Use `removecard` to clear recorded card details. There is no syntax to clear recorded contact or financial details.
 
 <box type="tip" seamless>
 
@@ -98,6 +104,10 @@ Format: `add r/REFERENCE n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS cn/CARD_NUMBER 
 </box>
 
 Examples:
+
+* `add r/C0001 n/John Doe` creates a profile with only a reference and name.
+* `add r/C0002 n/Betsy Crowe e/betsycrowe@example.com cs/0` records email and a zero credit score without requiring other details.
+* `add r/C0003 n/Alex Yeoh cn/4111111111111111 cvv/123 exp/12/28 provider/Visa` records a complete card group without contact or financial details.
 * `add r/C0001 n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/0.00`
 * `add r/C0002 n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 cn/5555555555554444 cvv/456 exp/11/29 provider/Mastercard cs/725 d/150.50 t/criminal`
 
@@ -143,6 +153,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
+* Phone, email, and address can be added to incomplete profiles. Omitted fields retain their current values, including missing values. Card details, credit score, and debt cannot be edited yet.
 * When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
 * To remove all of a person's tags, enter `t/` without a tag after it.
 
@@ -283,7 +294,7 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add r/REFERENCE n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER cs/CREDIT_SCORE d/DEBT [t/TAG]... ` <br> e.g., `add r/C0001 n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/0.00 t/friend t/colleague`
+**Add**    | `add r/REFERENCE n/NAME [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [t/TAG]...` <br> e.g., `add r/C0001 n/James Ho` or `add r/C0002 n/James Ho p/22224444 e/jamesho@example.com t/friend`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
