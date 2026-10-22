@@ -4,9 +4,9 @@
   pageNav: 3
 ---
 
-# AB-3 User Guide
+# TellerFlow User Guide
 
-AddressBook Level 3 (AB3) is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, AB3 can help you manage contacts faster than traditional GUI applications.
+TellerFlow is a **desktop application for managing client profiles, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, TellerFlow can help you manage client contact details, card information, finances, and service notes efficiently.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -18,9 +18,9 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Ensure that Java `25` or later is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
+1. Download the latest `addressbook.jar` file from the [TellerFlow releases page](https://github.com/AY2627S1-CS2103T-F08-4/tp/releases).
 
-1. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
+1. Copy the file to the folder you want to use as the _home folder_ for TellerFlow.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. On a first run, the client list shows sample clients.<br>
@@ -30,15 +30,17 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
    Click a client in the list to see their details, timestamps, and service note in the pane beside it.
    Some example commands you can try:
 
-   * `list` : Lists all contacts.
+   * `list` : Lists all clients.
 
-   * `add r/C0001 n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/0.00` : Adds a client named `John Doe` to the Address Book.
+   * `add r/C0001 n/John Doe` : Adds a client named `John Doe` with a reference and name. Other details can be filled in later.
 
-    * `delete 3` : Deletes the 3rd contact shown in the current list.
+   * `delete 3` : Deletes the 3rd client shown in the current list.
 
-    * `note r/C0001 s/Prefers morning appointments` : Adds or replaces that client's service note.
+   * `note r/C0001 s/Prefers morning appointments` : Adds or replaces that client's service note.
 
-   * `clear` : Deletes all contacts.
+   * `sort` : Sorts the displayed clients by name from A to Z.
+
+   * `clear` : Deletes all clients.
 
    * `exit` : Exits the app.
 
@@ -53,7 +55,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 **Notes about the command format:**<br>
 
 * Words in `UPPER_CASE` are the parameters to be supplied by the user.<br>
-  For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
+  For example, in `add r/REFERENCE n/NAME`, replace `REFERENCE` with `C0001` and `NAME` with `John Doe`.
 
 * Items in square brackets are optional.<br>
   For example, `n/NAME [t/TAG]` can be used as `n/John Doe t/friend` or as `n/John Doe`.
@@ -61,8 +63,12 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 * Items followed by `...` can appear zero or more times.<br>
   For example, `[t/TAG]... ` may be omitted, or written as `t/friend` or `t/friend t/family`.
 
-* Parameters can be in any order.<br>
+* Prefixed parameters can be in any order. For commands that take an `INDEX`, put the index before the prefixed parameters.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
+
+* Command words and prefixes are case-sensitive: use `add` and `n/`, not `ADD` or `N/`. Client reference values are case-insensitive.
+
+* Each prefix may appear only once per command, except `t/`, which can be repeated in `add` and `edit` to supply multiple tags.
 
 * Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
@@ -75,14 +81,16 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 Shows a message explaining how to access the help page.
 
+The current Help window links to the original AddressBook Level 3 guide. Use this TellerFlow User Guide for the commands and features described below.
+
 ![help message](images/helpMessage.png)
 
 Format: `help`
 
 
-### Adding a person: `add`
+### Adding a client: `add`
 
-Adds a person to the address book.
+Adds a client to TellerFlow.
 Each new client needs a unique reference (`r/REFERENCE`) and a name (`n/NAME`). References are case-insensitive and are saved in uppercase.
 Phone, email, address, card details, credit score, debt, and tags are optional. Omitted details mean unknown or not recorded;
 they are hidden in the client details panel and are saved without fabricated values. A supplied value must be valid: for example, omitting `p/` is allowed, but an empty `p/` is rejected.
@@ -96,11 +104,22 @@ This checks the format only; past expiry dates are accepted.
 
 Format: `add r/REFERENCE n/NAME [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [t/TAG]...`
 
-Missing phone, email, or address details can be filled using `edit`. Editing card details, credit score, or debt is follow-up work and is not currently supported. Use `removecard` to clear recorded card details. There is no syntax to clear recorded contact or financial details.
+Missing contact, card, credit score, or debt details can be filled using `edit`. Existing details can also be updated. Use `removecard` to clear recorded card details. Phone, email, address, credit score, and debt cannot be cleared through commands; supplying an empty value is rejected.
+
+The following field requirements also apply when using `edit`:
+
+Field | Requirements
+------|-------------
+Reference | 1-20 characters. Starts with an ASCII letter and contains only ASCII letters, digits, or hyphens. Must be unique, ignoring case.
+Name | 1-100 characters. Contains at least one letter and uses only letters, spaces, apostrophes (`'`), or hyphens (`-`).
+Phone | 3-15 digits, with no spaces or other characters. Leading zeros are retained.
+Email | A nonblank local part followed by `@` and a dotted domain, such as `alex@example.com`. Spaces are not allowed; domain labels use ASCII letters, digits, or internal hyphens, and the final label must contain at least two letters.
+Address | 1-200 printable characters on one line, with at least one non-space character.
+Tag | One or more ASCII letters or digits, with no spaces or punctuation.
 
 <box type="tip" seamless>
 
-**Tip:** A person can have any number of tags, including zero.
+**Tip:** A client can have any number of tags, including zero. Clients may share a name as long as their references differ.
 </box>
 
 Examples:
@@ -108,12 +127,12 @@ Examples:
 * `add r/C0001 n/John Doe` creates a profile with only a reference and name.
 * `add r/C0002 n/Betsy Crowe e/betsycrowe@example.com cs/0` records email and a zero credit score without requiring other details.
 * `add r/C0003 n/Alex Yeoh cn/4111111111111111 cvv/123 exp/12/28 provider/Visa` records a complete card group without contact or financial details.
-* `add r/C0001 n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/0.00`
-* `add r/C0002 n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 cn/5555555555554444 cvv/456 exp/11/29 provider/Mastercard cs/725 d/150.50 t/criminal`
+* `add r/C0004 n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/0.00`
+* `add r/C0005 n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 cn/5555555555554444 cvv/456 exp/11/29 provider/Mastercard cs/725 d/150.50 t/criminal`
 
-### Listing all persons: `list`
+### Listing all clients: `list`
 
-Shows a list of all persons in the address book.
+Shows a list of all clients in TellerFlow.
 The active sort order, if any, is retained.
 
 Format: `list`
@@ -140,34 +159,39 @@ Created:        2026-03-15 09:42
 Last Modified:  2026-10-12 14:18
 ```
 
-For a newly added client, both times are the same. A successful `edit` changes `Last Modified` even when the entered values match the existing values, while `Created` stays the same. Viewing clients with `list` or `find` does not change either time. Timestamps cannot be edited through commands.
+For a newly added client, both times are the same. A successful `edit`, `note`, or `removecard` changes `Last Modified`, while `Created` stays the same. An `edit` or `note` also updates `Last Modified` when the entered values match the existing values. Viewing clients with `list` or `find`, or sorting them, does not change either time. Timestamps cannot be edited through commands.
 
 Older saved profiles may lack timestamps. If one time is available, the side panel shows only that time. If both are unavailable, it shows `Timestamp information is unavailable for this profile.` once. Editing an older profile adds a `Last Modified` time but does not invent a `Created` time.
 
-### Editing a person: `edit`
+### Editing a client: `edit`
 
-Edits an existing person in the address book.
+Edits an existing client in TellerFlow.
 
 Format: `edit INDEX [r/REFERENCE] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER] [cvv/CVV] [exp/EXPIRY_DATE] [provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [s/NOTE] [t/TAG]...`
 
-* Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
+* Edits the client at the specified `INDEX`. The index refers to the index number shown in the current list, including after `find` or `sort`. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
-* Client must have a full set of card details for individual card detail editing to be allowed.
-* To edit card details of a client who has no card details, every card detail field must be provided.
+* If the client already has a card, any of `cn/`, `cvv/`, `exp/`, and `provider/` can be updated individually.
+* If the client has no card, supply all four card fields together to add one.
 * Existing values will be updated to the input values.
-* Phone, email, and address can be added to incomplete profiles. Omitted fields retain their current values, including missing values. Card details, credit score, and debt cannot be edited yet.
-* When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
-* To remove all of a person's tags, enter `t/` without a tag after it.
-* To remove a service note, enter `s/` without a note after it.
+* Contact details, credit score, and debt can be added or updated independently. Omitted fields retain their current values, including missing values.
+* Use `r/` to change a client's reference. The new reference must be unique, ignoring case.
+* When editing tags, all of the client's existing tags are replaced by the supplied tags; adding tags is not cumulative.
+* To remove all of a client's tags, enter `t/` without a tag after it.
+* Use `s/NOTE` to add or replace a service note, following the length and character rules in [Maintaining a service note](#maintaining-a-service-note-note). Enter `s/` without a note to remove it.
+* Phone, email, address, card fields, credit score, and debt cannot be cleared by entering empty values. Use `removecard` to remove a card.
+* After a successful edit, the full client list is displayed again, retaining the active sort order.
 
 Examples:
-*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
-*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
-*  `edit 3 cn/1111222233334444 cvv/123 exp/12/28 provider/TestBank` Edits every card detail of the 3rd person to be the values as shown, even if they do not have any existing card details.
+* `edit 1 p/91234567 e/johndoe@example.com` updates the 1st client's phone number and email address.
+* `edit 2 n/Betsy Crower t/` updates the 2nd client's name and clears all their tags.
+* `edit 3 cn/1111222233334444 cvv/123 exp/12/28 provider/TestBank` supplies a complete card, whether or not the 3rd client already has one.
+* `edit 1 cs/725 d/150.50` updates the 1st client's credit score and debt.
+* `edit 1 r/C0100 s/Prefers afternoon appointments` changes the 1st client's reference to `C0100` and replaces their service note.
 
-### Locating persons by name, phone number or card number: `find`
+### Locating clients by name, phone number or card number: `find`
 
-Finds persons by partial name keywords, full phone numbers, a full card number, or a combination of these.
+Finds clients by partial name keywords, full phone numbers, a full card number, or a combination of these.
 
 Format: `find [n/KEYWORD [MORE_KEYWORDS]...] [p/PHONE_NUMBER [MORE_PHONE_NUMBERS]...] [cn/CARD_NUMBER]`
 
@@ -182,21 +206,21 @@ Format: `find [n/KEYWORD [MORE_KEYWORDS]...] [p/PHONE_NUMBER [MORE_PHONE_NUMBERS
   Profiles without recorded card details do not match a card search.
 * Separate multiple name keywords or phone numbers with spaces. Within each field, matching any value is enough
   (an `OR` search). For example, `find n/Hans Bo` returns `Hans Gruber` and `Bo Yang`.
-* When multiple prefixes are supplied, a person must match every supplied field (an `AND` search).
+* When multiple prefixes are supplied, a client must match every supplied field (an `AND` search).
   For example, `n/` and `p/` together require at least one name keyword **and** at least one phone number to match.
 * The prefixes may be in any order, as may name keywords and phone-number alternatives.
 * Each prefix searches only its own field. Other fields such as email, address and tags are not searched.
 
 Examples:
-* `find n/John` returns persons such as `john` and `John Doe`.
-* `find n/lic` returns persons such as `Alice` and `Alicia Tan`.
-* `find n/alex david` returns persons such as `Alex Yeoh` and `David Li`.
-* `find p/91234567` returns all persons whose phone number is exactly `91234567`.
-* `find p/91234567 98765432` returns persons with either phone number.
-* `find n/lic p/91234567` returns persons whose names contain `lic` and whose phone number is `91234567`.
-* `find cn/4111111111111111` returns all persons with that exact recorded card number.
+* `find n/John` returns clients such as `john` and `John Doe`.
+* `find n/lic` returns clients such as `Alice` and `Alicia Tan`.
+* `find n/alex david` returns clients such as `Alex Yeoh` and `David Li`.
+* `find p/91234567` returns all clients whose phone number is exactly `91234567`.
+* `find p/91234567 98765432` returns clients with either phone number.
+* `find n/lic p/91234567` returns clients whose names contain `lic` and whose phone number is `91234567`.
+* `find cn/4111111111111111` returns all clients with that exact recorded card number.
 * `find cn/4111 1111 1111 1111` matches the card number stored with those spaces.
-* `find n/lic p/91234567 cn/4111111111111111` returns persons matching all three fields.
+* `find n/lic p/91234567 cn/4111111111111111` returns clients matching all three fields.
 
 ### Maintaining a service note: `note`
 
@@ -206,28 +230,33 @@ Format: `note r/REFERENCE s/NOTE`
 
 Both prefixes are required, in either order. The reference is case-insensitive. A note can contain up to 200 printable characters on one line; leading and trailing spaces are removed. Setting a note replaces the previous one. Use `s/` with no value to clear it.
 
+* The reference can identify any client, even if that client is outside the current `find` results.
+* Each prefix must appear exactly once. Text that looks like a prefix after whitespace, such as `r/`, `s/`, or `w/`, is treated as another parameter, not part of the note. Write `with` instead of `w/`, for example.
+* Trying to clear an absent service note is rejected with `Client C0001 has no service note to clear.` (with the requested reference).
+* A successful `note` command saves the change immediately, updates `Last Modified`, restores the full list in the active sort order, and selects the affected client.
+
 Examples:
 * `note r/C0001 s/Prefers morning appointments`
 * `note s/Hearing impaired, speak clearly r/c0001`
 * `note r/C0001 s/`
 
-### Deleting a person: `delete`
+### Deleting a client: `delete`
 
-Deletes the specified person from the address book.
+Deletes the specified client from TellerFlow.
 
 Format: `delete INDEX`
 
-* Deletes the person at the specified `INDEX`.
-* The index refers to the index number shown in the displayed person list.
+* Deletes the client at the specified `INDEX`.
+* The index refers to the index number shown in the current list, including after `find` or `sort`.
 * The index **must be a positive integer** 1, 2, 3, ...
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd person in the address book.
-* `find n/Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `list` followed by `delete 2` deletes the 2nd client in the displayed list.
+* `find n/Betsy` followed by `delete 1` deletes the 1st client in the results of the `find` command.
 
 Format: `delete r/REFERENCE`
 
-* Deletes the person with the specified `REFERENCE`.
+* Deletes the client with the specified `REFERENCE`, even if they are outside the current `find` results. Reference values are case-insensitive.
 * The `REFERENCE` refers to the reference number of a client.
 * The `REFERENCE` must be an **existing reference number** assigned to a client.
 
@@ -236,13 +265,13 @@ Examples:
 
 ### Clearing all entries: `clear`
 
-Clears all entries from the address book.
+Clears all clients from TellerFlow, including clients outside the current `find` results.
 
 Format: `clear`
 
 ### Removing a client's card: `removecard`
 
-Removes the card summary associated with a client reference while retaining the client's profile and other details. The reference is case-insensitive and is normalized to uppercase. After the change is saved, the client's row refreshes without the card summary and remains selected if it was selected before.
+Removes all four card fields associated with a client reference while retaining the client's profile, credit score, debt, tags, and service note. The reference is case-insensitive and is normalized to uppercase. It can identify a client outside the current `find` results. After the change is saved, `Last Modified` is updated. If the client was selected, they remain selected and their details pane no longer shows the card summary.
 
 Format: `removecard r/REFERENCE`
 
@@ -268,19 +297,21 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every successful `add`, `edit`, `delete`, `removecard`, or `clear` command. You do not need to save manually. If saving fails, it displays `Unable to save client data. No changes were made.` and keeps the list and saved file unchanged.
+TellerFlow automatically saves data after every successful `add`, `edit`, `delete`, `note`, `removecard`, or `clear` command. You do not need to save manually. If saving fails, it displays `Unable to save client data. No changes were made.` and keeps the list and saved file unchanged.
 
-On startup, saved clients appear in the main window with `Loaded [COUNT] client(s).`. If there is no data file, sample clients appear with `No saved client data found. Showing sample clients.` The sample clients are saved with the next successful data-changing command. An existing but empty data file starts with an empty list and `No saved client data found.`
+On startup, saved clients appear in the main window with `Loaded [COUNT] client(s).`. If there is no data file, sample clients appear with `No saved client data found. Showing sample clients.` The sample clients are saved with the next successful data-changing command. A valid data file containing no clients (for example, after `clear`) starts with an empty list and `No saved client data found.` A blank or malformed file is a load failure, as described below.
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a plaintext JSON file `[JAR file location]/data/addressbook.json`. This includes client references and card details. Advanced users are welcome to update data directly by editing that data file.
+TellerFlow data is saved automatically as a plaintext JSON file `data/addressbook.json`, relative to the working directory from which you start the app. If you follow the quick-start instructions and `cd` to the folder containing the JAR, the data file is in that folder's `data` subfolder. Starting the app from a different working directory uses a separate data file there. The status bar shows the data-file path.
+
+The file includes client references, contact details, card details (including CVV), credit score, debt, tags, timestamps, and service notes when recorded. Advanced users can edit this file while TellerFlow is closed.
 
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid or unreadable, including a malformed timestamp value, AddressBook starts with an empty list in protected mode and shows `Unable to load client data. Existing data was not changed. Add, delete, edit, and clear commands are disabled for this session.` All data-changing commands are disabled until you fix the file and restart; the existing file is not overwritten. Still, we recommend backing up the file before editing it.<br>
-Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+If your changes make the data file invalid or unreadable, including a malformed timestamp value, TellerFlow starts with an empty list in protected mode and shows `Unable to load client data. Existing data was not changed. Add, delete, edit, and clear commands are disabled for this session.` All data-changing commands, including `note` and `removecard`, are disabled until you fix the file and restart; the existing file is not overwritten. Back up the file before editing it.<br>
+Values in the file must follow the same field requirements as command input. Edit the data file only if you are confident that you can update it correctly.
 </box>
 
 ### Archiving data files `[coming in v2.0]`
@@ -292,7 +323,7 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous AddressBook home folder.
+**A**: Close TellerFlow on both computers. Copy `data/addressbook.json` from the old computer's working directory into the `data` subfolder of the working directory you will use on the new computer, replacing any existing file after backing it up. Start TellerFlow from that directory to load the transferred clients.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -309,10 +340,12 @@ Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add r/REFERENCE n/NAME [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [t/TAG]...` <br> e.g., `add r/C0001 n/James Ho` or `add r/C0002 n/James Ho p/22224444 e/jamesho@example.com t/friend`
 **Clear**  | `clear`
-**Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
+**Delete** | `delete INDEX` or `delete r/REFERENCE`<br> e.g., `delete 3` or `delete r/C0001`
+**Edit**   | `edit INDEX [r/REFERENCE] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER] [cvv/CVV] [exp/EXPIRY_DATE] [provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [s/NOTE] [t/TAG]...`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com` or `edit 1 cs/725 d/150.50`
 **Find**   | `find [n/KEYWORD [MORE_KEYWORDS]...] [p/PHONE_NUMBER [MORE_PHONE_NUMBERS]...] [cn/CARD_NUMBER]` (at least one prefix required)<br> e.g., `find n/Jam Jak`, `find p/91234567` or `find cn/4111111111111111`
 **List**   | `list`
+**Sort**   | `sort [asc\|desc\|reset]`<br> e.g., `sort desc` or `sort reset`
 **Remove card** | `removecard r/REFERENCE`<br> e.g., `removecard r/C0001`
 **Note**   | `note r/REFERENCE s/NOTE`<br> e.g., `note r/C0001 s/Prefers morning appointments`
 **Help**   | `help`
+**Exit**   | `exit`
