@@ -1,5 +1,6 @@
 package seedu.address.testutil;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,6 +13,7 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.ServiceNote;
 import seedu.address.model.tag.Tag;
 import seedu.address.model.util.SampleDataUtil;
 
@@ -40,6 +42,9 @@ public class PersonBuilder {
     private CreditScore creditScore;
     private Debt debt;
     private Set<Tag> tags;
+    private Instant createdAt;
+    private Instant lastModifiedAt;
+    private ServiceNote serviceNote;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -61,13 +66,16 @@ public class PersonBuilder {
     public PersonBuilder(Person personToCopy) {
         clientReference = personToCopy.getClientReference();
         name = personToCopy.getName();
-        phone = personToCopy.getPhone();
-        email = personToCopy.getEmail();
-        address = personToCopy.getAddress();
-        cardDetails = personToCopy.getCardDetails();
-        creditScore = personToCopy.getCreditScore();
-        debt = personToCopy.getDebt();
+        phone = personToCopy.getPhone().orElse(null);
+        email = personToCopy.getEmail().orElse(null);
+        address = personToCopy.getAddress().orElse(null);
+        cardDetails = personToCopy.getCardDetails().orElse(null);
+        creditScore = personToCopy.getCreditScore().orElse(null);
+        debt = personToCopy.getDebt().orElse(null);
         tags = new HashSet<>(personToCopy.getTags());
+        createdAt = personToCopy.getCreatedAt();
+        lastModifiedAt = personToCopy.getLastModifiedAt();
+        serviceNote = personToCopy.getServiceNote();
     }
 
     /**
@@ -139,12 +147,16 @@ public class PersonBuilder {
     /** Builds a US01 client or an existing record with its original financial details. */
     public Person build() {
         if (clientReference != null) {
-            return new Person(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags);
+            return new Person(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags,
+                    serviceNote)
+                    .withTimestamps(createdAt, lastModifiedAt);
         }
         if (cardDetails == null && creditScore == null && debt == null) {
-            return new Person(name, phone, email, address, tags);
+            return new Person(name, phone, email, address, tags, serviceNote)
+                    .withTimestamps(createdAt, lastModifiedAt);
         }
-        return new Person(name, phone, email, address, cardDetails, creditScore, debt, tags);
+        return new Person(name, phone, email, address, cardDetails, creditScore, debt, tags, serviceNote)
+                .withTimestamps(createdAt, lastModifiedAt);
     }
 
 }

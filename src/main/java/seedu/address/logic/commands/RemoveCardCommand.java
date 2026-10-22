@@ -31,15 +31,16 @@ public class RemoveCardCommand extends Command {
                 .filter(person -> reference.equals(person.getClientReference()))
                 .findFirst()
                 .orElseThrow(() -> new CommandException(String.format(MESSAGE_CLIENT_NOT_FOUND, reference)));
-        if (client.getCardDetails() == null) {
+        if (client.getCardDetails().isEmpty()) {
             throw new CommandException(String.format(MESSAGE_CARD_NOT_FOUND, reference));
         }
 
-        String cardNumber = client.getCardDetails().getCardNumber();
+        String cardNumber = client.getCardDetails().orElseThrow().getCardNumber();
         String cardEnding = cardNumber.substring(Math.max(0, cardNumber.length() - 4));
-        Person updatedClient = new Person(client.getClientReference(), client.getName(), client.getPhone(),
-                client.getEmail(), client.getAddress(), null, client.getCreditScore(), client.getDebt(),
-                client.getTags());
+        Person updatedClient = new Person(client.getClientReference(), client.getName(), client.getPhone().orElse(null),
+                client.getEmail().orElse(null), client.getAddress().orElse(null), null,
+                client.getCreditScore().orElse(null), client.getDebt().orElse(null),
+                client.getTags(), client.getServiceNote());
         model.setPerson(client, updatedClient);
         return new CommandResult(String.format(MESSAGE_SUCCESS, cardEnding, reference));
     }

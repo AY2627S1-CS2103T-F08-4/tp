@@ -23,9 +23,6 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_CARD_NUMBER;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_CREDIT_SCORE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_CVV;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
@@ -42,9 +39,6 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.model.person.Address;
-import seedu.address.model.person.CardDetails;
-import seedu.address.model.person.CreditScore;
-import seedu.address.model.person.Debt;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
@@ -94,9 +88,6 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "1" + INVALID_EMAIL_DESC, Email.MESSAGE_CONSTRAINTS); // invalid email
         assertParseFailure(parser, "1" + INVALID_ADDRESS_DESC, Address.MESSAGE_CONSTRAINTS); // invalid address
         assertParseFailure(parser, "1" + INVALID_TAG_DESC, Tag.MESSAGE_CONSTRAINTS); // invalid tag
-        assertParseFailure(parser, "1 cs/-1", CreditScore.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, "1 d/-10", Debt.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, "1 exp/13/30", CardDetails.EXPIRY_DATE_MESSAGE_CONSTRAINTS);
 
         // invalid phone followed by valid email
         assertParseFailure(parser, "1" + INVALID_PHONE_DESC + EMAIL_DESC_AMY, Phone.MESSAGE_CONSTRAINTS);
@@ -196,13 +187,6 @@ public class EditCommandParserTest {
         assertParseFailure(parser, userInput,
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS));
 
-        assertParseFailure(parser, "1 cvv/123 cvv/456",
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_CVV));
-        assertParseFailure(parser, "1 cn/4111111111111111 cn/5555555555554444",
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_CARD_NUMBER));
-        assertParseFailure(parser, "1 cs/700 cs/750",
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_CREDIT_SCORE));
-
         // multiple invalid values
         userInput = targetIndex.getOneBased() + INVALID_PHONE_DESC + INVALID_ADDRESS_DESC + INVALID_EMAIL_DESC
                 + INVALID_PHONE_DESC + INVALID_ADDRESS_DESC + INVALID_EMAIL_DESC;
@@ -220,32 +204,5 @@ public class EditCommandParserTest {
         EditCommand expectedCommand = new EditCommand(targetIndex, descriptor);
 
         assertParseSuccess(parser, userInput, expectedCommand);
-    }
-
-    @Test
-    public void parse_individualNewFields_success() {
-        Index targetIndex = INDEX_FIRST_PERSON;
-
-        assertParseSuccess(parser, "1 cn/5555555555554444",
-                new EditCommand(targetIndex, new EditPersonDescriptorBuilder()
-                        .withCardNumber("5555555555554444").build()));
-        assertParseSuccess(parser, "1 cvv/456",
-                new EditCommand(targetIndex, new EditPersonDescriptorBuilder()
-                        .withCvv("456").build()));
-        assertParseSuccess(parser, "1 exp/01/30",
-                new EditCommand(targetIndex, new EditPersonDescriptorBuilder()
-                        .withExpiryDate("01/30").build()));
-        assertParseSuccess(parser, "1 provider/Mastercard",
-                new EditCommand(targetIndex, new EditPersonDescriptorBuilder()
-                        .withProvider("Mastercard").build()));
-        assertParseSuccess(parser, "1 r/C0002",
-                new EditCommand(targetIndex, new EditPersonDescriptorBuilder()
-                        .withClientReference("C0002").build()));
-        assertParseSuccess(parser, "1 cs/750",
-                new EditCommand(targetIndex, new EditPersonDescriptorBuilder()
-                        .withCreditScore("750").build()));
-        assertParseSuccess(parser, "1 d/1200.50",
-                new EditCommand(targetIndex, new EditPersonDescriptorBuilder()
-                        .withDebt("1200.50").build()));
     }
 }

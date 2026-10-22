@@ -43,8 +43,9 @@ public class NoteCommand extends Command {
         }
 
         String action = note == null ? "Cleared" : client.getServiceNote() == null ? "Added" : "Updated";
-        Person updated = new Person(reference, client.getName(), client.getPhone(), client.getEmail(),
-                client.getAddress(), client.getCardDetails(), client.getCreditScore(), client.getDebt(),
+        Person updated = new Person(reference, client.getName(), client.getPhone().orElse(null),
+                client.getEmail().orElse(null), client.getAddress().orElse(null), client.getCardDetails().orElse(null),
+                client.getCreditScore().orElse(null), client.getDebt().orElse(null),
                 client.getTags(), note);
         model.setPerson(client, updated);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);

@@ -2,8 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.io.IOException;
@@ -64,13 +63,39 @@ public class RemoveCardCommandIntegrationTest {
         assertEquals(before.getCreditScore(), after.getCreditScore());
         assertEquals(before.getDebt(), after.getDebt());
         assertEquals(before.getTags(), after.getTags());
-        assertNull(after.getCardDetails());
+        assertTrue(after.getCardDetails().isEmpty());
         assertFalse(Files.readString(dataPath).contains("\"cardDetails\""));
         assertEquals(model.getAddressBook(), new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow());
 
         logic.execute("edit 1 p/91234567");
-        assertNull(new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow()
-                .getPersonList().getFirst().getCardDetails());
+        assertTrue(new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow()
+                .getPersonList().getFirst().getCardDetails().isEmpty());
+    }
+
+    @Test
+    public void execute_incompleteProfile_preservesNoteAndMissingFieldsAcrossCommandsAndReload() throws Exception {
+        logic.execute("add r/C0001 n/Alex cn/4111111111111111 cvv/123 exp/12/28 provider/Visa");
+        logic.execute("note r/C0001 s/Called about renewal");
+        Person before = model.getAddressBook().getPersonList().getFirst();
+        logic.execute("sort desc");
+        logic.execute("edit 1 p/91234567");
+        logic.execute("removecard r/C0001");
+
+        Person after = model.getAddressBook().getPersonList().getFirst();
+        assertEquals(before.getServiceNote(), after.getServiceNote());
+        assertEquals(before.getCreatedAt(), after.getCreatedAt());
+        assertEquals("91234567", after.getPhone().orElseThrow().value);
+        assertTrue(after.getEmail().isEmpty());
+        assertTrue(after.getAddress().isEmpty());
+        assertTrue(after.getCardDetails().isEmpty());
+        assertTrue(after.getCreditScore().isEmpty());
+        assertTrue(after.getDebt().isEmpty());
+        assertEquals(model.getAddressBook(), new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow());
+
+        logic.execute("find p/91234567");
+        assertEquals(List.of(after), model.getFilteredPersonList());
+        logic.execute("find cn/4111111111111111");
+        assertTrue(model.getFilteredPersonList().isEmpty());
     }
 
     @Test
@@ -101,8 +126,8 @@ public class RemoveCardCommandIntegrationTest {
         logic.execute("removecard r/C0001");
 
         List<Person> clients = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow().getPersonList();
-        assertNull(clients.get(0).getCardDetails());
-        assertNotNull(clients.get(1).getCardDetails());
+        assertTrue(clients.get(0).getCardDetails().isEmpty());
+        assertTrue(clients.get(1).getCardDetails().isPresent());
     }
 
     @Test
@@ -147,7 +172,7 @@ public class RemoveCardCommandIntegrationTest {
                 logic.execute("removecard r/C0001"));
         assertEquals(before, model.getAddressBook());
         assertEquals(savedJson, Files.readString(dataPath));
-        assertNotNull(model.getAddressBook().getPersonList().getFirst().getCardDetails());
+        assertTrue(model.getAddressBook().getPersonList().getFirst().getCardDetails().isPresent());
     }
 
     private StorageManager storage(JsonAddressBookStorage addressBookStorage) {

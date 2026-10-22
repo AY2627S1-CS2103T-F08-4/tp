@@ -28,6 +28,8 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.CreditScore;
+import seedu.address.model.person.Debt;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
@@ -39,6 +41,42 @@ public class EditCommandTest {
 
     private static final Clock TEST_CLOCK = Clock.fixed(Instant.parse("2026-10-12T06:18:00Z"), ZoneOffset.UTC);
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs(), TEST_CLOCK);
+
+    @Test
+    public void execute_legacyProfileWithoutCard_preservesIndependentFinancialDetails() {
+        Person source = model.getFilteredPersonList().getFirst();
+        Person legacy = new Person(source.getName(), null, null, null, null,
+                new CreditScore("0"), new Debt("0.00"), source.getTags());
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(legacy);
+        model = new ModelManager(addressBook, new UserPrefs(), TEST_CLOCK);
+        Person editedPerson = new PersonBuilder(legacy).withPhone(VALID_PHONE_BOB).build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build());
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), TEST_CLOCK);
+        expectedModel.setPerson(legacy, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_legacyProfile_preservesMissingCardAndFinancialDetails() {
+        Person source = model.getFilteredPersonList().getFirst();
+        Person legacy = new Person(source.getName(), source.getPhone().orElseThrow(), source.getEmail().orElseThrow(),
+                source.getAddress().orElseThrow(), source.getTags());
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(legacy);
+        model = new ModelManager(addressBook, new UserPrefs(), TEST_CLOCK);
+        Person editedPerson = new PersonBuilder(legacy).withPhone(VALID_PHONE_BOB).build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build());
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), TEST_CLOCK);
+        expectedModel.setPerson(legacy, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
 
     @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
@@ -73,37 +111,6 @@ public class EditCommandTest {
         expectedModel.setPerson(lastPerson, editedPerson);
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
-    }
-
-    @Test
-    public void execute_editOnlyCvv_preservesOtherCardFields() throws Exception {
-        Person original = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-
-        EditCommand command = new EditCommand(INDEX_FIRST_PERSON,
-                new EditPersonDescriptorBuilder().withCvv("456").build());
-        command.execute(model);
-
-        Person edited = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        assertEquals(original.getCardDetails().getCardNumber(), edited.getCardDetails().getCardNumber());
-        assertEquals("456", edited.getCardDetails().getCvv());
-        assertEquals(original.getCardDetails().getExpiryDate(), edited.getCardDetails().getExpiryDate());
-        assertEquals(original.getCardDetails().getProvider(), edited.getCardDetails().getProvider());
-    }
-
-    @Test
-    public void execute_editMultipleCardFields_preservesUneditedFields() throws Exception {
-        EditCommand command = new EditCommand(INDEX_FIRST_PERSON,
-                new EditPersonDescriptorBuilder()
-                        .withCardNumber("5555555555554444")
-                        .withCvv("456")
-                        .build());
-        command.execute(model);
-
-        Person edited = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        assertEquals("5555555555554444", edited.getCardDetails().getCardNumber());
-        assertEquals("456", edited.getCardDetails().getCvv());
-        assertEquals("12/28", edited.getCardDetails().getExpiryDate());
-        assertEquals("Visa", edited.getCardDetails().getProvider());
     }
 
     @Test

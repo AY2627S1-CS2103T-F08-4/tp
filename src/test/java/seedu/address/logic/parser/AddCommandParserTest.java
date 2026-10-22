@@ -7,6 +7,7 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailur
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,7 @@ import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.PersonUtil;
 
 public class AddCommandParserTest {
     private static final List<String> FIELDS = List.of("r/C0001", "n/Alex Yeoh", "p/87438807",
@@ -31,7 +33,65 @@ public class AddCommandParserTest {
             "exp/12/28", "provider/Visa", "cs/700", "d/0.00");
     private static final String VALID_ARGUMENTS = " " + String.join(" ", FIELDS);
     private static final String FINANCIAL_ARGUMENTS = " " + String.join(" ", FIELDS.subList(5, FIELDS.size()));
+    private static final String MINIMAL_ARGUMENTS = " r/C0001 n/Alex Yeoh";
     private final AddCommandParser parser = new AddCommandParser();
+
+    @Test
+    public void parse_minimalClient_success() {
+        Person expected = new Person(new ClientReference("C0001"), new Name("Alex Yeoh"),
+                null, null, null, null, null, null, Collections.emptySet());
+        assertParseSuccess(parser, " r/c0001 n/Alex Yeoh", new AddCommand(expected));
+    }
+
+    @Test
+    public void parse_optionalDetails_acceptsEveryCombinationAndCommandHelperOutput() {
+        List<String> optionalArguments = List.of(FIELDS.get(2), FIELDS.get(3), FIELDS.get(4),
+                String.join(" ", FIELDS.subList(5, 9)), "cs/0", "d/0.00");
+        for (int mask = 0; mask < 64; mask++) {
+            StringBuilder args = new StringBuilder(MINIMAL_ARGUMENTS);
+            for (int field = 0; field < optionalArguments.size(); field++) {
+                if ((mask & (1 << field)) != 0) {
+                    args.append(" ").append(optionalArguments.get(field));
+                }
+            }
+            Phone phone = (mask & 1) == 0 ? null : new Phone("87438807");
+            Email email = (mask & 2) == 0 ? null : new Email("alex@example.com");
+            Address address = (mask & 4) == 0 ? null : new Address("Blk 30 Geylang Street 29, #06-40");
+            CardDetails card = (mask & 8) == 0 ? null : new CardDetails("4111111111111111", "123", "12/28", "Visa");
+            CreditScore score = (mask & 16) == 0 ? null : new CreditScore("0");
+            Debt debt = (mask & 32) == 0 ? null : new Debt("0.00");
+            Person expected = new Person(new ClientReference("C0001"), new Name("Alex Yeoh"),
+                    phone, email, address, card, score, debt, Collections.emptySet());
+
+            assertParseSuccess(parser, args.toString(), new AddCommand(expected));
+            assertParseSuccess(parser, " " + PersonUtil.getPersonDetails(expected), new AddCommand(expected));
+        }
+    }
+
+    @Test
+    public void parse_partialCardGroup_reportsAllFourRequiredFields() {
+        List<String> cardFields = FIELDS.subList(5, 9);
+        for (int mask = 1; mask < 15; mask++) {
+            StringBuilder args = new StringBuilder(MINIMAL_ARGUMENTS);
+            for (int field = 0; field < cardFields.size(); field++) {
+                if ((mask & (1 << field)) != 0) {
+                    args.append(" ").append(cardFields.get(field));
+                }
+            }
+            assertParseFailure(parser, args.toString(), AddCommandParser.MESSAGE_INCOMPLETE_CARD_DETAILS);
+        }
+        assertParseFailure(parser, MINIMAL_ARGUMENTS + " cn/", AddCommandParser.MESSAGE_INCOMPLETE_CARD_DETAILS);
+    }
+
+    @Test
+    public void parse_blankOptionalValueWithoutOtherDetails_reportsFieldConstraint() {
+        List<String> fields = List.of("p/", "e/", "a/", "cs/", "d/");
+        List<String> messages = List.of(Phone.MESSAGE_CONSTRAINTS, Email.MESSAGE_CONSTRAINTS,
+                Address.MESSAGE_CONSTRAINTS, CreditScore.MESSAGE_CONSTRAINTS, Debt.MESSAGE_CONSTRAINTS);
+        for (int field = 0; field < fields.size(); field++) {
+            assertParseFailure(parser, MINIMAL_ARGUMENTS + " " + fields.get(field), messages.get(field));
+        }
+    }
 
     @Test
     public void parse_referenceWithAllCommittedFields_success() {
@@ -52,16 +112,18 @@ public class AddCommandParserTest {
     @Test
     public void parse_missingRequiredField_reportsInvalidFormat() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE);
-        for (int i = 0; i < FIELDS.size(); i++) {
+        for (int i = 0; i < 2; i++) {
             List<String> fields = new ArrayList<>(FIELDS);
             fields.remove(i);
             assertParseFailure(parser, " " + String.join(" ", fields), expectedMessage);
         }
         assertParseFailure(parser, "", expectedMessage);
+        assertParseFailure(parser, " n/Alex Yeoh", expectedMessage);
+        assertParseFailure(parser, " r/C0001", expectedMessage);
     }
 
     @Test
-    public void parse_repeatedRequiredField_reportsItsPrefix() {
+    public void parse_repeatedSingleValuedField_reportsItsPrefix() {
         for (String field : FIELDS) {
             assertParseFailure(parser, VALID_ARGUMENTS + " " + field,
                     Messages.getErrorMessageForDuplicatePrefixes(new Prefix(prefixOf(field))));
@@ -108,7 +170,7 @@ public class AddCommandParserTest {
     }
 
     @Test
-    public void parse_blankRequiredValues_reportsFieldConstraint() {
+    public void parse_blankSuppliedValues_reportsFieldConstraint() {
         List<String> messages = List.of(ClientReference.MESSAGE_CONSTRAINTS, Name.MESSAGE_CONSTRAINTS,
                 Phone.MESSAGE_CONSTRAINTS, Email.MESSAGE_CONSTRAINTS, Address.MESSAGE_CONSTRAINTS,
                 CardDetails.CARD_NUMBER_MESSAGE_CONSTRAINTS, CardDetails.CVV_MESSAGE_CONSTRAINTS,
