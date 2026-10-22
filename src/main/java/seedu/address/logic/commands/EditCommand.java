@@ -2,9 +2,16 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CARD_NUMBER;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CREDIT_SCORE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CVV;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_DEBT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPIRY_DATE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PROVIDER;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_REFERENCE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
@@ -22,6 +29,10 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Address;
+import seedu.address.model.person.CardDetails;
+import seedu.address.model.person.ClientReference;
+import seedu.address.model.person.CreditScore;
+import seedu.address.model.person.Debt;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
@@ -39,10 +50,17 @@ public class EditCommand extends Command {
             + "by the index number used in the displayed person list. "
             + "Existing values will be overwritten by the input values.\n"
             + "Parameters: INDEX (must be a positive integer) "
+            + "[" + PREFIX_REFERENCE + "REFERENCE] "
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
             + "[" + PREFIX_ADDRESS + "ADDRESS] "
+            + "[" + PREFIX_CARD_NUMBER + "CARD_NUMBER] "
+            + "[" + PREFIX_CVV + "CVV] "
+            + "[" + PREFIX_EXPIRY_DATE + "EXPIRY_DATE] "
+            + "[" + PREFIX_PROVIDER + "PROVIDER] "
+            + "[" + PREFIX_CREDIT_SCORE + "CREDIT_SCORE] "
+            + "[" + PREFIX_DEBT + "DEBT] "
             + "[" + PREFIX_TAG + "TAG]...\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567 "
@@ -51,6 +69,8 @@ public class EditCommand extends Command {
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited person: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
+    public static final String MESSAGE_INCOMPLETE_CARD_DETAILS =
+            "A person without card details must provide all card fields when adding a card.";
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -92,8 +112,16 @@ public class EditCommand extends Command {
      * Creates and returns a {@code Person} with the details of {@code personToEdit}
      * edited with {@code editPersonDescriptor}.
      */
-    private static Person createEditedPerson(Person personToEdit, EditPersonDescriptor editPersonDescriptor) {
+    private static Person createEditedPerson(Person personToEdit, EditPersonDescriptor editPersonDescriptor)
+            throws CommandException {
         assert personToEdit != null;
+
+        ClientReference updatedReference;
+        if (editPersonDescriptor.getClientReference().isPresent()) {
+            updatedReference = editPersonDescriptor.getClientReference().get();
+        } else {
+            updatedReference = personToEdit.getClientReference();
+        }
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
         Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone());
@@ -101,16 +129,70 @@ public class EditCommand extends Command {
         Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
-        if (personToEdit.getClientReference() != null) {
-            return new Person(personToEdit.getClientReference(), updatedName, updatedPhone, updatedEmail,
-                    updatedAddress, personToEdit.getCardDetails(), personToEdit.getCreditScore(),
-                    personToEdit.getDebt(), updatedTags);
+        CardDetails existingCardDetails = personToEdit.getCardDetails();
+        String updatedCardNumber;
+        if (editPersonDescriptor.getCardNumber().isPresent()) {
+            updatedCardNumber = editPersonDescriptor.getCardNumber().get();
+        } else if (existingCardDetails != null) {
+            updatedCardNumber = existingCardDetails.getCardNumber();
+        } else {
+            updatedCardNumber = null;
         }
-        if (personToEdit.getCardDetails() == null) {
+
+        String updatedCvv;
+        if (editPersonDescriptor.getCvv().isPresent()) {
+            updatedCvv = editPersonDescriptor.getCvv().get();
+        } else if (existingCardDetails != null) {
+            updatedCvv = existingCardDetails.getCvv();
+        } else {
+            updatedCvv = null;
+        }
+
+        String updatedExpiryDate;
+        if (editPersonDescriptor.getExpiryDate().isPresent()) {
+            updatedExpiryDate = editPersonDescriptor.getExpiryDate().get();
+        } else if (existingCardDetails != null) {
+            updatedExpiryDate = existingCardDetails.getExpiryDate();
+        } else {
+            updatedExpiryDate = null;
+        }
+
+        String updatedProvider;
+        if (editPersonDescriptor.getProvider().isPresent()) {
+            updatedProvider = editPersonDescriptor.getProvider().get();
+        } else if (existingCardDetails != null) {
+            updatedProvider = existingCardDetails.getProvider();
+        } else {
+            updatedProvider = null;
+        }
+
+        boolean cardFieldEdited = editPersonDescriptor.getCardNumber().isPresent()
+                || editPersonDescriptor.getCvv().isPresent()
+                || editPersonDescriptor.getExpiryDate().isPresent()
+                || editPersonDescriptor.getProvider().isPresent();
+        CardDetails updatedCardDetails = existingCardDetails;
+        if (cardFieldEdited) {
+            if (updatedCardNumber == null || updatedCvv == null
+                    || updatedExpiryDate == null || updatedProvider == null) {
+                throw new CommandException(MESSAGE_INCOMPLETE_CARD_DETAILS);
+            }
+            updatedCardDetails = new CardDetails(updatedCardNumber, updatedCvv,
+                    updatedExpiryDate, updatedProvider);
+        }
+
+        CreditScore updatedCreditScore = editPersonDescriptor.getCreditScore()
+                .orElse(personToEdit.getCreditScore());
+        Debt updatedDebt = editPersonDescriptor.getDebt().orElse(personToEdit.getDebt());
+
+        if (updatedReference != null) {
+            return new Person(updatedReference, updatedName, updatedPhone, updatedEmail,
+                    updatedAddress, updatedCardDetails, updatedCreditScore, updatedDebt, updatedTags);
+        }
+        if (updatedCardDetails == null) {
             return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags);
         }
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, personToEdit.getCardDetails(),
-                personToEdit.getCreditScore(), personToEdit.getDebt(), updatedTags);
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedCardDetails,
+                updatedCreditScore, updatedDebt, updatedTags);
     }
 
     @Override
@@ -151,6 +233,13 @@ public class EditCommand extends Command {
         private Email email;
         private Address address;
         private Set<Tag> tags;
+        private ClientReference clientReference;
+        private String cardNumber;
+        private String cvv;
+        private String expiryDate;
+        private String provider;
+        private CreditScore creditScore;
+        private Debt debt;
 
         public EditPersonDescriptor() {}
 
@@ -160,18 +249,29 @@ public class EditCommand extends Command {
          */
         public EditPersonDescriptor(EditPersonDescriptor toCopy) {
             setName(toCopy.name);
+            setClientReference(toCopy.clientReference);
             setPhone(toCopy.phone);
             setEmail(toCopy.email);
             setAddress(toCopy.address);
             setTags(toCopy.tags);
+            setCardNumber(toCopy.cardNumber);
+            setCvv(toCopy.cvv);
+            setExpiryDate(toCopy.expiryDate);
+            setProvider(toCopy.provider);
+            setCreditScore(toCopy.creditScore);
+            setDebt(toCopy.debt);
         }
 
         /**
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags);
+            return CollectionUtil.isAnyNonNull(clientReference, name, phone, email, address,
+                    cardNumber, cvv, expiryDate, provider, creditScore, debt, tags);
         }
+
+        public void setClientReference(ClientReference clientReference) { this.clientReference = clientReference; }
+        public Optional<ClientReference> getClientReference() { return Optional.ofNullable(clientReference); }
 
         public void setName(Name name) {
             this.name = name;
@@ -205,6 +305,19 @@ public class EditCommand extends Command {
             return Optional.ofNullable(address);
         }
 
+        public void setCardNumber(String cardNumber) { this.cardNumber = cardNumber; }
+        public Optional<String> getCardNumber() { return Optional.ofNullable(cardNumber); }
+        public void setCvv(String cvv) { this.cvv = cvv; }
+        public Optional<String> getCvv() { return Optional.ofNullable(cvv); }
+        public void setExpiryDate(String expiryDate) { this.expiryDate = expiryDate; }
+        public Optional<String> getExpiryDate() { return Optional.ofNullable(expiryDate); }
+        public void setProvider(String provider) { this.provider = provider; }
+        public Optional<String> getProvider() { return Optional.ofNullable(provider); }
+        public void setCreditScore(CreditScore creditScore) { this.creditScore = creditScore; }
+        public Optional<CreditScore> getCreditScore() { return Optional.ofNullable(creditScore); }
+        public void setDebt(Debt debt) { this.debt = debt; }
+        public Optional<Debt> getDebt() { return Optional.ofNullable(debt); }
+
         /**
          * Sets {@code tags} to this object's {@code tags}.
          * A defensive copy of {@code tags} is used internally.
@@ -237,6 +350,13 @@ public class EditCommand extends Command {
                     && Objects.equals(phone, otherEditPersonDescriptor.phone)
                     && Objects.equals(email, otherEditPersonDescriptor.email)
                     && Objects.equals(address, otherEditPersonDescriptor.address)
+                    && Objects.equals(clientReference, otherEditPersonDescriptor.clientReference)
+                    && Objects.equals(cardNumber, otherEditPersonDescriptor.cardNumber)
+                    && Objects.equals(cvv, otherEditPersonDescriptor.cvv)
+                    && Objects.equals(expiryDate, otherEditPersonDescriptor.expiryDate)
+                    && Objects.equals(provider, otherEditPersonDescriptor.provider)
+                    && Objects.equals(creditScore, otherEditPersonDescriptor.creditScore)
+                    && Objects.equals(debt, otherEditPersonDescriptor.debt)
                     && Objects.equals(tags, otherEditPersonDescriptor.tags);
         }
 
@@ -247,6 +367,13 @@ public class EditCommand extends Command {
                     .add("phone", phone)
                     .add("email", email)
                     .add("address", address)
+                    .add("clientReference", clientReference)
+                    .add("cardNumber", cardNumber)
+                    .add("cvv", cvv)
+                    .add("expiryDate", expiryDate)
+                    .add("provider", provider)
+                    .add("creditScore", creditScore)
+                    .add("debt", debt)
                     .add("tags", tags)
                     .toString();
         }
