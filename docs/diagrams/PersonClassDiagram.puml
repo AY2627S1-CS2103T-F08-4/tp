@@ -1,0 +1,36 @@
+@startuml
+!include style.puml
+skinparam arrowThickness 1.1
+skinparam arrowColor MODEL_COLOR
+skinparam classBackgroundColor MODEL_COLOR
+skinparam classAttributeFontColor #FFFFFF
+skinparam classAttributeIconSize 0
+skinparam dpi 150
+
+class Person {
+  - clientReference : ClientReference [0..1]
+  - name : Name [1]
+  - phone : Phone [0..1]
+  - email : Email [0..1]
+  - address : Address [0..1]
+  - cardDetails : CardDetails [0..1]
+  - creditScore : CreditScore [0..1]
+  - debt : Debt [0..1]
+  - serviceNote : ServiceNote [0..1]
+  - tags : Set<Tag>
+  - createdAt : Instant [0..1]
+  - lastModifiedAt : Instant [0..1]
+}
+
+class CardDetails {
+  - cardNumber : String
+  - cvv : String
+  - expiryDate : String
+  - provider : String
+}
+
+show Person fields
+show CardDetails fields
+
+Person *-right-> "0..1" CardDetails
+@enduml
