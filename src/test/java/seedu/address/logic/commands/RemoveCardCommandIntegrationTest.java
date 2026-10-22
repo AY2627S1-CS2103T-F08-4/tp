@@ -73,6 +73,32 @@ public class RemoveCardCommandIntegrationTest {
     }
 
     @Test
+    public void execute_incompleteProfile_preservesNoteAndMissingFieldsAcrossCommandsAndReload() throws Exception {
+        logic.execute("add r/C0001 n/Alex cn/4111111111111111 cvv/123 exp/12/28 provider/Visa");
+        logic.execute("note r/C0001 s/Called about renewal");
+        Person before = model.getAddressBook().getPersonList().getFirst();
+        logic.execute("sort desc");
+        logic.execute("edit 1 p/91234567");
+        logic.execute("removecard r/C0001");
+
+        Person after = model.getAddressBook().getPersonList().getFirst();
+        assertEquals(before.getServiceNote(), after.getServiceNote());
+        assertEquals(before.getCreatedAt(), after.getCreatedAt());
+        assertEquals("91234567", after.getPhone().orElseThrow().value);
+        assertTrue(after.getEmail().isEmpty());
+        assertTrue(after.getAddress().isEmpty());
+        assertTrue(after.getCardDetails().isEmpty());
+        assertTrue(after.getCreditScore().isEmpty());
+        assertTrue(after.getDebt().isEmpty());
+        assertEquals(model.getAddressBook(), new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow());
+
+        logic.execute("find p/91234567");
+        assertEquals(List.of(after), model.getFilteredPersonList());
+        logic.execute("find cn/4111111111111111");
+        assertTrue(model.getFilteredPersonList().isEmpty());
+    }
+
+    @Test
     public void execute_missingClientOrCard_keepsModelAndSavedFile() throws Exception {
         logic.execute(ADD_CLIENT);
         String originalJson = Files.readString(dataPath);

@@ -15,6 +15,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
@@ -34,10 +35,14 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.ClientReference;
+import seedu.address.model.person.Name;
+import seedu.address.model.person.Person;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.PersonUtil;
 
 public class LogicManagerTest {
     private static final IOException DUMMY_IO_EXCEPTION = new IOException("dummy IO exception");
@@ -168,6 +173,60 @@ public class LogicManagerTest {
                     + MODIFIED), handler.messages);
         } finally {
             logRoot.removeHandler(handler);
+        }
+    }
+
+    @Test
+    public void execute_addMinimalThenReloadAndEdit_preservesMissingDetails() throws Exception {
+        Path dataPath = temporaryFolder.resolve("addressBook.json");
+        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
+        logic = new LogicManager(model, storage, "", false, Clock.fixed(CREATED, ZoneOffset.UTC));
+        Person minimal = new Person(new ClientReference("C0001"), new Name("John Doe"),
+                null, null, null, null, null, null, Collections.emptySet()).withTimestamps(CREATED, CREATED);
+        CommandResult added = logic.execute("add r/c0001 n/John Doe");
+        assertEquals("Added client: C0001 John Doe", added.getFeedbackToUser());
+
+        ReadOnlyAddressBook loaded = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow();
+        assertEquals(minimal, loaded.getPersonList().getFirst());
+        Model freshModel = new ModelManager(loaded, new UserPrefs());
+        StorageManager freshStorage = new StorageManager(new JsonAddressBookStorage(dataPath),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
+        Logic freshLogic = new LogicManager(freshModel, freshStorage, "", false, Clock.fixed(MODIFIED, ZoneOffset.UTC));
+        CommandResult edited = freshLogic.execute("edit 1 p/91234567");
+
+        assertEquals("Edited person: John Doe; Phone: 91234567; Tags: ", edited.getFeedbackToUser());
+        Person expected = new PersonBuilder(minimal).withPhone("91234567").build().withTimestamps(CREATED, MODIFIED);
+        ReadOnlyAddressBook reloaded = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow();
+        assertEquals(expected, reloaded.getPersonList().getFirst());
+        assertEquals(freshModel.getAddressBook(), reloaded);
+    }
+
+    @Test
+    public void execute_addIndependentOptionalDetails_automaticallySavesAndReloadsEachProfile() throws Exception {
+        Person minimal = new Person(new ClientReference("C0001"), new Name("John Doe"),
+                null, null, null, null, null, null, Collections.emptySet());
+        List<Person> profiles = List.of(minimal,
+                new PersonBuilder(minimal).withClientReference("C0002").withPhone("91234567").build(),
+                new PersonBuilder(minimal).withClientReference("C0003").withEmail("john@example.com").build(),
+                new PersonBuilder(minimal).withClientReference("C0004").withAddress("123 Main Street").build(),
+                new PersonBuilder(minimal).withClientReference("C0005")
+                        .withCardDetails("4111111111111111", "123", "12/28", "Visa").build(),
+                new PersonBuilder(minimal).withClientReference("C0006").withCreditScore("0").build(),
+                new PersonBuilder(minimal).withClientReference("C0007").withDebt("0.00").build(),
+                new PersonBuilder(minimal).withClientReference("C0008").withPhone("91234567")
+                        .withEmail("john@example.com").withCreditScore("0").withDebt("25.50")
+                        .withTags("friend").build());
+        Path dataPath = temporaryFolder.resolve("addressBook.json");
+
+        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
+        logic = new LogicManager(model, storage, "", false, Clock.fixed(CREATED, ZoneOffset.UTC));
+        for (Person profile : profiles) {
+            logic.execute(PersonUtil.getAddCommand(profile));
+            ReadOnlyAddressBook loaded = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow();
+            assertEquals(profile.withTimestamps(CREATED, CREATED), loaded.getPersonList().getLast());
+            assertEquals(model.getAddressBook(), loaded);
         }
     }
 
