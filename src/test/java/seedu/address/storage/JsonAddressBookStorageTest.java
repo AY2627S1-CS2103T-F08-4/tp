@@ -21,6 +21,7 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.ServiceNote;
 import seedu.address.testutil.PersonBuilder;
 
 public class JsonAddressBookStorageTest {
@@ -98,6 +99,22 @@ public class JsonAddressBookStorageTest {
         Person second = new PersonBuilder().withName("Alex Yeoh").withClientReference("C0002").build();
         original.addPerson(first);
         original.addPerson(second);
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+        storage.saveAddressBook(original);
+
+        assertEquals(original, storage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void readAndSaveAddressBook_clientWithServiceNote_preservesNote() throws Exception {
+        Path filePath = testFolder.resolve("ServiceNoteAddressBook.json");
+        Person base = new PersonBuilder().withClientReference("C0001").build();
+        Person withNote = new Person(base.getClientReference(), base.getName(), base.getPhone(), base.getEmail(),
+                base.getAddress(), base.getCardDetails(), base.getCreditScore(), base.getDebt(), base.getTags(),
+                new ServiceNote("Called about renewal"));
+        AddressBook original = new AddressBook();
+        original.addPerson(withNote);
 
         JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
         storage.saveAddressBook(original);

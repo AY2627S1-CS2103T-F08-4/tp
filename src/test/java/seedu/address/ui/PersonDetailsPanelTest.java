@@ -6,8 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -21,7 +22,7 @@ import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.testutil.PersonBuilder;
 
-class PersonCardTest {
+class PersonDetailsPanelTest {
     private static final ZoneId DISPLAY_ZONE = ZoneId.of("Asia/Singapore");
     private static final Instant CREATED = Instant.parse("2026-03-15T01:42:00Z");
     private static final Instant MODIFIED = Instant.parse("2026-10-12T06:18:00Z");
@@ -33,7 +34,7 @@ class PersonCardTest {
                 .withCardDetails("1234567890123456", "123", "12/28", "Visa")
                 .build();
 
-        assertEquals("Card: Visa ****3456 exp 12/28", PersonCard.formatCardDetails(person));
+        assertEquals("Visa ****3456 exp 12/28", PersonDetailsPanel.formatCardDetails(person));
     }
 
     @Test
@@ -45,12 +46,12 @@ class PersonCardTest {
                 new Address("123 Legacy Street"),
                 Collections.emptySet());
 
-        assertEquals("", PersonCard.formatCardDetails(person));
+        assertEquals("", PersonDetailsPanel.formatCardDetails(person));
     }
 
     @Test
     void formatTimestamp_usesViewerTimeZone() {
-        assertEquals("2026-03-15 09:42", PersonCard.formatTimestamp(
+        assertEquals("2026-03-15 09:42", PersonDetailsPanel.formatTimestamp(
                 CREATED, DISPLAY_ZONE));
     }
 
@@ -58,33 +59,33 @@ class PersonCardTest {
     void formatTimestamps_bothKnown_showsBoth() {
         var person = new PersonBuilder().build().withTimestamps(CREATED, MODIFIED);
 
-        assertEquals(new PersonCard.TimestampDisplay("Created: 2026-03-15 09:42",
-                "Last Modified: 2026-10-12 14:18", ""), PersonCard.formatTimestamps(person, DISPLAY_ZONE));
+        assertEquals(new PersonDetailsPanel.TimestampDisplay("2026-03-15 09:42",
+                "2026-10-12 14:18", ""), PersonDetailsPanel.formatTimestamps(person, DISPLAY_ZONE));
     }
 
     @Test
     void formatTimestamps_oneKnown_showsOnlyKnownField() {
         var person = new PersonBuilder().build();
 
-        assertEquals(new PersonCard.TimestampDisplay("", "Last Modified: 2026-10-12 14:18", ""),
-                PersonCard.formatTimestamps(person.withTimestamps(null, MODIFIED), DISPLAY_ZONE));
-        assertEquals(new PersonCard.TimestampDisplay("Created: 2026-03-15 09:42", "", ""),
-                PersonCard.formatTimestamps(person.withTimestamps(CREATED, null), DISPLAY_ZONE));
+        assertEquals(new PersonDetailsPanel.TimestampDisplay("", "2026-10-12 14:18", ""),
+                PersonDetailsPanel.formatTimestamps(person.withTimestamps(null, MODIFIED), DISPLAY_ZONE));
+        assertEquals(new PersonDetailsPanel.TimestampDisplay("2026-03-15 09:42", "", ""),
+                PersonDetailsPanel.formatTimestamps(person.withTimestamps(CREATED, null), DISPLAY_ZONE));
     }
 
     @Test
     void formatTimestamps_noneKnown_showsOneMessage() {
         var person = new PersonBuilder().build();
 
-        assertEquals(new PersonCard.TimestampDisplay("", "",
+        assertEquals(new PersonDetailsPanel.TimestampDisplay("", "",
                 "Timestamp information is unavailable for this profile."),
-                PersonCard.formatTimestamps(person, DISPLAY_ZONE));
+                PersonDetailsPanel.formatTimestamps(person, DISPLAY_ZONE));
     }
 
     @Test
-    void timestampLabels_existInCardFxml() throws Exception {
-        Set<String> ids = new HashSet<>();
-        try (InputStream stream = PersonCard.class.getResourceAsStream("/view/PersonListCard.fxml")) {
+    void timestampLabels_existBeforeServiceNoteInDetailsFxml() throws Exception {
+        List<String> ids = new ArrayList<>();
+        try (InputStream stream = PersonDetailsPanel.class.getResourceAsStream("/view/PersonDetailsPanel.fxml")) {
             NodeList labels = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(stream)
                     .getElementsByTagName("Label");
             for (int i = 0; i < labels.getLength(); i++) {
@@ -93,6 +94,7 @@ class PersonCardTest {
             }
         }
         assertTrue(ids.containsAll(Set.of("createdAt", "lastModifiedAt", "timestampUnavailable")));
+        assertEquals("serviceNote", ids.getLast());
     }
 
     @Test
@@ -102,6 +104,6 @@ class PersonCardTest {
                 withCard.getEmail(), withCard.getAddress(), null, withCard.getCreditScore(),
                 withCard.getDebt(), withCard.getTags());
 
-        assertEquals("", PersonCard.formatCardDetails(withoutCard));
+        assertEquals("", PersonDetailsPanel.formatCardDetails(withoutCard));
     }
 }

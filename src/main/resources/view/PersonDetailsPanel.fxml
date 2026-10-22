@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="client-details"
+            xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+  <content>
+    <VBox spacing="18">
+      <padding><Insets top="18" right="18" bottom="18" left="18" /></padding>
+      <Label fx:id="emptyMessage" text="No client selected." styleClass="details-empty" />
+      <VBox fx:id="details" spacing="18">
+        <VBox spacing="4" styleClass="details-header">
+          <Label fx:id="name" wrapText="true" maxWidth="Infinity" styleClass="details-name" />
+          <Label fx:id="reference" wrapText="true" maxWidth="Infinity" styleClass="details-reference" />
+        </VBox>
+
+        <VBox spacing="10" styleClass="details-section">
+          <Label text="CONTACT" styleClass="details-section-title" />
+          <HBox spacing="12" alignment="TOP_LEFT">
+            <Label text="Phone" minWidth="90" prefWidth="90" styleClass="details-caption" />
+            <Label fx:id="phone" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                   styleClass="details-value" />
+          </HBox>
+          <HBox spacing="12" alignment="TOP_LEFT">
+            <Label text="Email" minWidth="90" prefWidth="90" styleClass="details-caption" />
+            <Label fx:id="email" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                   styleClass="details-value" />
+          </HBox>
+          <HBox spacing="12" alignment="TOP_LEFT">
+            <Label text="Address" minWidth="90" prefWidth="90" styleClass="details-caption" />
+            <Label fx:id="address" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                   styleClass="details-value" />
+          </HBox>
+        </VBox>
+
+        <VBox fx:id="financialSection" spacing="10" styleClass="details-section">
+          <Label text="CARD &amp; FINANCES" styleClass="details-section-title" />
+          <HBox fx:id="cardDetailsRow" spacing="12" alignment="TOP_LEFT">
+            <Label text="Card" minWidth="90" prefWidth="90" styleClass="details-caption" />
+            <Label fx:id="cardDetails" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                   styleClass="details-value" />
+          </HBox>
+          <HBox fx:id="creditScoreRow" spacing="12" alignment="TOP_LEFT">
+            <Label text="Credit score" minWidth="90" prefWidth="90" styleClass="details-caption" />
+            <Label fx:id="creditScore" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                   styleClass="details-value" />
+          </HBox>
+          <HBox fx:id="debtRow" spacing="12" alignment="TOP_LEFT">
+            <Label text="Debt" minWidth="90" prefWidth="90" styleClass="details-caption" />
+            <Label fx:id="debt" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                   styleClass="details-value" />
+          </HBox>
+          <HBox fx:id="tagsRow" spacing="12" alignment="TOP_LEFT">
+            <Label text="Tags" minWidth="90" prefWidth="90" styleClass="details-caption" />
+            <FlowPane fx:id="tags" hgap="7" vgap="3" HBox.hgrow="ALWAYS" />
+          </HBox>
+        </VBox>
+
+        <VBox spacing="10" styleClass="details-section">
+          <Label text="PROFILE HISTORY" styleClass="details-section-title" />
+          <HBox fx:id="createdAtRow" spacing="12" alignment="TOP_LEFT">
+            <Label text="Created" minWidth="90" prefWidth="90" styleClass="details-caption" />
+            <Label fx:id="createdAt" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                   styleClass="details-value" />
+          </HBox>
+          <HBox fx:id="lastModifiedAtRow" spacing="12" alignment="TOP_LEFT">
+            <Label text="Last modified" minWidth="90" prefWidth="90" styleClass="details-caption" />
+            <Label fx:id="lastModifiedAt" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                   styleClass="details-value" />
+          </HBox>
+          <Label fx:id="timestampUnavailable" wrapText="true" maxWidth="Infinity"
+                 styleClass="details-muted" />
+        </VBox>
+
+        <VBox spacing="8" styleClass="details-note-block">
+          <Label text="SERVICE NOTE" styleClass="details-section-title" />
+          <Label fx:id="serviceNote" wrapText="true" maxWidth="Infinity" styleClass="details-note-text" />
+        </VBox>
+      </VBox>
+    </VBox>
+  </content>
+</ScrollPane>

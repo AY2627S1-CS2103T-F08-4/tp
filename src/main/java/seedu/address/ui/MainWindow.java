@@ -18,6 +18,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.ClientReference;
+import seedu.address.model.person.Person;
 
 /**
  * The Main Window. Provides the basic application layout containing
@@ -35,6 +36,7 @@ public class MainWindow extends UiPart<Stage> {
 
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
+    private PersonDetailsPanel personDetailsPanel;
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
 
@@ -46,6 +48,9 @@ public class MainWindow extends UiPart<Stage> {
 
     @FXML
     private StackPane personListPanelPlaceholder;
+
+    @FXML
+    private StackPane personDetailsPanelPlaceholder;
 
     @FXML
     private StackPane resultDisplayPlaceholder;
@@ -115,8 +120,12 @@ public class MainWindow extends UiPart<Stage> {
      * Fills up all the placeholders of this window.
      */
     void fillInnerParts() {
+        personDetailsPanel = new PersonDetailsPanel();
+        personDetailsPanelPlaceholder.getChildren().add(personDetailsPanel.getRoot());
         personListPanel = new PersonListPanel(logic.getFilteredPersonList());
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
+        personListPanel.setSelectionHandler(personDetailsPanel::showPerson);
+        personListPanel.selectMatchingOrFirst(null);
 
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
@@ -179,10 +188,16 @@ public class MainWindow extends UiPart<Stage> {
      * @see seedu.address.logic.Logic#execute(String)
      */
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
+        Person previouslySelected = personListPanel.getSelectedPerson();
         try {
             ClientReference selectedReference = personListPanel.getSelectedClientReference();
-            CommandResult commandResult = logic.execute(commandText);
             personListPanel.selectClientByReference(selectedReference);
+            CommandResult commandResult = logic.execute(commandText);
+            if (commandResult.getSelectedClientReference().isPresent()) {
+                personListPanel.selectByReference(commandResult.getSelectedClientReference().get());
+            } else {
+                personListPanel.selectMatchingOrFirst(previouslySelected);
+            }
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
 
