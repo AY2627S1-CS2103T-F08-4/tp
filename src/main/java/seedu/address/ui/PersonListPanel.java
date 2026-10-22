@@ -79,6 +79,23 @@ public class PersonListPanel extends UiPart<Region> {
         }
     }
 
+    /** Returns the reference of the selected client, if one is selected. */
+    ClientReference getSelectedClientReference() {
+        Person selected = personListView.getSelectionModel().getSelectedItem();
+        return selected == null ? null : selected.getClientReference();
+    }
+
+    /** Restores selection after the list replaces a client with updated details. */
+    void selectClientByReference(ClientReference reference) {
+        if (reference == null) {
+            return;
+        }
+        personListView.getItems().stream()
+                .filter(person -> reference.equals(person.getClientReference()))
+                .findFirst()
+                .ifPresent(person -> personListView.getSelectionModel().select(person));
+    }
+
     /**
      * Custom {@code ListCell} that displays the graphics of a {@code Person} using a {@code PersonCard}.
      */

@@ -85,9 +85,7 @@ Adds a person to the address book.
 Each new client needs a unique reference (`r/REFERENCE`). References are case-insensitive and are saved in uppercase.
 Credit scores are nonnegative whole numbers. Debt is a nonnegative amount with at most two decimal places;
 The debt is stored with two decimal places; no currency is assigned.
-Card number, CVV, expiry date, and provider are required nonblank fields. They are saved as plain text;
-command input is trimmed at its edges. These new fields are stored when adding a person;
-viewing and editing them are not yet supported.
+Card number, CVV, expiry date, and provider are required nonblank fields when adding a client. They are saved as plain text, and command input is trimmed at its edges. The client list displays the provider, expiry date, and a masked card number. A card can be removed with `removecard`.
 Expiry dates must use `MM/YY`, with a month from `01` to `12` (e.g. `12/28`).
 This checks the format only; past expiry dates are accepted.
 
@@ -137,22 +135,38 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
 
-### Locating persons by name: `find`
+### Locating persons by name, phone number or card number: `find`
 
-Finds persons whose names contain any of the given keywords.
+Finds persons by partial name keywords, full phone numbers, a full card number, or a combination of these.
 
-Format: `find KEYWORD [MORE_KEYWORDS]`
+Format: `find [n/KEYWORD [MORE_KEYWORDS]...] [p/PHONE_NUMBER [MORE_PHONE_NUMBERS]...] [cn/CARD_NUMBER]`
 
-* The search is case-insensitive; for example, `hans` matches `Hans`.
-* Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
-* Only full words match; for example, `Han` does not match `Hans`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* Supply at least one of `n/`, `p/` or `cn/`. Each prefix may appear only once and must have a nonblank value.
+* Use `n/` for names. Bare keywords such as `find Alice` are invalid; use `find n/Alice`.
+* Name searches are case-insensitive; for example, `find n/hans` matches `Hans`.
+* Name keywords match any contiguous part of a name word; for example, `Han`, `ans` and `ns` all match `Hans`.
+* Use `p/` for phone numbers. Each number must contain 3-15 digits and must match the entire stored number,
+  including leading zeros. Phone fragments do not match longer numbers.
+* Use `cn/` for one complete card number. It must match the stored value exactly, including leading zeros,
+  internal spaces and hyphens. Leading and trailing whitespace is ignored. Partial or masked numbers do not match.
+  Profiles without recorded card details do not match a card search.
+* Separate multiple name keywords or phone numbers with spaces. Within each field, matching any value is enough
+  (an `OR` search). For example, `find n/Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* When multiple prefixes are supplied, a person must match every supplied field (an `AND` search).
+  For example, `n/` and `p/` together require at least one name keyword **and** at least one phone number to match.
+* The prefixes may be in any order, as may name keywords and phone-number alternatives.
+* Each prefix searches only its own field. Other fields such as email, address and tags are not searched.
 
 Examples:
-* `find John` returns `john` and `John Doe`
-* `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
+* `find n/John` returns persons such as `john` and `John Doe`.
+* `find n/lic` returns persons such as `Alice` and `Alicia Tan`.
+* `find n/alex david` returns persons such as `Alex Yeoh` and `David Li`.
+* `find p/91234567` returns all persons whose phone number is exactly `91234567`.
+* `find p/91234567 98765432` returns persons with either phone number.
+* `find n/lic p/91234567` returns persons whose names contain `lic` and whose phone number is `91234567`.
+* `find cn/4111111111111111` returns all persons with that exact recorded card number.
+* `find cn/4111 1111 1111 1111` matches the card number stored with those spaces.
+* `find n/lic p/91234567 cn/4111111111111111` returns persons matching all three fields.
 
 ### Maintaining a service note: `note`
 
@@ -179,13 +193,33 @@ Format: `delete INDEX`
 
 Examples:
 * `list` followed by `delete 2` deletes the 2nd person in the address book.
-* `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `find n/Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
 
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
 
 Format: `clear`
+
+### Removing a client's card: `removecard`
+
+Removes the card summary associated with a client reference while retaining the client's profile and other details. The reference is case-insensitive and is normalized to uppercase. After the change is saved, the client's row refreshes without the card summary and remains selected if it was selected before.
+
+Format: `removecard r/REFERENCE`
+
+Example: `removecard r/C0001`
+
+For a card numbered `4111111111111111`, the success message is `Removed card ending in 1111 from client C0001`. The saved client no longer has a `cardDetails` field.
+
+Possible errors:
+
+* Missing `r/REFERENCE`: `Missing client reference. Format: removecard r/REFERENCE`
+* Repeated `r/` parameter: `Parameter was specified more than once.`
+* Extra text or an unknown prefix: `Invalid removecard command. Format: removecard r/REFERENCE`
+* Unknown reference: `No client found with reference C0001.` (with the requested reference)
+* Client without a card: `Client C0001 is not associated with a card.` (with the requested reference)
+
+If saving fails, the app reports `Unable to save client data. No changes were made.` and retains the card in both the list and saved file.
 
 ### Exiting the program: `exit`
 
@@ -195,7 +229,7 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every successful `add`, `edit`, `delete`, or `clear` command. You do not need to save manually. If saving fails, it displays `Unable to save client data. No changes were made.` and keeps the list and saved file unchanged.
+AddressBook automatically saves data after every successful `add`, `edit`, `delete`, `removecard`, or `clear` command. You do not need to save manually. If saving fails, it displays `Unable to save client data. No changes were made.` and keeps the list and saved file unchanged.
 
 On startup, saved clients appear in the main window with `Loaded [COUNT] client(s).`. If there is no data file, sample clients appear with `No saved client data found. Showing sample clients.` The sample clients are saved with the next successful data-changing command. An existing but empty data file starts with an empty list and `No saved client data found.`
 
@@ -238,7 +272,8 @@ Action     | Format, Examples
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find**   | `find [n/KEYWORD [MORE_KEYWORDS]...] [p/PHONE_NUMBER [MORE_PHONE_NUMBERS]...] [cn/CARD_NUMBER]` (at least one prefix required)<br> e.g., `find n/Jam Jak`, `find p/91234567` or `find cn/4111111111111111`
 **List**   | `list`
+**Remove card** | `removecard r/REFERENCE`<br> e.g., `removecard r/C0001`
 **Note**   | `note r/REFERENCE s/NOTE`<br> e.g., `note r/C0001 s/Prefers morning appointments`
 **Help**   | `help`

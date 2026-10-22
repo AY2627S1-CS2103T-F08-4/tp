@@ -132,6 +132,15 @@
     -fx-text-fill: #010504;
 }
 
+.list-cell .client-reference-badge {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 13px;
+    -fx-text-fill: white;
+    -fx-background-color: #3e7b91;
+    -fx-background-radius: 3;
+    -fx-padding: 2 6 2 6;
+}
+
 .stack-pane {
      -fx-background-color: derive(#1d1d1d, 20%);
 }

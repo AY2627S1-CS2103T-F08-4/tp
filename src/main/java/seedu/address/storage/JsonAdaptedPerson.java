@@ -118,7 +118,6 @@ class JsonAdaptedPerson {
         debt = source.getDebt() == null ? null : source.getDebt().toString();
         createdAt = source.getCreatedAt() == null ? null : source.getCreatedAt().toString();
         lastModifiedAt = source.getLastModifiedAt() == null ? null : source.getLastModifiedAt().toString();
-        serviceNote = source.getServiceNote() == null ? null : TextNode.valueOf(source.getServiceNote().value);
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
@@ -199,7 +198,7 @@ class JsonAdaptedPerson {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
                     CardDetails.class.getSimpleName()));
         }
-        if (cardDetails == null) {
+        if (cardDetails == null && modelReference == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
                     CardDetails.class.getSimpleName()));
         }
@@ -213,7 +212,8 @@ class JsonAdaptedPerson {
         try {
             if (modelReference != null) {
                 return new Person(modelReference, modelName, modelPhone, modelEmail, modelAddress,
-                        cardDetails.toModelType(), new CreditScore(creditScore), new Debt(debt), modelTags, modelNote)
+                        cardDetails == null ? null : cardDetails.toModelType(),
+                        new CreditScore(creditScore), new Debt(debt), modelTags, modelNote)
                         .withTimestamps(modelCreatedAt, modelLastModifiedAt);
             }
             return new Person(modelName, modelPhone, modelEmail, modelAddress, cardDetails.toModelType(),
