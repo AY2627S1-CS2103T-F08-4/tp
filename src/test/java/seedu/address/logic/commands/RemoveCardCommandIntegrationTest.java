@@ -49,7 +49,7 @@ public class RemoveCardCommandIntegrationTest {
     public void execute_existingCard_removesCardAndPreservesOtherFieldsAcrossReload() throws Exception {
         logic.execute(ADD_CLIENT);
         Person before = model.getAddressBook().getPersonList().getFirst();
-        logic.execute("find Alex");
+        logic.execute("find n/Alex");
 
         CommandResult result = logic.execute("removecard r/c0001");
 
@@ -116,7 +116,7 @@ public class RemoveCardCommandIntegrationTest {
     @Test
     public void execute_saveFailure_keepsModelFilteredListAndFile() throws Exception {
         logic.execute(ADD_CLIENT);
-        logic.execute("find Alex");
+        logic.execute("find n/Alex");
         String savedJson = Files.readString(dataPath);
         ReadOnlyAddressBook before = new AddressBook(model.getAddressBook());
         List<Person> filteredBefore = List.copyOf(model.getFilteredPersonList());
