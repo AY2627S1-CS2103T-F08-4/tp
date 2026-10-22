@@ -54,6 +54,7 @@
         "common-classes": "Common classes",
         "implementation": "Implementation",
         "client-creation-and-modification-timestamps": "Client creation and modification timestamps",
+        "incomplete-client-profiles": "Incomplete client profiles",
         "proposed-undo-redo-feature": "[Proposed] Undo/redo feature",
         "remove-card": "Remove card",
         "proposed-data-archiving": "[Proposed] Data archiving",
