@@ -172,7 +172,7 @@ class JsonAdaptedPerson {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
                     CardDetails.class.getSimpleName()));
         }
-        if (cardDetails == null) {
+        if (cardDetails == null && modelReference == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
                     CardDetails.class.getSimpleName()));
         }
@@ -186,7 +186,8 @@ class JsonAdaptedPerson {
         try {
             if (modelReference != null) {
                 return new Person(modelReference, modelName, modelPhone, modelEmail, modelAddress,
-                        cardDetails.toModelType(), new CreditScore(creditScore), new Debt(debt), modelTags)
+                        cardDetails == null ? null : cardDetails.toModelType(), new CreditScore(creditScore),
+                        new Debt(debt), modelTags)
                         .withTimestamps(modelCreatedAt, modelLastModifiedAt);
             }
             return new Person(modelName, modelPhone, modelEmail, modelAddress, cardDetails.toModelType(),

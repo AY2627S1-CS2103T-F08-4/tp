@@ -255,6 +255,12 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 _{more aspects and alternatives to be added}_
 
+### Remove card
+
+`removecard r/REFERENCE` parses and normalizes the client reference, then locates the client in the full address book. `RemoveCardCommand` replaces that client with a copy whose card details are absent, preserving the reference, contact details, financial details, and tags. A referenced client without a card remains valid when loaded from JSON.
+
+The command is data-changing, so `LogicManager` runs it on a staged model. Storage writes the new address book to a temporary file and atomically replaces the saved file; only then does logic publish the staged model. The JSON adapter omits the null `cardDetails` field. A failed lookup, missing card, protected mode, or save failure leaves the displayed and saved data unchanged. On success, the client row refreshes and a selected client remains selected.
+
 ### \[Proposed\] Data archiving
 
 _{Explain here how the data archiving feature will be implemented}_
@@ -443,14 +449,17 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 
 ##### Main success scenario (MSS)
 
-1. Bank teller locates a client profile and identifies an obsolete card summary.
-2. Bank teller requests its removal.
-3. TellerFlow removes the summary and saves the profile.
+1. Bank teller identifies a client reference and enters `removecard r/REFERENCE`.
+2. TellerFlow finds the client and its card summary.
+3. TellerFlow removes the summary and saves the profile without `cardDetails`.
+4. TellerFlow reports the last four characters of the removed card number and refreshes the client row. The client remains selected if previously selected.
 
 ##### Extensions
 
-- 1a. The selected profile or card summary does not exist. TellerFlow reports the error; the use case ends.
-- 3a. Saving fails. TellerFlow reports the failure and retains the card summary; the use case ends.
+- 1a. The command has a missing, repeated, or extra parameter. TellerFlow reports the input error; the use case ends.
+- 2a. The client reference does not exist or the client has no card. TellerFlow reports the error; the use case ends.
+- 3a. Saving fails. TellerFlow reports the failure and retains the card summary in memory and on disk; the use case ends.
+- 3b. TellerFlow is in protected mode after a load failure. It rejects the command without changing the data; the use case ends.
 
 #### Use case: View profile timestamps
 
@@ -568,6 +577,22 @@ testers are expected to do more _exploratory_ testing.
       Expected: Similar to previous.
 
 1. _{ more test cases … }_
+
+### Removing a card
+
+1. Start with a data file that has no `C0001` client. Add a client using `add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50`.
+
+   1. Select the new client row and run `removecard r/c0001`.<br>
+      Expected: `Removed card ending in 1111 from client C0001`. The row remains selected and no longer shows a card summary. The client and other details remain. After restart, the saved JSON has no `cardDetails` field for C0001.
+
+   1. Run `removecard r/C0001` again.<br>
+      Expected: `Client C0001 is not associated with a card.` The data stays unchanged.
+
+   1. Run `removecard r/C9999`, `removecard`, and `removecard r/C0001 r/C0002`.<br>
+      Expected: The client-not-found, missing-reference, and repeated-parameter messages respectively; no data changes.
+
+1. With an invalid saved data file, restart the app and run `removecard r/C0001`.<br>
+   Expected: The protected-mode message appears and the file is not overwritten.
 
 ### Saving data
 

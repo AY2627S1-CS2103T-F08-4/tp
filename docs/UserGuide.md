@@ -82,9 +82,7 @@ Adds a person to the address book.
 Each new client needs a unique reference (`r/REFERENCE`). References are case-insensitive and are saved in uppercase.
 Credit scores are nonnegative whole numbers. Debt is a nonnegative amount with at most two decimal places;
 The debt is stored with two decimal places; no currency is assigned.
-Card number, CVV, expiry date, and provider are required nonblank fields. They are saved as plain text;
-command input is trimmed at its edges. These new fields are stored when adding a person;
-viewing and editing them are not yet supported.
+Card number, CVV, expiry date, and provider are required nonblank fields when adding a client. They are saved as plain text, and command input is trimmed at its edges. The client list displays the provider, expiry date, and a masked card number. A card can be removed with `removecard`.
 Expiry dates must use `MM/YY`, with a month from `01` to `12` (e.g. `12/28`).
 This checks the format only; past expiry dates are accepted.
 
@@ -187,6 +185,26 @@ Clears all entries from the address book.
 
 Format: `clear`
 
+### Removing a client's card: `removecard`
+
+Removes the card summary associated with a client reference while retaining the client's profile and other details. The reference is case-insensitive and is normalized to uppercase. After the change is saved, the client's row refreshes without the card summary and remains selected if it was selected before.
+
+Format: `removecard r/REFERENCE`
+
+Example: `removecard r/C0001`
+
+For a card numbered `4111111111111111`, the success message is `Removed card ending in 1111 from client C0001`. The saved client no longer has a `cardDetails` field.
+
+Possible errors:
+
+* Missing `r/REFERENCE`: `Missing client reference. Format: removecard r/REFERENCE`
+* Repeated `r/` parameter: `Parameter was specified more than once.`
+* Extra text or an unknown prefix: `Invalid removecard command. Format: removecard r/REFERENCE`
+* Unknown reference: `No client found with reference C0001.` (with the requested reference)
+* Client without a card: `Client C0001 is not associated with a card.` (with the requested reference)
+
+If saving fails, the app reports `Unable to save client data. No changes were made.` and retains the card in both the list and saved file.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -195,7 +213,7 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every successful `add`, `edit`, `delete`, or `clear` command. You do not need to save manually. If saving fails, it displays `Unable to save client data. No changes were made.` and keeps the list and saved file unchanged.
+AddressBook automatically saves data after every successful `add`, `edit`, `delete`, `removecard`, or `clear` command. You do not need to save manually. If saving fails, it displays `Unable to save client data. No changes were made.` and keeps the list and saved file unchanged.
 
 On startup, saved clients appear in the main window with `Loaded [COUNT] client(s).`. If there is no data file, sample clients appear with `No saved client data found. Showing sample clients.` The sample clients are saved with the next successful data-changing command. An existing but empty data file starts with an empty list and `No saved client data found.`
 
@@ -240,4 +258,5 @@ Action     | Format, Examples
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Find**   | `find [n/KEYWORD [MORE_KEYWORDS]...] [p/PHONE_NUMBER [MORE_PHONE_NUMBERS]...] [cn/CARD_NUMBER]` (at least one prefix required)<br> e.g., `find n/Jam Jak`, `find p/91234567` or `find cn/4111111111111111`
 **List**   | `list`
+**Remove card** | `removecard r/REFERENCE`<br> e.g., `removecard r/C0001`
 **Help**   | `help`
