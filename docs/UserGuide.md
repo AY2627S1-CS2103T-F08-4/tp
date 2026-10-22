@@ -66,6 +66,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 * Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
+  The `sort` command checks its optional order argument and rejects any additional text.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
@@ -103,8 +104,22 @@ Examples:
 ### Listing all persons: `list`
 
 Shows a list of all persons in the address book.
+The active sort order, if any, is retained.
 
 Format: `list`
+
+### Sorting clients by name: `sort`
+
+Sorts the displayed clients by name for the current session. Names are compared without regard to case using Unicode character values, rather than language-specific alphabetization. Accented letters sort after unaccented letters; clients with equal names are ordered by their client references. Sorting changes the displayed order only and does not save or rearrange the data file. The selected client remains selected in the details panel. `find` results and later `list` commands use the active order. Use `sort reset` to restore the stored order.
+
+Format: `sort [asc|desc|reset]`
+
+* `sort` or `sort asc` displays names from A to Z.
+* `sort desc` displays names from Z to A. Equal names still use ascending client references.
+* `sort reset` restores the original stored order.
+* The order argument must be lowercase. Additional arguments are rejected.
+
+Example: `sort desc`
 
 ### Viewing client timestamps
 

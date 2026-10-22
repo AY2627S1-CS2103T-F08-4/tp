@@ -63,7 +63,8 @@ public class AddCommand extends Command {
         }
 
         model.addPerson(toAdd);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, toAdd.getClientReference(), toAdd.getName()));
+        return CommandResult.selectPerson(
+                String.format(MESSAGE_SUCCESS, toAdd.getClientReference(), toAdd.getName()), toAdd);
     }
 
     @Override

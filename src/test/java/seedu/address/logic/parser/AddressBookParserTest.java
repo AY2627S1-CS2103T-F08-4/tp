@@ -22,7 +22,9 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RemoveCardCommand;
+import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.SortOrder;
 import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.FindPersonPredicate;
 import seedu.address.model.person.Person;
@@ -106,6 +108,21 @@ public class AddressBookParserTest {
     public void parseCommand_removeCard() throws Exception {
         assertEquals(new RemoveCardCommand(new ClientReference("C0001")),
                 parser.parseCommand("removecard r/c0001"));
+    }
+
+    @Test
+    public void parseCommand_sortAcceptsOnlySpecifiedOrders() throws Exception {
+        assertEquals(new SortCommand(SortOrder.ASC), parser.parseCommand("sort"));
+        assertEquals(new SortCommand(SortOrder.ASC), parser.parseCommand("  sort   asc  "));
+        assertEquals(new SortCommand(SortOrder.DESC), parser.parseCommand("sort   desc"));
+        assertEquals(new SortCommand(SortOrder.ORIGINAL), parser.parseCommand("sort reset"));
+
+        String invalidDesc = String.format(SortCommand.MESSAGE_INVALID_ORDER, "DESC");
+        String invalidName = String.format(SortCommand.MESSAGE_INVALID_ORDER, "name");
+        String invalidCommand = SortCommand.MESSAGE_INVALID_COMMAND;
+        assertThrows(ParseException.class, invalidDesc, () -> parser.parseCommand("sort DESC"));
+        assertThrows(ParseException.class, invalidName, () -> parser.parseCommand("sort name"));
+        assertThrows(ParseException.class, invalidCommand, () -> parser.parseCommand("sort asc desc"));
     }
 
     @Test

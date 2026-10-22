@@ -17,7 +17,6 @@ import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.Person;
 
 /**
@@ -125,7 +124,7 @@ public class MainWindow extends UiPart<Stage> {
         personListPanel = new PersonListPanel(logic.getFilteredPersonList());
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
         personListPanel.setSelectionHandler(personDetailsPanel::showPerson);
-        personListPanel.selectMatchingOrFirst(null);
+        personListPanel.selectFirst();
 
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
@@ -188,16 +187,10 @@ public class MainWindow extends UiPart<Stage> {
      * @see seedu.address.logic.Logic#execute(String)
      */
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
-        Person previouslySelected = personListPanel.getSelectedPerson();
         try {
-            ClientReference selectedReference = personListPanel.getSelectedClientReference();
-            personListPanel.selectClientByReference(selectedReference);
+            Person previouslySelected = personListPanel.getSelectedPerson();
             CommandResult commandResult = logic.execute(commandText);
-            if (commandResult.getSelectedClientReference().isPresent()) {
-                personListPanel.selectByReference(commandResult.getSelectedClientReference().get());
-            } else {
-                personListPanel.selectMatchingOrFirst(previouslySelected);
-            }
+            personListPanel.applySelection(commandResult, previouslySelected);
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
 

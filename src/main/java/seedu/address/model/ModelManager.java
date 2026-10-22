@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.person.Person;
@@ -31,6 +32,8 @@ public class ModelManager implements Model {
     private final AddressBook addressBook;
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
+    private final SortedList<Person> displayedPersons;
+    private SortOrder sortOrder = SortOrder.ORIGINAL;
     private final Clock clock;
     private TimestampChange timestampChange;
 
@@ -50,6 +53,7 @@ public class ModelManager implements Model {
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
+        displayedPersons = new SortedList<>(filteredPersons);
         this.clock = clock;
     }
 
@@ -135,7 +139,7 @@ public class ModelManager implements Model {
      */
     @Override
     public ObservableList<Person> getFilteredPersonList() {
-        return filteredPersons;
+        return displayedPersons;
     }
 
     @Override
@@ -151,6 +155,17 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public SortOrder getSortOrder() {
+        return sortOrder;
+    }
+
+    @Override
+    public void setSortOrder(SortOrder sortOrder) {
+        this.sortOrder = requireNonNull(sortOrder);
+        displayedPersons.setComparator(sortOrder.comparator());
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (other == this) {
             return true;
@@ -163,7 +178,8 @@ public class ModelManager implements Model {
 
         return addressBook.equals(otherModelManager.addressBook)
                 && userPrefs.equals(otherModelManager.userPrefs)
-                && filteredPersons.equals(otherModelManager.filteredPersons);
+                && filteredPersons.equals(otherModelManager.filteredPersons)
+                && sortOrder == otherModelManager.sortOrder;
     }
 
 }
