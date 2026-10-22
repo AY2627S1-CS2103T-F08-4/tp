@@ -114,6 +114,40 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_editOnlyCvv_preservesOtherCardFields() throws Exception {
+        Person original = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+
+        EditCommand command = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withCvv("456").build());
+        command.execute(model);
+
+        Person edited = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        assertEquals(original.getCardDetails().orElse(null).getCardNumber(),
+                edited.getCardDetails().orElse(null).getCardNumber());
+        assertEquals("456", edited.getCardDetails().orElse(null).getCvv());
+        assertEquals(original.getCardDetails().orElse(null).getExpiryDate(),
+                edited.getCardDetails().orElse(null).getExpiryDate());
+        assertEquals(original.getCardDetails().orElse(null).getProvider(),
+                edited.getCardDetails().orElse(null).getProvider());
+    }
+
+    @Test
+    public void execute_editMultipleCardFields_preservesUneditedFields() throws Exception {
+        EditCommand command = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder()
+                        .withCardNumber("5555555555554444")
+                        .withCvv("456")
+                        .build());
+        command.execute(model);
+
+        Person edited = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        assertEquals("5555555555554444", edited.getCardDetails().orElse(null).getCardNumber());
+        assertEquals("456", edited.getCardDetails().orElse(null).getCvv());
+        assertEquals("12/28", edited.getCardDetails().orElse(null).getExpiryDate());
+        assertEquals("Visa", edited.getCardDetails().orElse(null).getProvider());
+    }
+
+    @Test
     public void execute_noFieldSpecifiedUnfilteredList_success() {
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptor());
         Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());

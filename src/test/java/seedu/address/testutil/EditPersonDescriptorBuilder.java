@@ -6,6 +6,9 @@ import java.util.stream.Stream;
 
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.model.person.Address;
+import seedu.address.model.person.ClientReference;
+import seedu.address.model.person.CreditScore;
+import seedu.address.model.person.Debt;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
@@ -37,6 +40,15 @@ public class EditPersonDescriptorBuilder {
         descriptor.setEmail(person.getEmail().orElse(null));
         descriptor.setAddress(person.getAddress().orElse(null));
         descriptor.setTags(person.getTags());
+        descriptor.setClientReference(person.getClientReference());
+        descriptor.setCreditScore(person.getCreditScore().orElse(null));
+        descriptor.setDebt(person.getDebt().orElse(null));
+        if (person.getCardDetails().orElse(null) != null) {
+            descriptor.setCardNumber(person.getCardDetails().orElse(null).getCardNumber());
+            descriptor.setCvv(person.getCardDetails().orElse(null).getCvv());
+            descriptor.setExpiryDate(person.getCardDetails().orElse(null).getExpiryDate());
+            descriptor.setProvider(person.getCardDetails().orElse(null).getProvider());
+        }
     }
 
     /**
@@ -68,6 +80,62 @@ public class EditPersonDescriptorBuilder {
      */
     public EditPersonDescriptorBuilder withAddress(String address) {
         descriptor.setAddress(new Address(address));
+        return this;
+    }
+
+    /**
+     * Sets the {@code ClientReference} of the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withClientReference(String reference) {
+        descriptor.setClientReference(new ClientReference(reference));
+        return this;
+    }
+
+    /**
+     * Sets the card number of the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withCardNumber(String cardNumber) {
+        descriptor.setCardNumber(cardNumber);
+        return this;
+    }
+
+    /**
+     * Sets the CVV of the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withCvv(String cvv) {
+        descriptor.setCvv(cvv);
+        return this;
+    }
+
+    /**
+     * Sets the expiry date of the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withExpiryDate(String expiryDate) {
+        descriptor.setExpiryDate(expiryDate);
+        return this;
+    }
+
+    /**
+     * Sets the card provider of the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withProvider(String provider) {
+        descriptor.setProvider(provider);
+        return this;
+    }
+
+    /**
+     * Sets the {@code CreditScore} of the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withCreditScore(String creditScore) {
+        descriptor.setCreditScore(new CreditScore(creditScore));
+        return this;
+    }
+
+    /**
+     * Sets the {@code Debt} of the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withDebt(String debt) {
+        descriptor.setDebt(new Debt(debt));
         return this;
     }
 
