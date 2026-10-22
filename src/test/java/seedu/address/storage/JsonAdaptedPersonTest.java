@@ -185,6 +185,15 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_referencedPersonWithoutCard_preservesOtherFields() throws Exception {
+        var withCard = new PersonBuilder().withClientReference("C0001").build();
+        var withoutCard = new Person(withCard.getClientReference(), withCard.getName(),
+                withCard.getPhone().orElse(null), withCard.getEmail().orElse(null), withCard.getAddress().orElse(null),
+                null, withCard.getCreditScore().orElse(null), withCard.getDebt().orElse(null), withCard.getTags());
+        assertEquals(withoutCard, new JsonAdaptedPerson(withoutCard).toModelType());
+    }
+
+    @Test
     public void toModelType_invalidReference_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson("bad reference", VALID_NAME, VALID_PHONE, VALID_EMAIL,
                 VALID_ADDRESS, VALID_CARD_DETAILS, VALID_CREDIT_SCORE, VALID_DEBT, VALID_TAGS);

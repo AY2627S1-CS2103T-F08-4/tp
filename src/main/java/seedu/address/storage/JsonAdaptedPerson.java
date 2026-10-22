@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Address;
@@ -22,6 +24,7 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.ServiceNote;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -51,6 +54,8 @@ class JsonAdaptedPerson {
     private final String createdAt;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private final String lastModifiedAt;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private final JsonNode serviceNote;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     /**
@@ -64,7 +69,8 @@ class JsonAdaptedPerson {
             @JsonProperty("creditScore") String creditScore, @JsonProperty("debt") String debt,
             @JsonProperty("tags") List<JsonAdaptedTag> tags,
             @JsonProperty("createdAt") String createdAt,
-            @JsonProperty("lastModifiedAt") String lastModifiedAt) {
+            @JsonProperty("lastModifiedAt") String lastModifiedAt,
+            @JsonProperty("serviceNote") JsonNode serviceNote) {
         this.clientReference = clientReference;
         this.name = name;
         this.phone = phone;
@@ -73,6 +79,7 @@ class JsonAdaptedPerson {
         this.cardDetails = cardDetails;
         this.creditScore = creditScore;
         this.debt = debt;
+        this.serviceNote = serviceNote;
         this.createdAt = createdAt;
         this.lastModifiedAt = lastModifiedAt;
         if (tags != null) {
@@ -83,13 +90,21 @@ class JsonAdaptedPerson {
     /** Creates a person in the older JSON format without timestamps. */
     public JsonAdaptedPerson(String clientReference, String name, String phone, String email, String address,
             JsonAdaptedCardDetails cardDetails, String creditScore, String debt, List<JsonAdaptedTag> tags) {
-        this(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags, null, null);
+        this(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags, null, null, null);
+    }
+
+    /** Creates a person with timestamps and no service note. */
+    public JsonAdaptedPerson(String clientReference, String name, String phone, String email, String address,
+            JsonAdaptedCardDetails cardDetails, String creditScore, String debt, List<JsonAdaptedTag> tags,
+            String createdAt, String lastModifiedAt) {
+        this(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags,
+                createdAt, lastModifiedAt, null);
     }
 
     /** Creates an unreferenced person from the fields used by older data files. */
     public JsonAdaptedPerson(String name, String phone, String email, String address,
             JsonAdaptedCardDetails cardDetails, String creditScore, String debt, List<JsonAdaptedTag> tags) {
-        this(null, name, phone, email, address, cardDetails, creditScore, debt, tags);
+        this(null, name, phone, email, address, cardDetails, creditScore, debt, tags, null, null, null);
     }
 
     /**
@@ -106,6 +121,7 @@ class JsonAdaptedPerson {
         debt = source.getDebt().map(Object::toString).orElse(null);
         createdAt = source.getCreatedAt() == null ? null : source.getCreatedAt().toString();
         lastModifiedAt = source.getLastModifiedAt() == null ? null : source.getLastModifiedAt().toString();
+        serviceNote = source.getServiceNote() == null ? null : TextNode.valueOf(source.getServiceNote().value);
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
@@ -118,6 +134,17 @@ class JsonAdaptedPerson {
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
     public Person toModelType() throws IllegalValueException {
+        final ServiceNote modelNote;
+        // Jackson also supplies NullNode when an optional creator property is absent.
+        // JsonAddressBookStorage rejects explicit JSON null before reaching this adapter.
+        if (serviceNote == null || serviceNote.isNull()) {
+            modelNote = null;
+        } else if (!serviceNote.isTextual()
+                || !ServiceNote.isValidServiceNote(serviceNote.textValue())) {
+            throw new IllegalValueException(ServiceNote.MESSAGE_CONSTRAINTS);
+        } else {
+            modelNote = new ServiceNote(serviceNote.textValue());
+        }
         final Instant modelCreatedAt = parseTimestamp(createdAt);
         final Instant modelLastModifiedAt = parseTimestamp(lastModifiedAt);
         final ClientReference modelReference;
@@ -164,11 +191,11 @@ class JsonAdaptedPerson {
             final Debt modelDebt = debt == null ? null : new Debt(debt);
             if (modelReference != null) {
                 return new Person(modelReference, modelName, modelPhone, modelEmail, modelAddress,
-                        modelCardDetails, modelCreditScore, modelDebt, modelTags)
+                        modelCardDetails, modelCreditScore, modelDebt, modelTags, modelNote)
                         .withTimestamps(modelCreatedAt, modelLastModifiedAt);
             }
             return new Person(modelName, modelPhone, modelEmail, modelAddress, modelCardDetails,
-                    modelCreditScore, modelDebt, modelTags)
+                    modelCreditScore, modelDebt, modelTags, modelNote)
                     .withTimestamps(modelCreatedAt, modelLastModifiedAt);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());

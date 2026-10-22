@@ -72,7 +72,7 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, `PersonDetailsPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts. `MainWindow` connects list selection to `PersonDetailsPanel`, which shows the selected client's details or an empty state when no client is selected.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
@@ -147,6 +147,7 @@ The `Storage` component,
 
 - can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
 - is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+- uses `JsonSerializableAddressBook` and `JsonAdaptedPerson` to convert saved client records to and from model objects. Each adapted person can contain optional `JsonAdaptedCardDetails` and a collection of `JsonAdaptedTag` objects.
 - depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 ### Common classes
@@ -165,7 +166,7 @@ This section describes some noteworthy details on how certain features are imple
 
 Data-changing commands execute against a staged `ModelManager`. `LogicManager` saves the staged address book before committing it to the active model. Only after a successful save does it emit an INFO log entry for an add or edit timestamp change, including the client reference and both stored instants. A failed save leaves the active record unchanged and emits no timestamp-change log entry.
 
-`JsonAdaptedPerson` writes the instants as ISO-8601 UTC strings in the `createdAt` and `lastModifiedAt` JSON properties. Missing properties in older data files remain `null`; editing such a record supplies its modification time without fabricating a creation time. An invalid non-null timestamp causes loading to fail, so startup follows the existing protected-mode path. `PersonCard` converts known instants to the viewer's local time zone and formats them as `yyyy-MM-dd HH:mm`. It shows each known value independently, or one unavailable message if both are missing.
+`JsonAdaptedPerson` writes the instants as ISO-8601 UTC strings in the `createdAt` and `lastModifiedAt` JSON properties. Missing properties in older data files remain `null`; editing such a record supplies its modification time without fabricating a creation time. An invalid non-null timestamp causes loading to fail, so startup follows the existing protected-mode path. `PersonDetailsPanel` converts known instants to the viewer's local time zone and formats them as `yyyy-MM-dd HH:mm`. It shows each known value independently in the selected client's side panel, or one unavailable message if both are missing.
 
 ### Incomplete client profiles
 
@@ -179,9 +180,9 @@ add r/REFERENCE n/NAME [p/PHONE] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER cvv/CVV e
 
 `Person` stores missing contact, card, and financial details as nullable fields and exposes them through non-null `Optional` getters. Each detail can be supplied independently, including a credit score or debt without a card. A supplied zero financial value remains distinct from absence. Required name and tag collections remain non-null; the referenced constructor also requires a reference. Unreferenced legacy records retain their existing name-based identity.
 
-`PersonCard` hides absent labels and removes their layout space. Messages omit missing contact fields and their labels. Supplied card numbers remain masked and CVV is omitted from display. `JsonAdaptedPerson` serializes plain values, omits absent optional fields, and accepts missing or JSON-null optional details. A present card object must contain all four valid fields. Complete profiles and supported legacy files continue to load.
+`PersonDetailsPanel` hides absent rows and empty contact or financial sections, removing their layout space. Messages omit missing contact fields and their labels. Supplied card numbers remain masked and CVV is omitted from display. `JsonAdaptedPerson` serializes plain values, omits absent optional fields, and accepts missing or JSON-null optional details. A present card object must contain all four valid fields. Complete profiles and supported legacy files continue to load.
 
-For example, `add r/C0001 n/John Doe` creates a minimal profile, while `add r/C0002 n/Jane Doe e/jane@example.com d/0` records an email and explicit zero debt. Data-changing commands save automatically. Existing `edit` can fill missing contact details while preserving the reference and other recorded or missing values. Editing card or financial details and clearing contact, card, or financial details remain separate follow-up work.
+For example, `add r/C0001 n/John Doe` creates a minimal profile, while `add r/C0002 n/Jane Doe e/jane@example.com d/0` records an email and explicit zero debt. Data-changing commands save automatically. Existing `edit` can fill missing contact details while preserving the reference and other recorded or missing values. Card removal uses `removecard` while preserving optional details and service notes. Editing card or financial details and clearing contact or financial details remain separate follow-up work.
 
 Regression tests cover all 64 combinations of optional details, all 14 non-empty proper subsets of card prefixes, JSON file round trips, and add followed by automatic save, fresh load, contact edit, and reload. Existing duplicate detection and storage-failure protections remain in place.
 
@@ -272,6 +273,12 @@ The following activity diagram summarizes what happens when a user executes a ne
   - Cons: We must ensure that the implementation of each individual command is correct.
 
 _{more aspects and alternatives to be added}_
+
+### Remove card
+
+`removecard r/REFERENCE` parses and normalizes the client reference, then locates the client in the full address book. `RemoveCardCommand` replaces that client with a copy whose card details are absent, preserving the reference, contact details, financial details, and tags. A referenced client without a card remains valid when loaded from JSON.
+
+The command is data-changing, so `LogicManager` runs it on a staged model. Storage writes the new address book to a temporary file and atomically replaces the saved file; only then does logic publish the staged model. The JSON adapter omits the null `cardDetails` field. A failed lookup, missing card, protected mode, or save failure leaves the displayed and saved data unchanged. On success, the client row refreshes and a selected client remains selected.
 
 ### \[Proposed\] Data archiving
 
@@ -403,33 +410,45 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 
 ##### Main success scenario (MSS)
 
-1. Bank teller supplies all or part of a client's name.
-2. TellerFlow displays profiles with matching names.
+1. Bank teller supplies `find n/` followed by one or more space-separated keywords containing all or part of a client's name.
+2. TellerFlow displays profiles whose names contain at least one keyword as a case-insensitive substring.
+   If `p/` numbers are also supplied, each profile must additionally match at least one full phone number.
+   If `cn/` is supplied, each profile must additionally match the full recorded card number.
 
 ##### Extensions
 
-- 2a. No name matches. TellerFlow displays an empty list; the use case ends.
+- 1a. A required prefix is missing, a field is empty, or a prefix is repeated. TellerFlow reports the invalid input
+  and requests a correction; the use case resumes at step 1.
+- 2a. No profile matches the supplied criteria. TellerFlow displays an empty list; the use case ends.
 
 #### Use case: Find clients by phone number
 
 ##### Main success scenario (MSS)
 
-1. Bank teller supplies a phone number.
-2. TellerFlow displays profiles with that phone number.
+1. Bank teller supplies `find p/` followed by one or more space-separated full phone numbers.
+2. TellerFlow displays profiles whose phone number exactly matches any supplied number, including leading zeros.
+   If `n/` keywords are also supplied, each profile must additionally match at least one name keyword.
+   If `cn/` is supplied, each profile must additionally match the full recorded card number.
 
 ##### Extensions
 
-- 2a. No phone number matches. TellerFlow displays an empty list; the use case ends.
+- 1a. A supplied phone number is invalid, a field is empty, or a prefix is repeated. TellerFlow reports the invalid
+  input and requests a correction; the use case resumes at step 1.
+- 2a. No profile matches the supplied criteria. TellerFlow displays an empty list; the use case ends.
 
 #### Use case: Find clients by card number
 
 ##### Main success scenario (MSS)
 
-1. Bank teller supplies a card number.
-2. TellerFlow displays profiles with that recorded card number.
+1. Bank teller supplies `find cn/` followed by one full card number.
+2. TellerFlow displays profiles with exactly that recorded card number, preserving leading zeros, internal spaces
+   and hyphens. Leading and trailing whitespace is ignored. Profiles without card details do not match.
+   If `n/` and/or `p/` are also supplied, each profile must additionally match each supplied field.
 
 ##### Extensions
 
+- 1a. The card number is blank or a prefix is repeated or unsupported. TellerFlow reports the invalid input
+  and requests a correction; the use case resumes at step 1.
 - 2a. No card number matches. TellerFlow displays an empty list; the use case ends.
 
 #### Use case: Maintain a service note
@@ -438,7 +457,7 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 
 1. Bank teller locates a client profile and enters or revises a short service note.
 2. TellerFlow saves the note on that profile.
-3. TellerFlow shows the current note when the profile is viewed.
+3. TellerFlow shows the current note in the last section of the selected profile's details panel.
 
 ##### Extensions
 
@@ -449,21 +468,24 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 
 ##### Main success scenario (MSS)
 
-1. Bank teller locates a client profile and identifies an obsolete card summary.
-2. Bank teller requests its removal.
-3. TellerFlow removes the summary and saves the profile.
+1. Bank teller identifies a client reference and enters `removecard r/REFERENCE`.
+2. TellerFlow finds the client and its card summary.
+3. TellerFlow removes the summary and saves the profile without `cardDetails`.
+4. TellerFlow reports the last four characters of the removed card number and refreshes the client row. The client remains selected if previously selected.
 
 ##### Extensions
 
-- 1a. The selected profile or card summary does not exist. TellerFlow reports the error; the use case ends.
-- 3a. Saving fails. TellerFlow reports the failure and retains the card summary; the use case ends.
+- 1a. The command has a missing, repeated, or extra parameter. TellerFlow reports the input error; the use case ends.
+- 2a. The client reference does not exist or the client has no card. TellerFlow reports the error; the use case ends.
+- 3a. Saving fails. TellerFlow reports the failure and retains the card summary in memory and on disk; the use case ends.
+- 3b. TellerFlow is in protected mode after a load failure. It rejects the command without changing the data; the use case ends.
 
 #### Use case: View profile timestamps
 
 ##### Main success scenario (MSS)
 
-1. Bank teller adds a client or displays client cards with `list` or `find`.
-2. TellerFlow shows the available creation and last-modified times on each displayed card, without changing either time.
+1. Bank teller adds a client or displays clients with `list` or `find`, then selects a client.
+2. TellerFlow shows the available creation and last-modified times in the selected client's details panel, without changing either time.
 
 ##### Extensions
 
@@ -575,14 +597,30 @@ testers are expected to do more _exploratory_ testing.
 
 1. _{ more test cases … }_
 
+### Removing a card
+
+1. Start with a data file that has no `C0001` client. Add a client using `add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50`.
+
+   1. Select the new client row and run `removecard r/c0001`.<br>
+      Expected: `Removed card ending in 1111 from client C0001`. The row remains selected and no longer shows a card summary. The client and other details remain. After restart, the saved JSON has no `cardDetails` field for C0001.
+
+   1. Run `removecard r/C0001` again.<br>
+      Expected: `Client C0001 is not associated with a card.` The data stays unchanged.
+
+   1. Run `removecard r/C9999`, `removecard`, and `removecard r/C0001 r/C0002`.<br>
+      Expected: The client-not-found, missing-reference, and repeated-parameter messages respectively; no data changes.
+
+1. With an invalid saved data file, restart the app and run `removecard r/C0001`.<br>
+   Expected: The protected-mode message appears and the file is not overwritten.
+
 ### Saving data
 
 1. Viewing client timestamps
    1. Add a client using the example `add` command in the User Guide.<br>
-      Expected: Its card shows equal `Created` and `Last Modified` times in local `yyyy-MM-dd HH:mm` format.
+      Expected: Select the client. Its details panel shows equal `Created` and `Last Modified` times in local `yyyy-MM-dd HH:mm` format.
 
-   1. Run `list`, then `find John` for that client.<br>
-      Expected: Both times remain unchanged on the displayed card.
+   1. Run `list`, then `find n/John` for that client.<br>
+      Expected: Both times remain unchanged in the selected client's details panel.
 
    1. After the clock reaches the next minute, run `edit 1 p/91234567` while the client is the first search result.<br>
       Expected: `Created` remains unchanged and `Last Modified` reflects the successful edit. The corresponding INFO log includes the client reference and stored UTC instants.
@@ -591,7 +629,7 @@ testers are expected to do more _exploratory_ testing.
       Expected: The saved times are restored and shown in local time.
 
    1. Back up the saved data file, remove both timestamp properties from the test client's entry, and relaunch.<br>
-      Expected: That card shows `Timestamp information is unavailable for this profile.` once. If only one property is removed, it shows only the remaining time.
+      Expected: The selected client's details panel shows `Timestamp information is unavailable for this profile.` once. If only one property is removed, it shows only the remaining time.
 
    1. Replace one timestamp in the saved data file with invalid text and relaunch.<br>
       Expected: The app enters protected mode and disables `add`, `delete`, `edit`, and `clear` for the session without overwriting the file. Restore the backup after this test.

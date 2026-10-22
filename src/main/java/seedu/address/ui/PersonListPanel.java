@@ -1,5 +1,7 @@
 package seedu.address.ui;
 
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -8,6 +10,8 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.logic.commands.CommandResult;
+import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.Person;
 
 /**
@@ -19,6 +23,7 @@ public class PersonListPanel extends UiPart<Region> {
 
     @FXML
     private ListView<Person> personListView;
+    private Consumer<Person> selectionHandler = unused -> { };
 
     /**
      * Creates a {@code PersonListPanel} with the given {@code ObservableList}.
@@ -27,6 +32,59 @@ public class PersonListPanel extends UiPart<Region> {
         super(FXML);
         personListView.setItems(personList);
         personListView.setCellFactory(listView -> new PersonListViewCell());
+        personListView.getSelectionModel().selectedItemProperty().addListener((unused, oldPerson, newPerson) ->
+                selectionHandler.accept(newPerson));
+    }
+
+    public void setSelectionHandler(Consumer<Person> selectionHandler) {
+        this.selectionHandler = selectionHandler;
+    }
+
+    /** Selects the first visible client, or clears the details panel when the list is empty. */
+    void selectFirst() {
+        if (personListView.getItems().isEmpty()) {
+            personListView.getSelectionModel().clearSelection();
+            selectionHandler.accept(null);
+        } else {
+            personListView.getSelectionModel().selectFirst();
+            selectionHandler.accept(personListView.getItems().getFirst());
+        }
+    }
+
+    /** Returns the client selected before a command changes the displayed list. */
+    public Person getSelectedPerson() {
+        return personListView.getSelectionModel().getSelectedItem();
+    }
+
+    /** Applies a command's selection request after its list changes have completed. */
+    public void applySelection(CommandResult result, Person previouslySelected) {
+        ObservableList<Person> displayed = personListView.getItems();
+        int index = indexToSelect(displayed, result, previouslySelected);
+        if (index < 0) {
+            selectFirst();
+            return;
+        }
+        Person selected = displayed.get(index);
+        personListView.getSelectionModel().select(index);
+        personListView.scrollTo(index);
+        // Replacing a client can retain the same row without firing the selection listener.
+        selectionHandler.accept(selected);
+    }
+
+    /** Finds the requested client in the current display order, falling back to its first row. */
+    static int indexToSelect(List<Person> displayed, CommandResult result, Person previouslySelected) {
+        Person desired = result.getSelectionRequest() == CommandResult.SelectionRequest.SELECT_PERSON
+                ? result.getPersonToSelect() : previouslySelected;
+        ClientReference reference = result.getSelectionRequest() == CommandResult.SelectionRequest.SELECT_REFERENCE
+                ? result.getSelectedClientReference().orElseThrow() : null;
+        for (int i = 0; i < displayed.size(); i++) {
+            Person candidate = displayed.get(i);
+            if (reference != null && reference.equals(candidate.getClientReference())
+                    || reference == null && desired != null && desired.isSamePerson(candidate)) {
+                return i;
+            }
+        }
+        return displayed.isEmpty() ? -1 : 0;
     }
 
     /**
@@ -41,6 +99,7 @@ public class PersonListPanel extends UiPart<Region> {
                 setGraphic(null);
                 setText(null);
             } else {
+                setText(null);
                 setGraphic(new PersonCard(person, getIndex() + 1).getRoot());
             }
         }

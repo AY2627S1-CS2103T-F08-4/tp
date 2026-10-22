@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.person.ClientReference;
+
 public class CommandResultTest {
     @Test
     public void equals() {
@@ -53,11 +55,23 @@ public class CommandResultTest {
     }
 
     @Test
+    public void selectionRequest_distinguishesExplicitReferenceFromPreservedSelection() {
+        ClientReference reference = new ClientReference("C0001");
+        CommandResult selectReference = new CommandResult("feedback", reference);
+
+        assertEquals(CommandResult.SelectionRequest.SELECT_REFERENCE, selectReference.getSelectionRequest());
+        assertEquals(reference, selectReference.getSelectedClientReference().orElseThrow());
+        assertNotEquals(new CommandResult("feedback"), selectReference);
+        assertEquals(selectReference, new CommandResult("feedback", reference));
+    }
+
+    @Test
     public void toStringMethod() {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
-                + ", exit=" + commandResult.isExit() + "}";
+                + ", exit=" + commandResult.isExit()
+                + ", selectionRequest=PRESERVE_OR_FIRST, personToSelect=null}";
         assertEquals(expected, commandResult.toString());
     }
 }

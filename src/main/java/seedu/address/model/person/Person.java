@@ -31,24 +31,46 @@ public class Person {
     private final CardDetails cardDetails;
     private final CreditScore creditScore;
     private final Debt debt;
+    private final ServiceNote serviceNote;
     private final Set<Tag> tags = new HashSet<>();
     private final Instant createdAt;
     private final Instant lastModifiedAt;
 
     /**
-     * Creates an unreferenced legacy profile without card or financial details.
-     * Name and tags must be non-null; contact details may be null when not recorded.
+     * Creates a legacy profile without card or financial details.
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        this(name, phone, email, address, null, null, null, tags);
+        this(name, phone, email, address, tags, null);
+    }
+
+    /** Creates a legacy profile with an optional service note. */
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, ServiceNote serviceNote) {
+        requireAllNonNull(name, tags);
+        this.clientReference = null;
+        this.name = name;
+        this.phone = phone;
+        this.email = email;
+        this.address = address;
+        this.cardDetails = null;
+        this.creditScore = null;
+        this.debt = null;
+        this.serviceNote = serviceNote;
+        this.tags.addAll(tags);
+        this.createdAt = null;
+        this.lastModifiedAt = null;
     }
 
     /**
-     * Creates an unreferenced legacy profile, retaining any recorded details.
-     * Name and tags must be non-null; contact, card, and financial details may each be null when not recorded.
+     * Name and tags must be non-null; contact, card, and financial details may be absent.
      */
     public Person(Name name, Phone phone, Email email, Address address, CardDetails cardDetails,
             CreditScore creditScore, Debt debt, Set<Tag> tags) {
+        this(name, phone, email, address, cardDetails, creditScore, debt, tags, null);
+    }
+
+    /** Creates an unreferenced profile with card details and an optional service note. */
+    public Person(Name name, Phone phone, Email email, Address address, CardDetails cardDetails,
+            CreditScore creditScore, Debt debt, Set<Tag> tags, ServiceNote serviceNote) {
         requireAllNonNull(name, tags);
         this.clientReference = null;
         this.name = name;
@@ -58,17 +80,23 @@ public class Person {
         this.cardDetails = cardDetails;
         this.creditScore = creditScore;
         this.debt = debt;
+        this.serviceNote = serviceNote;
         this.tags.addAll(tags);
         this.createdAt = null;
         this.lastModifiedAt = null;
     }
 
     /**
-     * Creates a referenced client with a non-null reference, name, and tag set.
-     * Contact, card, and financial details may each be null when not recorded.
+     * Creates a referenced client. Card details may be absent after a card is removed.
      */
     public Person(ClientReference clientReference, Name name, Phone phone, Email email, Address address,
             CardDetails cardDetails, CreditScore creditScore, Debt debt, Set<Tag> tags) {
+        this(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags, null);
+    }
+
+    /** Creates a referenced client with an optional service note. */
+    public Person(ClientReference clientReference, Name name, Phone phone, Email email, Address address,
+            CardDetails cardDetails, CreditScore creditScore, Debt debt, Set<Tag> tags, ServiceNote serviceNote) {
         requireAllNonNull(clientReference, name, tags);
         this.clientReference = clientReference;
         this.name = name;
@@ -78,6 +106,7 @@ public class Person {
         this.cardDetails = cardDetails;
         this.creditScore = creditScore;
         this.debt = debt;
+        this.serviceNote = serviceNote;
         this.tags.addAll(tags);
         this.createdAt = null;
         this.lastModifiedAt = null;
@@ -92,6 +121,7 @@ public class Person {
         this.cardDetails = source.cardDetails;
         this.creditScore = source.creditScore;
         this.debt = source.debt;
+        this.serviceNote = source.serviceNote;
         this.tags.addAll(source.tags);
         this.createdAt = createdAt;
         this.lastModifiedAt = lastModifiedAt;
@@ -110,34 +140,35 @@ public class Person {
         return name;
     }
 
-    /** Returns a non-null Optional, empty when no phone is recorded. */
     public Optional<Phone> getPhone() {
         return Optional.ofNullable(phone);
     }
 
-    /** Returns a non-null Optional, empty when no email is recorded. */
     public Optional<Email> getEmail() {
         return Optional.ofNullable(email);
     }
 
-    /** Returns a non-null Optional, empty when no address is recorded. */
     public Optional<Address> getAddress() {
         return Optional.ofNullable(address);
     }
 
-    /** Returns a non-null Optional, empty when no card details are recorded. */
+    /** Returns the card details, empty if the profile has no card. */
     public Optional<CardDetails> getCardDetails() {
         return Optional.ofNullable(cardDetails);
     }
 
-    /** Returns a non-null Optional, empty when no credit score is recorded. */
+    /** Returns the credit score, empty when not recorded. */
     public Optional<CreditScore> getCreditScore() {
         return Optional.ofNullable(creditScore);
     }
 
-    /** Returns a non-null Optional, empty when no debt is recorded. */
+    /** Returns the debt, empty when not recorded. */
     public Optional<Debt> getDebt() {
         return Optional.ofNullable(debt);
+    }
+
+    public ServiceNote getServiceNote() {
+        return serviceNote;
     }
 
     /**
@@ -199,6 +230,7 @@ public class Person {
                 && Objects.equals(cardDetails, otherPerson.cardDetails)
                 && Objects.equals(creditScore, otherPerson.creditScore)
                 && Objects.equals(debt, otherPerson.debt)
+                && Objects.equals(serviceNote, otherPerson.serviceNote)
                 && tags.equals(otherPerson.tags)
                 && Objects.equals(createdAt, otherPerson.createdAt)
                 && Objects.equals(lastModifiedAt, otherPerson.lastModifiedAt);
@@ -208,7 +240,7 @@ public class Person {
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
         return Objects.hash(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags,
-                createdAt, lastModifiedAt);
+                createdAt, lastModifiedAt, serviceNote);
     }
 
     @Override

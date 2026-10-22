@@ -13,6 +13,7 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.ServiceNote;
 import seedu.address.model.tag.Tag;
 import seedu.address.model.util.SampleDataUtil;
 
@@ -43,6 +44,7 @@ public class PersonBuilder {
     private Set<Tag> tags;
     private Instant createdAt;
     private Instant lastModifiedAt;
+    private ServiceNote serviceNote;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -73,6 +75,7 @@ public class PersonBuilder {
         tags = new HashSet<>(personToCopy.getTags());
         createdAt = personToCopy.getCreatedAt();
         lastModifiedAt = personToCopy.getLastModifiedAt();
+        serviceNote = personToCopy.getServiceNote();
     }
 
     /**
@@ -144,13 +147,15 @@ public class PersonBuilder {
     /** Builds a US01 client or an existing record with its original financial details. */
     public Person build() {
         if (clientReference != null) {
-            return new Person(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags)
+            return new Person(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags,
+                    serviceNote)
                     .withTimestamps(createdAt, lastModifiedAt);
         }
         if (cardDetails == null && creditScore == null && debt == null) {
-            return new Person(name, phone, email, address, tags).withTimestamps(createdAt, lastModifiedAt);
+            return new Person(name, phone, email, address, tags, serviceNote)
+                    .withTimestamps(createdAt, lastModifiedAt);
         }
-        return new Person(name, phone, email, address, cardDetails, creditScore, debt, tags)
+        return new Person(name, phone, email, address, cardDetails, creditScore, debt, tags, serviceNote)
                 .withTimestamps(createdAt, lastModifiedAt);
     }
 

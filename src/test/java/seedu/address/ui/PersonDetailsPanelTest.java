@@ -8,8 +8,9 @@ import java.awt.GraphicsEnvironment;
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -21,6 +22,7 @@ import org.w3c.dom.NodeList;
 
 import javafx.application.Platform;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Region;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.ClientReference;
@@ -30,7 +32,7 @@ import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.testutil.PersonBuilder;
 
-class PersonCardTest {
+class PersonDetailsPanelTest {
     private static final ZoneId DISPLAY_ZONE = ZoneId.of("Asia/Singapore");
     private static final Instant CREATED = Instant.parse("2026-03-15T01:42:00Z");
     private static final Instant MODIFIED = Instant.parse("2026-10-12T06:18:00Z");
@@ -44,7 +46,7 @@ class PersonCardTest {
     }
 
     @Test
-    void constructor_contactCombinations_hidesMissingLabelsAndRemovesTheirLayoutSpace() throws Exception {
+    void showPerson_contactCombinations_hidesMissingRowsAndRemovesTheirLayoutSpace() throws Exception {
         runOnFxThread(() -> {
             for (int mask = 0; mask < 8; mask++) {
                 Phone phone = (mask & 1) == 0 ? null : new Phone("85355255");
@@ -52,54 +54,60 @@ class PersonCardTest {
                 Address address = (mask & 4) == 0 ? null : new Address("123 Main Street");
                 Person person = new Person(new ClientReference("C0001"), new Name("John Doe"),
                         phone, email, address, null, null, null, Collections.emptySet());
-                Region root = new PersonCard(person, 1).getRoot();
+                PersonDetailsPanel panel = new PersonDetailsPanel();
+                panel.showPerson(person);
+                Region root = (Region) ((ScrollPane) panel.getRoot()).getContent();
 
-                assertLabel(root, "id", "1. ");
                 assertLabel(root, "name", "John Doe");
-                assertLabel(root, "clientReference", "Client reference: C0001");
+                assertLabel(root, "reference", "C0001");
                 assertLabel(root, "phone", phone == null ? "" : "85355255");
                 assertLabel(root, "email", email == null ? "" : "john@example.com");
                 assertLabel(root, "address", address == null ? "" : "123 Main Street");
                 assertLabel(root, "cardDetails", "");
                 assertLabel(root, "creditScore", "");
                 assertLabel(root, "debt", "");
+                assertEquals(mask != 0, root.lookup("#contactSection").isManaged());
+                assertEquals(false, root.lookup("#financialSection").isManaged());
             }
         });
     }
 
     @Test
-    void constructor_completeProfile_preservesValuesAndCardMasking() throws Exception {
+    void showPerson_completeProfile_preservesValuesAndCardMasking() throws Exception {
         runOnFxThread(() -> {
             Person person = new PersonBuilder().withClientReference("C0001")
                     .withCardDetails("1234567890123456", "123", "12/28", "Visa").build();
-            Region root = new PersonCard(person, 2).getRoot();
+            PersonDetailsPanel panel = new PersonDetailsPanel();
+            panel.showPerson(person);
+            Region root = (Region) ((ScrollPane) panel.getRoot()).getContent();
 
-            assertLabel(root, "id", "2. ");
             assertLabel(root, "name", PersonBuilder.DEFAULT_NAME);
             assertLabel(root, "phone", PersonBuilder.DEFAULT_PHONE);
             assertLabel(root, "email", PersonBuilder.DEFAULT_EMAIL);
             assertLabel(root, "address", PersonBuilder.DEFAULT_ADDRESS);
-            assertLabel(root, "clientReference", "Client reference: C0001");
-            assertLabel(root, "cardDetails", "Card: Visa ****3456 exp 12/28");
-            assertLabel(root, "creditScore", "Credit score: 700");
-            assertLabel(root, "debt", "Debt: 0.00");
+            assertLabel(root, "reference", "C0001");
+            assertLabel(root, "cardDetails", "Visa ****3456 exp 12/28");
+            assertLabel(root, "creditScore", "700");
+            assertLabel(root, "debt", "0.00");
         });
     }
 
     @Test
-    void constructor_financialDetailsWithoutContacts_displaysZeroValues() throws Exception {
+    void showPerson_financialDetailsWithoutContacts_displaysZeroValues() throws Exception {
         runOnFxThread(() -> {
             Person minimal = new Person(new ClientReference("C0001"), new Name("John Doe"),
                     null, null, null, null, null, null, Collections.emptySet());
             Person person = new PersonBuilder(minimal).withCreditScore("0").withDebt("0.00").build();
-            Region root = new PersonCard(person, 1).getRoot();
+            PersonDetailsPanel panel = new PersonDetailsPanel();
+            panel.showPerson(person);
+            Region root = (Region) ((ScrollPane) panel.getRoot()).getContent();
 
             assertLabel(root, "phone", "");
             assertLabel(root, "email", "");
             assertLabel(root, "address", "");
             assertLabel(root, "cardDetails", "");
-            assertLabel(root, "creditScore", "Credit score: 0");
-            assertLabel(root, "debt", "Debt: 0.00");
+            assertLabel(root, "creditScore", "0");
+            assertLabel(root, "debt", "0.00");
         });
     }
 
@@ -109,7 +117,7 @@ class PersonCardTest {
                 .withCardDetails("1234567890123456", "123", "12/28", "Visa")
                 .build();
 
-        assertEquals("Card: Visa ****3456 exp 12/28", PersonCard.formatCardDetails(person));
+        assertEquals("Visa ****3456 exp 12/28", PersonDetailsPanel.formatCardDetails(person));
     }
 
     @Test
@@ -121,12 +129,12 @@ class PersonCardTest {
                 new Address("123 Legacy Street"),
                 Collections.emptySet());
 
-        assertEquals("", PersonCard.formatCardDetails(person));
+        assertEquals("", PersonDetailsPanel.formatCardDetails(person));
     }
 
     @Test
     void formatTimestamp_usesViewerTimeZone() {
-        assertEquals("2026-03-15 09:42", PersonCard.formatTimestamp(
+        assertEquals("2026-03-15 09:42", PersonDetailsPanel.formatTimestamp(
                 CREATED, DISPLAY_ZONE));
     }
 
@@ -134,33 +142,33 @@ class PersonCardTest {
     void formatTimestamps_bothKnown_showsBoth() {
         var person = new PersonBuilder().build().withTimestamps(CREATED, MODIFIED);
 
-        assertEquals(new PersonCard.TimestampDisplay("Created: 2026-03-15 09:42",
-                "Last Modified: 2026-10-12 14:18", ""), PersonCard.formatTimestamps(person, DISPLAY_ZONE));
+        assertEquals(new PersonDetailsPanel.TimestampDisplay("2026-03-15 09:42",
+                "2026-10-12 14:18", ""), PersonDetailsPanel.formatTimestamps(person, DISPLAY_ZONE));
     }
 
     @Test
     void formatTimestamps_oneKnown_showsOnlyKnownField() {
         var person = new PersonBuilder().build();
 
-        assertEquals(new PersonCard.TimestampDisplay("", "Last Modified: 2026-10-12 14:18", ""),
-                PersonCard.formatTimestamps(person.withTimestamps(null, MODIFIED), DISPLAY_ZONE));
-        assertEquals(new PersonCard.TimestampDisplay("Created: 2026-03-15 09:42", "", ""),
-                PersonCard.formatTimestamps(person.withTimestamps(CREATED, null), DISPLAY_ZONE));
+        assertEquals(new PersonDetailsPanel.TimestampDisplay("", "2026-10-12 14:18", ""),
+                PersonDetailsPanel.formatTimestamps(person.withTimestamps(null, MODIFIED), DISPLAY_ZONE));
+        assertEquals(new PersonDetailsPanel.TimestampDisplay("2026-03-15 09:42", "", ""),
+                PersonDetailsPanel.formatTimestamps(person.withTimestamps(CREATED, null), DISPLAY_ZONE));
     }
 
     @Test
     void formatTimestamps_noneKnown_showsOneMessage() {
         var person = new PersonBuilder().build();
 
-        assertEquals(new PersonCard.TimestampDisplay("", "",
+        assertEquals(new PersonDetailsPanel.TimestampDisplay("", "",
                 "Timestamp information is unavailable for this profile."),
-                PersonCard.formatTimestamps(person, DISPLAY_ZONE));
+                PersonDetailsPanel.formatTimestamps(person, DISPLAY_ZONE));
     }
 
     @Test
-    void timestampLabels_existInCardFxml() throws Exception {
-        Set<String> ids = new HashSet<>();
-        try (InputStream stream = PersonCard.class.getResourceAsStream("/view/PersonListCard.fxml")) {
+    void timestampLabels_existBeforeServiceNoteInDetailsFxml() throws Exception {
+        List<String> ids = new ArrayList<>();
+        try (InputStream stream = PersonDetailsPanel.class.getResourceAsStream("/view/PersonDetailsPanel.fxml")) {
             NodeList labels = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(stream)
                     .getElementsByTagName("Label");
             for (int i = 0; i < labels.getLength(); i++) {
@@ -169,13 +177,27 @@ class PersonCardTest {
             }
         }
         assertTrue(ids.containsAll(Set.of("createdAt", "lastModifiedAt", "timestampUnavailable")));
+        assertEquals("serviceNote", ids.getLast());
+    }
+
+    @Test
+    void formatCardDetails_referencedPersonWithoutCard_returnsEmptyText() {
+        var withCard = new PersonBuilder().withClientReference("C0001").build();
+        var withoutCard = new Person(withCard.getClientReference(), withCard.getName(),
+                withCard.getPhone().orElse(null), withCard.getEmail().orElse(null), withCard.getAddress().orElse(null),
+                null, withCard.getCreditScore().orElse(null),
+                withCard.getDebt().orElse(null), withCard.getTags());
+
+        assertEquals("", PersonDetailsPanel.formatCardDetails(withoutCard));
     }
 
     private static void assertLabel(Region root, String id, String expectedText) {
         Label label = (Label) root.lookup("#" + id);
         assertEquals(expectedText, label.getText(), id);
-        assertEquals(!expectedText.isEmpty(), label.isVisible(), id + " visibility");
-        assertEquals(!expectedText.isEmpty(), label.isManaged(), id + " layout space");
+        Region row = (Region) root.lookup("#" + id + "Row");
+        Region displayed = row == null ? label : row;
+        assertEquals(!expectedText.isEmpty(), displayed.isVisible(), id + " visibility");
+        assertEquals(!expectedText.isEmpty(), displayed.isManaged(), id + " layout space");
     }
 
     private static void runOnFxThread(Runnable action) throws Exception {

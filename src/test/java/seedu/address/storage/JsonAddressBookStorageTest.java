@@ -36,6 +36,7 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.ServiceNote;
 import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
 
@@ -243,5 +244,22 @@ public class JsonAddressBookStorageTest {
     @Test
     public void saveAddressBook_nullFilePath_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> saveAddressBook(new AddressBook(), null));
+    }
+
+    @Test
+    public void readAndSaveAddressBook_clientWithServiceNote_preservesNote() throws Exception {
+        Path filePath = testFolder.resolve("ServiceNoteAddressBook.json");
+        Person base = new PersonBuilder().withClientReference("C0001").build();
+        Person withNote = new Person(base.getClientReference(), base.getName(), base.getPhone().orElse(null),
+                base.getEmail().orElse(null), base.getAddress().orElse(null), base.getCardDetails().orElse(null),
+                base.getCreditScore().orElse(null), base.getDebt().orElse(null), base.getTags(),
+                new ServiceNote("Called about renewal"));
+        AddressBook original = new AddressBook();
+        original.addPerson(withNote);
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+        storage.saveAddressBook(original);
+
+        assertEquals(original, storage.readAddressBook().orElseThrow());
     }
 }

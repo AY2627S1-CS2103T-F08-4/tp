@@ -17,6 +17,9 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.NoteCommand;
+import seedu.address.logic.commands.RemoveCardCommand;
+import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
@@ -27,7 +30,8 @@ public class AddressBookParser {
     /**
      * Used for initial separation of command word and args.
      */
-    private static final Pattern BASIC_COMMAND_FORMAT = Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)");
+    private static final Pattern BASIC_COMMAND_FORMAT =
+            Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)", Pattern.DOTALL);
     private static final Logger logger = LogsCenter.getLogger(AddressBookParser.class);
 
     /**
@@ -55,9 +59,12 @@ public class AddressBookParser {
             case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
             case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
             case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);
+            case RemoveCardCommand.COMMAND_WORD -> new RemoveCardCommandParser().parse(arguments);
             case ClearCommand.COMMAND_WORD -> new ClearCommand();
             case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);
             case ListCommand.COMMAND_WORD -> new ListCommand();
+            case SortCommand.COMMAND_WORD -> new SortCommandParser().parse(arguments);
+            case NoteCommand.COMMAND_WORD -> new NoteCommandParser().parse(arguments);
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommand();
             default -> {

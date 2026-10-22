@@ -109,7 +109,8 @@ public class LogicManagerTest {
         assertEquals(CREATED, added.getCreatedAt());
         assertEquals(CREATED, added.getLastModifiedAt());
         logic.execute("list");
-        logic.execute("find Alex");
+        logic.execute("find n/Alex");
+        logic.execute("find cn/4111111111111111");
         assertEquals(added, model.getAddressBook().getPersonList().getFirst());
 
         logic = new LogicManager(model, storage, "", false, Clock.fixed(MODIFIED, ZoneOffset.UTC));
@@ -136,7 +137,8 @@ public class LogicManagerTest {
                     + ", lastModifiedAt=" + CREATED), handler.messages);
 
             logic.execute("list");
-            logic.execute("find Alex");
+            logic.execute("find n/Alex");
+            logic.execute("find cn/4111111111111111");
             assertEquals(1, handler.messages.size());
 
             logic = new LogicManager(model, storage, "", false, Clock.fixed(MODIFIED, ZoneOffset.UTC));
@@ -247,6 +249,38 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_findByPhone_filtersWithoutSaving() throws Exception {
+        Path dataPath = temporaryFolder.resolve("addressBook.json");
+        logic.execute("add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street"
+                + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
+        logic.execute("add r/C0002 n/Bernice Yu p/87438808 e/bernice@example.com a/20 Main Street"
+                + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
+        String savedJson = Files.readString(dataPath);
+
+        CommandResult result = logic.execute("find p/87438808");
+        assertEquals(String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, 1), result.getFeedbackToUser());
+        assertEquals(1, logic.getFilteredPersonList().size());
+        assertEquals("C0002", logic.getFilteredPersonList().getFirst().getClientReference().value);
+        assertEquals(savedJson, Files.readString(dataPath));
+    }
+
+    @Test
+    public void execute_findByCard_filtersWithoutSaving() throws Exception {
+        Path dataPath = temporaryFolder.resolve("addressBook.json");
+        logic.execute("add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street"
+                + " cn/0012  3456 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
+        logic.execute("add r/C0002 n/Bernice Yu p/87438808 e/bernice@example.com a/20 Main Street"
+                + " cn/5555555555554444 cvv/123 exp/12/28 provider/Mastercard cs/700 d/0.00");
+        String savedJson = Files.readString(dataPath);
+
+        CommandResult result = logic.execute("find cn/0012  3456");
+        assertEquals(String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, 1), result.getFeedbackToUser());
+        assertEquals(1, logic.getFilteredPersonList().size());
+        assertEquals("C0001", logic.getFilteredPersonList().getFirst().getClientReference().value);
+        assertEquals(savedJson, Files.readString(dataPath));
+    }
+
+    @Test
     public void execute_addThenDelete_syncsCurrentData() throws Exception {
         logic.execute("add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street"
                 + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
@@ -265,7 +299,7 @@ public class LogicManagerTest {
                 + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
         logic.execute("add r/C0002 n/Bernice Yu p/87438808 e/bernice@example.com a/20 Main Street"
                 + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
-        logic.execute("find Bernice");
+        logic.execute("find n/Bernice");
         logic.execute("delete 1");
 
         ReadOnlyAddressBook loaded = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
@@ -305,7 +339,7 @@ public class LogicManagerTest {
         logic.execute("add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street"
                 + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
         String savedJson = Files.readString(dataPath);
-        logic.execute("find Alex");
+        logic.execute("find n/Alex");
         Model before = new ModelManager(model.getAddressBook(), model.getUserPrefs());
         before.updateFilteredPersonList(model.getFilteredPersonListPredicate());
 

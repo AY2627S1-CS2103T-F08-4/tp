@@ -104,11 +104,12 @@ public class EditCommand extends Command {
         if (personToEdit.getClientReference() != null) {
             return new Person(personToEdit.getClientReference(), updatedName, updatedPhone, updatedEmail,
                     updatedAddress, personToEdit.getCardDetails().orElse(null),
-                    personToEdit.getCreditScore().orElse(null), personToEdit.getDebt().orElse(null), updatedTags);
+                    personToEdit.getCreditScore().orElse(null), personToEdit.getDebt().orElse(null), updatedTags,
+                    personToEdit.getServiceNote());
         }
         return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress,
                 personToEdit.getCardDetails().orElse(null), personToEdit.getCreditScore().orElse(null),
-                personToEdit.getDebt().orElse(null), updatedTags);
+                personToEdit.getDebt().orElse(null), updatedTags, personToEdit.getServiceNote());
     }
 
     @Override
