@@ -301,9 +301,13 @@ public class EditCommand extends Command {
                     || serviceNoteEdited;
         }
 
-        public void setClientReference(ClientReference clientReference) { this.clientReference = clientReference; }
+        public void setClientReference(ClientReference clientReference) {
+            this.clientReference = clientReference;
+        }
 
-        public Optional<ClientReference> getClientReference() { return Optional.ofNullable(clientReference); }
+        public Optional<ClientReference> getClientReference() {
+            return Optional.ofNullable(clientReference);
+        }
 
         public void setName(Name name) {
             this.name = name;
@@ -337,38 +341,66 @@ public class EditCommand extends Command {
             return Optional.ofNullable(address);
         }
 
-        public void setCardNumber(String cardNumber) { this.cardNumber = cardNumber; }
+        public void setCardNumber(String cardNumber) {
+            this.cardNumber = cardNumber;
+        }
 
-        public Optional<String> getCardNumber() { return Optional.ofNullable(cardNumber); }
+        public Optional<String> getCardNumber() {
+            return Optional.ofNullable(cardNumber);
+        }
 
-        public void setCvv(String cvv) { this.cvv = cvv; }
+        public void setCvv(String cvv) {
+            this.cvv = cvv;
+        }
 
-        public Optional<String> getCvv() { return Optional.ofNullable(cvv); }
+        public Optional<String> getCvv() {
+            return Optional.ofNullable(cvv);
+        }
 
-        public void setExpiryDate(String expiryDate) { this.expiryDate = expiryDate; }
+        public void setExpiryDate(String expiryDate) {
+            this.expiryDate = expiryDate;
+        }
 
-        public Optional<String> getExpiryDate() { return Optional.ofNullable(expiryDate); }
+        public Optional<String> getExpiryDate() {
+            return Optional.ofNullable(expiryDate);
+        }
 
-        public void setProvider(String provider) { this.provider = provider; }
+        public void setProvider(String provider) {
+            this.provider = provider;
+        }
 
-        public Optional<String> getProvider() { return Optional.ofNullable(provider); }
+        public Optional<String> getProvider() {
+            return Optional.ofNullable(provider);
+        }
 
-        public void setCreditScore(CreditScore creditScore) { this.creditScore = creditScore; }
+        public void setCreditScore(CreditScore creditScore) {
+            this.creditScore = creditScore;
+        }
 
-        public Optional<CreditScore> getCreditScore() { return Optional.ofNullable(creditScore); }
+        public Optional<CreditScore> getCreditScore() {
+            return Optional.ofNullable(creditScore);
+        }
 
-        public void setDebt(Debt debt) { this.debt = debt; }
+        public void setDebt(Debt debt) {
+            this.debt = debt;
+        }
 
-        public Optional<Debt> getDebt() { return Optional.ofNullable(debt); }
+        public Optional<Debt> getDebt() {
+            return Optional.ofNullable(debt);
+        }
 
         public void setServiceNote(ServiceNote serviceNote) {
             this.serviceNote = serviceNote;
             this.serviceNoteEdited = true;
         }
 
-        public Optional<ServiceNote> getServiceNote() { return Optional.ofNullable(serviceNote); }
+        public Optional<ServiceNote> getServiceNote() {
+            return Optional.ofNullable(serviceNote);
+        }
 
-        public boolean isServiceNoteEdited() { return serviceNoteEdited; }
+        public boolean isServiceNoteEdited() {
+            return serviceNoteEdited;
+        }
 
         /**
          * Sets {@code tags} to this object's {@code tags}.
