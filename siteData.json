@@ -55,6 +55,7 @@
         "implementation": "Implementation",
         "client-creation-and-modification-timestamps": "Client creation and modification timestamps",
         "proposed-undo-redo-feature": "[Proposed] Undo/redo feature",
+        "remove-card": "Remove card",
         "proposed-data-archiving": "[Proposed] Data archiving",
         "documentation-logging-testing-dev-ops": "Documentation, logging, testing, dev-ops",
         "appendix-requirements": "Appendix: Requirements",
@@ -66,6 +67,7 @@
         "appendix-instructions-for-manual-testing": "Appendix: Instructions for manual testing",
         "launch-and-shutdown": "Launch and shutdown",
         "deleting-a-person": "Deleting a person",
+        "removing-a-card": "Removing a card",
         "saving-data": "Saving data"
       },
       "headingKeywords": {}
@@ -121,6 +123,7 @@
         "locating-persons-by-name-phone-number-or-card-number-find": "Locating persons by name, phone number or card number: find",
         "deleting-a-person-delete": "Deleting a person: delete",
         "clearing-all-entries-clear": "Clearing all entries: clear",
+        "removing-a-client-s-card-removecard": "Removing a client's card: removecard",
         "exiting-the-program-exit": "Exiting the program: exit",
         "saving-the-data": "Saving the data",
         "editing-the-data-file": "Editing the data file",
