@@ -186,13 +186,13 @@ public class EditCommand extends Command {
 
         if (updatedReference != null) {
             return new Person(updatedReference, updatedName, updatedPhone, updatedEmail,
-                    updatedAddress, updatedCardDetails, updatedCreditScore, updatedDebt, updatedTags);
+                    updatedAddress, updatedCardDetails, updatedCreditScore, updatedDebt, updatedTags, personToEdit.getServiceNote());
         }
         if (updatedCardDetails == null) {
-            return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags);
+            return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags, personToEdit.getServiceNote());
         }
         return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedCardDetails,
-                updatedCreditScore, updatedDebt, updatedTags);
+                updatedCreditScore, updatedDebt, updatedTags, personToEdit.getServiceNote());
     }
 
     @Override

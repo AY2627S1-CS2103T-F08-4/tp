@@ -72,7 +72,7 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, `PersonDetailsPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts. `MainWindow` connects list selection to `PersonDetailsPanel`, which shows the selected client's details or an empty state when no client is selected.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
@@ -147,6 +147,7 @@ The `Storage` component,
 
 - can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
 - is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+- uses `JsonSerializableAddressBook` and `JsonAdaptedPerson` to convert saved client records to and from model objects. Each adapted person can contain optional `JsonAdaptedCardDetails` and a collection of `JsonAdaptedTag` objects.
 - depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 ### Common classes
@@ -165,7 +166,7 @@ This section describes some noteworthy details on how certain features are imple
 
 Data-changing commands execute against a staged `ModelManager`. `LogicManager` saves the staged address book before committing it to the active model. Only after a successful save does it emit an INFO log entry for an add or edit timestamp change, including the client reference and both stored instants. A failed save leaves the active record unchanged and emits no timestamp-change log entry.
 
-`JsonAdaptedPerson` writes the instants as ISO-8601 UTC strings in the `createdAt` and `lastModifiedAt` JSON properties. Missing properties in older data files remain `null`; editing such a record supplies its modification time without fabricating a creation time. An invalid non-null timestamp causes loading to fail, so startup follows the existing protected-mode path. `PersonCard` converts known instants to the viewer's local time zone and formats them as `yyyy-MM-dd HH:mm`. It shows each known value independently, or one unavailable message if both are missing.
+`JsonAdaptedPerson` writes the instants as ISO-8601 UTC strings in the `createdAt` and `lastModifiedAt` JSON properties. Missing properties in older data files remain `null`; editing such a record supplies its modification time without fabricating a creation time. An invalid non-null timestamp causes loading to fail, so startup follows the existing protected-mode path. `PersonDetailsPanel` converts known instants to the viewer's local time zone and formats them as `yyyy-MM-dd HH:mm`. It shows each known value independently in the selected client's side panel, or one unavailable message if both are missing.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -438,7 +439,7 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 
 1. Bank teller locates a client profile and enters or revises a short service note.
 2. TellerFlow saves the note on that profile.
-3. TellerFlow shows the current note when the profile is viewed.
+3. TellerFlow shows the current note in the last section of the selected profile's details panel.
 
 ##### Extensions
 
@@ -465,8 +466,8 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 
 ##### Main success scenario (MSS)
 
-1. Bank teller adds a client or displays client cards with `list` or `find`.
-2. TellerFlow shows the available creation and last-modified times on each displayed card, without changing either time.
+1. Bank teller adds a client or displays clients with `list` or `find`, then selects a client.
+2. TellerFlow shows the available creation and last-modified times in the selected client's details panel, without changing either time.
 
 ##### Extensions
 
@@ -598,10 +599,10 @@ testers are expected to do more _exploratory_ testing.
 
 1. Viewing client timestamps
    1. Add a client using the example `add` command in the User Guide.<br>
-      Expected: Its card shows equal `Created` and `Last Modified` times in local `yyyy-MM-dd HH:mm` format.
+      Expected: Select the client. Its details panel shows equal `Created` and `Last Modified` times in local `yyyy-MM-dd HH:mm` format.
 
    1. Run `list`, then `find John` for that client.<br>
-      Expected: Both times remain unchanged on the displayed card.
+      Expected: Both times remain unchanged in the selected client's details panel.
 
    1. After the clock reaches the next minute, run `edit 1 p/91234567` while the client is the first search result.<br>
       Expected: `Created` remains unchanged and `Last Modified` reflects the successful edit. The corresponding INFO log includes the client reference and stored UTC instants.
@@ -610,7 +611,7 @@ testers are expected to do more _exploratory_ testing.
       Expected: The saved times are restored and shown in local time.
 
    1. Back up the saved data file, remove both timestamp properties from the test client's entry, and relaunch.<br>
-      Expected: That card shows `Timestamp information is unavailable for this profile.` once. If only one property is removed, it shows only the remaining time.
+      Expected: The selected client's details panel shows `Timestamp information is unavailable for this profile.` once. If only one property is removed, it shows only the remaining time.
 
    1. Replace one timestamp in the saved data file with invalid text and relaunch.<br>
       Expected: The app enters protected mode and disables `add`, `delete`, `edit`, and `clear` for the session without overwriting the file. Restore the backup after this test.

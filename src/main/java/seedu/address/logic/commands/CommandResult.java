@@ -3,8 +3,10 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.person.ClientReference;
 
 /**
  * Represents the result of a command execution.
@@ -18,14 +20,21 @@ public class CommandResult {
 
     /** The application should exit. */
     private final boolean exit;
+    private final ClientReference selectedClientReference;
 
     /**
      * Constructs a {@code CommandResult} with the specified fields.
      */
     public CommandResult(String feedbackToUser, boolean showHelp, boolean exit) {
+        this(feedbackToUser, showHelp, exit, null);
+    }
+
+    private CommandResult(String feedbackToUser, boolean showHelp, boolean exit,
+            ClientReference selectedClientReference) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
+        this.selectedClientReference = selectedClientReference;
     }
 
     /**
@@ -34,6 +43,11 @@ public class CommandResult {
      */
     public CommandResult(String feedbackToUser) {
         this(feedbackToUser, false, false);
+    }
+
+    /** Requests that the UI select a client after this command succeeds. */
+    public CommandResult(String feedbackToUser, ClientReference selectedClientReference) {
+        this(feedbackToUser, false, false, requireNonNull(selectedClientReference));
     }
 
     public String getFeedbackToUser() {
@@ -46,6 +60,10 @@ public class CommandResult {
 
     public boolean isExit() {
         return exit;
+    }
+
+    public Optional<ClientReference> getSelectedClientReference() {
+        return Optional.ofNullable(selectedClientReference);
     }
 
     @Override
@@ -61,21 +79,25 @@ public class CommandResult {
 
         return feedbackToUser.equals(otherCommandResult.feedbackToUser)
                 && showHelp == otherCommandResult.showHelp
-                && exit == otherCommandResult.exit;
+                && exit == otherCommandResult.exit
+                && Objects.equals(selectedClientReference, otherCommandResult.selectedClientReference);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit);
+        return Objects.hash(feedbackToUser, showHelp, exit, selectedClientReference);
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
+        ToStringBuilder builder = new ToStringBuilder(this)
                 .add("feedbackToUser", feedbackToUser)
                 .add("showHelp", showHelp)
-                .add("exit", exit)
-                .toString();
+                .add("exit", exit);
+        if (selectedClientReference != null) {
+            builder.add("selectedClientReference", selectedClientReference);
+        }
+        return builder.toString();
     }
 
 }

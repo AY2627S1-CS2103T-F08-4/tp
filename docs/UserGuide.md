@@ -27,13 +27,16 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
    ![Ui](images/Ui.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
+   Click a client in the list to see their details, timestamps, and service note in the pane beside it.
    Some example commands you can try:
 
    * `list` : Lists all contacts.
 
    * `add r/C0001 n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/0.00` : Adds a client named `John Doe` to the Address Book.
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+    * `delete 3` : Deletes the 3rd contact shown in the current list.
+
+    * `note r/C0001 s/Prefers morning appointments` : Adds or replaces that client's service note.
 
    * `clear` : Deletes all contacts.
 
@@ -105,7 +108,7 @@ Format: `list`
 
 ### Viewing client timestamps
 
-Client cards show read-only `Created` and `Last Modified` times below the other client details. They appear automatically when clients are displayed after `add`, `list`, or `find`; there is no timestamp command. Times use your computer's local time in `yyyy-MM-dd HH:mm` format. For example:
+Select a client to see read-only `Created` and `Last Modified` times under **Profile history** in the side panel. They appear after `add`, `list`, or `find` when a client is selected; there is no timestamp command. Times use your computer's local time in `yyyy-MM-dd HH:mm` format. For example:
 
 ```text
 Created:        2026-03-15 09:42
@@ -114,7 +117,7 @@ Last Modified:  2026-10-12 14:18
 
 For a newly added client, both times are the same. A successful `edit` changes `Last Modified` even when the entered values match the existing values, while `Created` stays the same. Viewing clients with `list` or `find` does not change either time. Timestamps cannot be edited through commands.
 
-Older saved profiles may lack timestamps. If one time is available, the card shows only that time. If both are unavailable, it shows `Timestamp information is unavailable for this profile.` once. Editing an older profile adds a `Last Modified` time but does not invent a `Created` time.
+Older saved profiles may lack timestamps. If one time is available, the side panel shows only that time. If both are unavailable, it shows `Timestamp information is unavailable for this profile.` once. Editing an older profile adds a `Last Modified` time but does not invent a `Created` time.
 
 ### Editing a person: `edit`
 
@@ -164,6 +167,19 @@ Examples:
 * `find cn/4111111111111111` returns all persons with that exact recorded card number.
 * `find cn/4111 1111 1111 1111` matches the card number stored with those spaces.
 * `find n/lic p/91234567 cn/4111111111111111` returns persons matching all three fields.
+
+### Maintaining a service note: `note`
+
+Each client can have one service note. It appears in the last section of the selected client's details pane, or as `(none)` when no note is saved.
+
+Format: `note r/REFERENCE s/NOTE`
+
+Both prefixes are required, in either order. The reference is case-insensitive. A note can contain up to 200 printable characters on one line; leading and trailing spaces are removed. Setting a note replaces the previous one. Use `s/` with no value to clear it.
+
+Examples:
+* `note r/C0001 s/Prefers morning appointments`
+* `note s/Hearing impaired, speak clearly r/c0001`
+* `note r/C0001 s/`
 
 ### Deleting a person: `delete`
 
@@ -259,4 +275,5 @@ Action     | Format, Examples
 **Find**   | `find [n/KEYWORD [MORE_KEYWORDS]...] [p/PHONE_NUMBER [MORE_PHONE_NUMBERS]...] [cn/CARD_NUMBER]` (at least one prefix required)<br> e.g., `find n/Jam Jak`, `find p/91234567` or `find cn/4111111111111111`
 **List**   | `list`
 **Remove card** | `removecard r/REFERENCE`<br> e.g., `removecard r/C0001`
+**Note**   | `note r/REFERENCE s/NOTE`<br> e.g., `note r/C0001 s/Prefers morning appointments`
 **Help**   | `help`
