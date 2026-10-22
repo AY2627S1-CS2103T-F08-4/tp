@@ -119,22 +119,37 @@ How the parsing works:
 
 ### Model component
 
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
+**API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-F08-4/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
-<puml src="diagrams/ModelClassDiagram.puml" width="450" />
+The following overview shows the main model classes and the displayed client list. The fields of `Person` are expanded in the next diagram.
+
+<puml src="diagrams/ModelClassDiagram.puml" width="700" alt="Model overview showing address book storage, user preferences, and the sorted client view" />
 
 The `Model` component,
 
 - stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
-- stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+- maintains a `FilteredList<Person>` for the current filter, such as search results, and a `SortedList<Person>` over that filtered view. `ModelManager#getFilteredPersonList()` exposes the sorted view as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to.
+- stores the current session's `SortOrder` (`ORIGINAL`, `ASC`, or `DESC`). Changing it changes the displayed order without rearranging the stored `UniquePersonList` or saving the order to disk.
 - stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 - does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
+#### Client profile fields
+
+`Person` is an immutable client profile. The diagram shows its stored fields, including the types used for client references, contact details, card and financial information, service notes, tags, and timestamps. `CardDetails` is expanded to show its four required fields; the other value types are shown by name in the `Person` attributes.
+
+<puml src="diagrams/PersonClassDiagram.puml" width="700" alt="Person fields with optional client details and timestamps, and the four fields in CardDetails" />
+
+An attribute multiplicity of `0..1` means the stored field may be `null`; `name` is required. `tags` is a non-null set that can be empty. The phone, email, address, card, credit score, and debt getters return `Optional` values even though their stored fields are nullable. `getClientReference()`, `getServiceNote()`, `getCreatedAt()`, and `getLastModifiedAt()` return nullable values directly.
+
+New clients created through `add` require a `ClientReference`. Unreferenced legacy profiles remain supported. References determine client identity when present; profiles without references retain name-based identity. Contact, card, credit score, and debt fields may be absent independently. If a card is present, all four `CardDetails` strings are required.
+
+`createdAt` and `lastModifiedAt` use `java.time.Instant`. `ModelManager#addPerson` supplies both timestamps, while `ModelManager#setPerson` preserves the creation time and updates the modification time using its clock. Older profiles may lack either timestamp. See [Client creation and modification timestamps](#client-creation-and-modification-timestamps) for the persistence and display behavior.
+
 <box type="info" seamless>
 
-**Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
+**Alternative design (not implemented):** The diagram below changes only tag ownership: `AddressBook` keeps a unique list of tags, and each `Person` references tags from that list. The other `Person` fields remain as shown above and are omitted here. In the current implementation, each `Person` holds its own set of tags and there is no `UniqueTagList` class.<br>
 
-<puml src="diagrams/BetterModelClassDiagram.puml" width="450" />
+<puml src="diagrams/BetterModelClassDiagram.puml" width="500" alt="Unimplemented alternative in which AddressBook owns a shared UniqueTagList" />
 </box>
 
 ### Storage component
