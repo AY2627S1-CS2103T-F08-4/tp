@@ -256,7 +256,7 @@ public class LogicManagerTest {
                 + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
         logic.execute("edit 1 p/91234567");
         ReadOnlyAddressBook edited = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow();
-        assertEquals("91234567", edited.getPersonList().getFirst().getPhone().value);
+        assertEquals("91234567", edited.getPersonList().getFirst().getPhone().orElseThrow().value);
         assertEquals("C0001", edited.getPersonList().getFirst().getClientReference().value);
 
         logic.execute("clear");

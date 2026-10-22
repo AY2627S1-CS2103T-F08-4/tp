@@ -39,9 +39,9 @@ public class FindPersonPredicate implements Predicate<Person> {
             return false;
         }
         return (nameKeywords.isEmpty() || namePredicate.test(person))
-                && (phoneNumbers.isEmpty() || phoneNumbers.contains(person.getPhone()))
-                && (cardNumber == null || person.getCardDetails() != null
-                        && cardNumber.equals(person.getCardDetails().getCardNumber()));
+                && (phoneNumbers.isEmpty() || person.getPhone().filter(phoneNumbers::contains).isPresent())
+                && (cardNumber == null || person.getCardDetails()
+                        .map(details -> cardNumber.equals(details.getCardNumber())).orElse(false));
     }
 
     @Override

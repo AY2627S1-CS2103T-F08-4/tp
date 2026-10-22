@@ -2,8 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.io.IOException;
@@ -64,13 +63,13 @@ public class RemoveCardCommandIntegrationTest {
         assertEquals(before.getCreditScore(), after.getCreditScore());
         assertEquals(before.getDebt(), after.getDebt());
         assertEquals(before.getTags(), after.getTags());
-        assertNull(after.getCardDetails());
+        assertTrue(after.getCardDetails().isEmpty());
         assertFalse(Files.readString(dataPath).contains("\"cardDetails\""));
         assertEquals(model.getAddressBook(), new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow());
 
         logic.execute("edit 1 p/91234567");
-        assertNull(new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow()
-                .getPersonList().getFirst().getCardDetails());
+        assertTrue(new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow()
+                .getPersonList().getFirst().getCardDetails().isEmpty());
     }
 
     @Test
@@ -101,8 +100,8 @@ public class RemoveCardCommandIntegrationTest {
         logic.execute("removecard r/C0001");
 
         List<Person> clients = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow().getPersonList();
-        assertNull(clients.get(0).getCardDetails());
-        assertNotNull(clients.get(1).getCardDetails());
+        assertTrue(clients.get(0).getCardDetails().isEmpty());
+        assertTrue(clients.get(1).getCardDetails().isPresent());
     }
 
     @Test
@@ -147,7 +146,7 @@ public class RemoveCardCommandIntegrationTest {
                 logic.execute("removecard r/C0001"));
         assertEquals(before, model.getAddressBook());
         assertEquals(savedJson, Files.readString(dataPath));
-        assertNotNull(model.getAddressBook().getPersonList().getFirst().getCardDetails());
+        assertTrue(model.getAddressBook().getPersonList().getFirst().getCardDetails().isPresent());
     }
 
     private StorageManager storage(JsonAddressBookStorage addressBookStorage) {

@@ -74,8 +74,8 @@ public class FindPersonPredicateTest {
 
     @Test
     public void test_legacyProfileWithoutCard_doesNotMatchCardSearch() {
-        Person legacy = new Person(alice.getName(), alice.getPhone(), alice.getEmail(), alice.getAddress(),
-                alice.getTags());
+        Person legacy = new Person(alice.getName(), alice.getPhone().orElse(null), alice.getEmail().orElse(null),
+                alice.getAddress().orElse(null), alice.getTags());
         assertFalse(new FindPersonPredicate(List.of(), List.of(), PersonBuilder.DEFAULT_CARD_NUMBER).test(legacy));
         assertTrue(new FindPersonPredicate(List.of("lic"), List.of()).test(legacy));
     }
@@ -87,6 +87,16 @@ public class FindPersonPredicateTest {
         assertFalse(new FindPersonPredicate(List.of("Carol"), List.of(new Phone("00123456")), card).test(alice));
         assertFalse(new FindPersonPredicate(List.of("lic"), List.of(new Phone("99999999")), card).test(alice));
         assertFalse(new FindPersonPredicate(List.of("lic"), List.of(new Phone("00123456")), "9999").test(alice));
+    }
+
+    @Test
+    public void test_missingPhoneAndCard_onlyMatchesNameCriteria() {
+        Person minimal = new Person(new ClientReference("C0001"), new Name("Alice Bob"),
+                null, null, null, null, null, null, java.util.Set.of());
+
+        assertTrue(new FindPersonPredicate(List.of("lic"), List.of()).test(minimal));
+        assertFalse(new FindPersonPredicate(List.of(), List.of(new Phone("00123456"))).test(minimal));
+        assertFalse(new FindPersonPredicate(List.of(), List.of(), "4111111111111111").test(minimal));
     }
 
     @Test

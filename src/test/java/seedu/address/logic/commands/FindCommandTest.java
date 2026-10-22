@@ -113,7 +113,8 @@ public class FindCommandTest {
     public void execute_cardNumber_findsAllProfilesWithFullNumber() throws ParseException {
         Person first = new PersonBuilder(CARL).withCardDetails("0012  3456", "123", "12/28", "Visa").build();
         Person second = new PersonBuilder(FIONA).withCardDetails("0012  3456", "456", "11/29", "Visa").build();
-        Person legacy = new Person(ELLE.getName(), ELLE.getPhone(), ELLE.getEmail(), ELLE.getAddress(), ELLE.getTags());
+        Person legacy = new Person(ELLE.getName(), ELLE.getPhone().orElse(null), ELLE.getEmail().orElse(null),
+                ELLE.getAddress().orElse(null), ELLE.getTags());
         AddressBook addressBook = getTypicalAddressBook();
         addressBook.setPerson(CARL, first);
         addressBook.setPerson(FIONA, second);
