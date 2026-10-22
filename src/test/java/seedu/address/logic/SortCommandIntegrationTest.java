@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -74,7 +73,7 @@ public class SortCommandIntegrationTest {
         LogicManager logic = new LogicManager(model, new StorageManager(jsonStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
 
-        logic.execute("find Alex");
+        logic.execute("find n/Alex");
         assertEquals("Sorted 1 client(s) by name (A-Z).", logic.execute("sort").getFeedbackToUser());
         logic.execute("list");
         assertEquals(List.of(alex, bernice, mary), logic.getFilteredPersonList());
@@ -83,7 +82,7 @@ public class SortCommandIntegrationTest {
         logic.execute(PersonUtil.getAddCommand(aaron));
         assertEquals(List.of("Aaron Yu", "Alex Yeoh", "Bernice Yu", "Mary O'Connor"),
                 logic.getFilteredPersonList().stream().map(p -> p.getName().fullName).toList());
-        assertEquals(List.of("Mary O'Connor","Alex Yeoh", "Bernice Yu", "Aaron Yu"),
+        assertEquals(List.of("Mary O'Connor", "Alex Yeoh", "Bernice Yu", "Aaron Yu"),
                 model.getAddressBook().getPersonList().stream().map(p -> p.getName().fullName).toList());
 
         logic.execute("edit 1 n/Zara Yu");

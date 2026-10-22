@@ -57,6 +57,33 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void test_nameContainsPartialKeyword_returnsTrue() {
+        // Prefix, middle and suffix of a name word
+        assertTrue(new NameContainsKeywordsPredicate(List.of("Ali"))
+                .test(new PersonBuilder().withName("Alice Bob").build()));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("lic"))
+                .test(new PersonBuilder().withName("Alice Bob").build()));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("ice"))
+                .test(new PersonBuilder().withName("Alice Bob").build()));
+
+        // Single-character keyword
+        assertTrue(new NameContainsKeywordsPredicate(List.of("b"))
+                .test(new PersonBuilder().withName("Alice Bob").build()));
+
+        // Substrings in hyphenated names and names with apostrophes
+        assertTrue(new NameContainsKeywordsPredicate(List.of("Mary"))
+                .test(new PersonBuilder().withName("Mary-Jane").build()));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("Connor"))
+                .test(new PersonBuilder().withName("O'Connor").build()));
+    }
+
+    @Test
+    public void test_nameContainsOneMixedCasePartialKeyword_returnsTrue() {
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("missing", "lIC"));
+        assertTrue(predicate.test(new PersonBuilder().withName("Alice Bob").build()));
+    }
+
+    @Test
     public void test_nameDoesNotContainKeywords_returnsFalse() {
         // Zero keywords
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of());
@@ -66,10 +93,23 @@ public class NameContainsKeywordsPredicateTest {
         predicate = new NameContainsKeywordsPredicate(List.of("Carol"));
         assertFalse(predicate.test(new PersonBuilder().withName("Alice Bob").build()));
 
+        // Keyword is longer than the name word
+        predicate = new NameContainsKeywordsPredicate(List.of("Alicee"));
+        assertFalse(predicate.test(new PersonBuilder().withName("Alice Bob").build()));
+
+        // Letters must form a contiguous substring
+        predicate = new NameContainsKeywordsPredicate(List.of("Alce"));
+        assertFalse(predicate.test(new PersonBuilder().withName("Alice Bob").build()));
+
         // Keywords match phone, email and address, but do not match name
         predicate = new NameContainsKeywordsPredicate(List.of("12345", "alice@email.com", "Main", "Street"));
         assertFalse(predicate.test(new PersonBuilder().withName("Alice").withPhone("12345")
                 .withEmail("alice@email.com").withAddress("Main Street").build()));
+
+        // Partial keywords match other fields, but do not match name
+        predicate = new NameContainsKeywordsPredicate(List.of("234", "mail", "tree", "riend"));
+        assertFalse(predicate.test(new PersonBuilder().withName("Alice").withPhone("12345")
+                .withEmail("alice@email.com").withAddress("Main Street").withTags("friends").build()));
     }
 
     @Test
