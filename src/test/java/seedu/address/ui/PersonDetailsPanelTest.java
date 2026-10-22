@@ -104,6 +104,6 @@ class PersonDetailsPanelTest {
                 withCard.getEmail(), withCard.getAddress(), null, withCard.getCreditScore(),
                 withCard.getDebt(), withCard.getTags());
 
-        assertEquals("", PersonCard.formatCardDetails(withoutCard));
+        assertEquals("", PersonDetailsPanel.formatCardDetails(withoutCard));
     }
 }

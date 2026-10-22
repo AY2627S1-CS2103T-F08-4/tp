@@ -106,7 +106,7 @@ public class NoteCommandIntegrationTest {
 
     @Test
     public void execute_hiddenClient_revealsItAndRequestsSelection() throws Exception {
-        logic.execute("find Nobody");
+        logic.execute("find n/Nobody");
         var result = logic.execute("note r/C0001 s/Hello");
         assertEquals("C0001", result.getSelectedClientReference().orElseThrow().value);
         assertEquals(1, logic.getFilteredPersonList().size());

@@ -118,6 +118,7 @@ class JsonAdaptedPerson {
         debt = source.getDebt() == null ? null : source.getDebt().toString();
         createdAt = source.getCreatedAt() == null ? null : source.getCreatedAt().toString();
         lastModifiedAt = source.getLastModifiedAt() == null ? null : source.getLastModifiedAt().toString();
+        serviceNote = source.getServiceNote() == null ? null : TextNode.valueOf(source.getServiceNote().value);
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));

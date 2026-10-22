@@ -96,7 +96,7 @@ public class Person {
     /** Creates a referenced client with an optional service note. */
     public Person(ClientReference clientReference, Name name, Phone phone, Email email, Address address,
             CardDetails cardDetails, CreditScore creditScore, Debt debt, Set<Tag> tags, ServiceNote serviceNote) {
-        requireAllNonNull(clientReference, name, phone, email, address, cardDetails, creditScore, debt, tags);
+        requireAllNonNull(clientReference, name, phone, email, address, creditScore, debt, tags);
         this.clientReference = clientReference;
         this.name = name;
         this.phone = phone;
