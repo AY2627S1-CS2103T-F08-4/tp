@@ -12,8 +12,8 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PROVIDER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_REFERENCE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SERVICE_NOTE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.Collections;
@@ -210,8 +210,10 @@ public class EditCommand extends Command {
 
         if (updatedReference != null) {
             return new Person(updatedReference, updatedName, updatedPhone, updatedEmail,
-                    updatedAddress, updatedCardDetails, updatedCreditScore, updatedDebt, updatedTags, updatedServiceNote);
+                    updatedAddress, updatedCardDetails, updatedCreditScore,
+                    updatedDebt, updatedTags, updatedServiceNote);
         }
+
         if (updatedCardDetails == null) {
             return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags, updatedServiceNote);
         }
@@ -300,6 +302,7 @@ public class EditCommand extends Command {
         }
 
         public void setClientReference(ClientReference clientReference) { this.clientReference = clientReference; }
+
         public Optional<ClientReference> getClientReference() { return Optional.ofNullable(clientReference); }
 
         public void setName(Name name) {
@@ -335,22 +338,36 @@ public class EditCommand extends Command {
         }
 
         public void setCardNumber(String cardNumber) { this.cardNumber = cardNumber; }
+
         public Optional<String> getCardNumber() { return Optional.ofNullable(cardNumber); }
+
         public void setCvv(String cvv) { this.cvv = cvv; }
+
         public Optional<String> getCvv() { return Optional.ofNullable(cvv); }
+
         public void setExpiryDate(String expiryDate) { this.expiryDate = expiryDate; }
+
         public Optional<String> getExpiryDate() { return Optional.ofNullable(expiryDate); }
+
         public void setProvider(String provider) { this.provider = provider; }
+
         public Optional<String> getProvider() { return Optional.ofNullable(provider); }
+
         public void setCreditScore(CreditScore creditScore) { this.creditScore = creditScore; }
+
         public Optional<CreditScore> getCreditScore() { return Optional.ofNullable(creditScore); }
+
         public void setDebt(Debt debt) { this.debt = debt; }
+
         public Optional<Debt> getDebt() { return Optional.ofNullable(debt); }
+
         public void setServiceNote(ServiceNote serviceNote) {
             this.serviceNote = serviceNote;
             this.serviceNoteEdited = true;
         }
+
         public Optional<ServiceNote> getServiceNote() { return Optional.ofNullable(serviceNote); }
+
         public boolean isServiceNoteEdited() { return serviceNoteEdited; }
 
         /**
