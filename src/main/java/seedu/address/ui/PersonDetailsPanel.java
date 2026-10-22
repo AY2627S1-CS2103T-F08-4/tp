@@ -26,6 +26,14 @@ public class PersonDetailsPanel extends UiPart<Region> {
     @FXML
     private VBox financialSection;
     @FXML
+    private VBox contactSection;
+    @FXML
+    private HBox phoneRow;
+    @FXML
+    private HBox emailRow;
+    @FXML
+    private HBox addressRow;
+    @FXML
     private Label reference;
     @FXML
     private Label name;
@@ -84,13 +92,13 @@ public class PersonDetailsPanel extends UiPart<Region> {
         reference.setText(person.getClientReference() == null
                 ? "(none)" : person.getClientReference().value);
         name.setText(person.getName().toString());
-        phone.setText(person.getPhone().toString());
-        email.setText(person.getEmail().toString());
-        address.setText(person.getAddress().toString());
+        setOptionalRow(phoneRow, phone, person.getPhone().map(Object::toString).orElse(""));
+        setOptionalRow(emailRow, email, person.getEmail().map(Object::toString).orElse(""));
+        setOptionalRow(addressRow, address, person.getAddress().map(Object::toString).orElse(""));
+        setShown(contactSection, phoneRow.isManaged() || emailRow.isManaged() || addressRow.isManaged());
         setOptionalRow(cardDetailsRow, cardDetails, formatCardDetails(person));
-        setOptionalRow(creditScoreRow, creditScore, person.getCreditScore() == null
-                ? "" : person.getCreditScore().toString());
-        setOptionalRow(debtRow, debt, person.getDebt() == null ? "" : person.getDebt().toString());
+        setOptionalRow(creditScoreRow, creditScore, person.getCreditScore().map(Object::toString).orElse(""));
+        setOptionalRow(debtRow, debt, person.getDebt().map(Object::toString).orElse(""));
         tags.getChildren().clear();
         person.getTags().stream().sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
@@ -107,15 +115,13 @@ public class PersonDetailsPanel extends UiPart<Region> {
 
     /** Returns a display-safe summary without the card verification value. */
     static String formatCardDetails(Person person) {
-        if (person.getCardDetails() == null) {
-            return "";
-        }
-        String cardNumber = person.getCardDetails().getCardNumber();
-        String maskedCardNumber = cardNumber.length() <= 4
-                ? cardNumber
-                : "****" + cardNumber.substring(cardNumber.length() - 4);
-        return person.getCardDetails().getProvider() + " " + maskedCardNumber
-                + " exp " + person.getCardDetails().getExpiryDate();
+        return person.getCardDetails().map(details -> {
+            String cardNumber = details.getCardNumber();
+            String maskedCardNumber = cardNumber.length() <= 4
+                    ? cardNumber
+                    : "****" + cardNumber.substring(cardNumber.length() - 4);
+            return details.getProvider() + " " + maskedCardNumber + " exp " + details.getExpiryDate();
+        }).orElse("");
     }
 
     /** Returns the visible timestamp values for all combinations of known instants. */

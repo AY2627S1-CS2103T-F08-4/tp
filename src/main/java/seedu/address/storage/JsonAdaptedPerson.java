@@ -38,8 +38,11 @@ class JsonAdaptedPerson {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private final String clientReference;
     private final String name;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private final String phone;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private final String email;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private final String address;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private final JsonAdaptedCardDetails cardDetails;
@@ -110,12 +113,12 @@ class JsonAdaptedPerson {
     public JsonAdaptedPerson(Person source) {
         clientReference = source.getClientReference() == null ? null : source.getClientReference().value;
         name = source.getName().fullName;
-        phone = source.getPhone().value;
-        email = source.getEmail().value;
-        address = source.getAddress().value;
-        cardDetails = source.getCardDetails() == null ? null : new JsonAdaptedCardDetails(source.getCardDetails());
-        creditScore = source.getCreditScore() == null ? null : source.getCreditScore().toString();
-        debt = source.getDebt() == null ? null : source.getDebt().toString();
+        phone = source.getPhone().map(value -> value.value).orElse(null);
+        email = source.getEmail().map(value -> value.value).orElse(null);
+        address = source.getAddress().map(value -> value.value).orElse(null);
+        cardDetails = source.getCardDetails().map(JsonAdaptedCardDetails::new).orElse(null);
+        creditScore = source.getCreditScore().map(Object::toString).orElse(null);
+        debt = source.getDebt().map(Object::toString).orElse(null);
         createdAt = source.getCreatedAt() == null ? null : source.getCreatedAt().toString();
         lastModifiedAt = source.getLastModifiedAt() == null ? null : source.getLastModifiedAt().toString();
         serviceNote = source.getServiceNote() == null ? null : TextNode.valueOf(source.getServiceNote().value);
@@ -126,6 +129,7 @@ class JsonAdaptedPerson {
 
     /**
      * Converts this Jackson-friendly adapted person object into the model's {@code Person} object.
+     * Absent or null optional details remain unrecorded; supplied details must be valid.
      *
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
@@ -165,60 +169,33 @@ class JsonAdaptedPerson {
         }
         final Name modelName = new Name(name);
 
-        if (phone == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Phone.class.getSimpleName()));
-        }
-        if (!Phone.isValidPhone(phone)) {
+        if (phone != null && !Phone.isValidPhone(phone)) {
             throw new IllegalValueException(Phone.MESSAGE_CONSTRAINTS);
         }
-        final Phone modelPhone = new Phone(phone);
+        final Phone modelPhone = phone == null ? null : new Phone(phone);
 
-        if (email == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Email.class.getSimpleName()));
-        }
-        if (!Email.isValidEmail(email)) {
+        if (email != null && !Email.isValidEmail(email)) {
             throw new IllegalValueException(Email.MESSAGE_CONSTRAINTS);
         }
-        final Email modelEmail = new Email(email);
+        final Email modelEmail = email == null ? null : new Email(email);
 
-        if (address == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Address.class.getSimpleName()));
-        }
-        if (!Address.isValidAddress(address)) {
+        if (address != null && !Address.isValidAddress(address)) {
             throw new IllegalValueException(Address.MESSAGE_CONSTRAINTS);
         }
-        final Address modelAddress = new Address(address);
+        final Address modelAddress = address == null ? null : new Address(address);
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
-        // Files saved before card and financial details were introduced remain valid.
-        if (cardDetails == null && creditScore == null && debt == null) {
-            if (modelReference == null) {
-                return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelNote)
-                        .withTimestamps(modelCreatedAt, modelLastModifiedAt);
-            }
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
-                    CardDetails.class.getSimpleName()));
-        }
-        if (cardDetails == null && modelReference == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
-                    CardDetails.class.getSimpleName()));
-        }
-        if (creditScore == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
-                    CreditScore.class.getSimpleName()));
-        }
-        if (debt == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Debt.class.getSimpleName()));
-        }
         try {
+            final CardDetails modelCardDetails = cardDetails == null ? null : cardDetails.toModelType();
+            final CreditScore modelCreditScore = creditScore == null ? null : new CreditScore(creditScore);
+            final Debt modelDebt = debt == null ? null : new Debt(debt);
             if (modelReference != null) {
                 return new Person(modelReference, modelName, modelPhone, modelEmail, modelAddress,
-                        cardDetails == null ? null : cardDetails.toModelType(),
-                        new CreditScore(creditScore), new Debt(debt), modelTags, modelNote)
+                        modelCardDetails, modelCreditScore, modelDebt, modelTags, modelNote)
                         .withTimestamps(modelCreatedAt, modelLastModifiedAt);
             }
-            return new Person(modelName, modelPhone, modelEmail, modelAddress, cardDetails.toModelType(),
-                    new CreditScore(creditScore), new Debt(debt), modelTags, modelNote)
+            return new Person(modelName, modelPhone, modelEmail, modelAddress, modelCardDetails,
+                    modelCreditScore, modelDebt, modelTags, modelNote)
                     .withTimestamps(modelCreatedAt, modelLastModifiedAt);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());

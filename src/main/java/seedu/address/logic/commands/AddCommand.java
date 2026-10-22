@@ -20,7 +20,7 @@ import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 
 /**
- * Adds a referenced client with contact, card, and financial details to the in-memory address book.
+ * Adds a referenced client with a name and any available optional details to the in-memory address book.
  */
 public class AddCommand extends Command {
 
@@ -29,16 +29,18 @@ public class AddCommand extends Command {
     public static final String MESSAGE_USAGE = "Format: " + COMMAND_WORD + " "
             + PREFIX_REFERENCE + "REFERENCE "
             + PREFIX_NAME + "NAME "
-            + PREFIX_PHONE + "PHONE "
-            + PREFIX_EMAIL + "EMAIL "
-            + PREFIX_ADDRESS + "ADDRESS "
-            + PREFIX_CARD_NUMBER + "CARD_NUMBER "
+            + "[" + PREFIX_PHONE + "PHONE] "
+            + "[" + PREFIX_EMAIL + "EMAIL] "
+            + "[" + PREFIX_ADDRESS + "ADDRESS] "
+            + "[" + PREFIX_CARD_NUMBER + "CARD_NUMBER "
             + PREFIX_CVV + "CVV "
             + PREFIX_EXPIRY_DATE + "EXPIRY_DATE "
-            + PREFIX_PROVIDER + "PROVIDER "
-            + PREFIX_CREDIT_SCORE + "CREDIT_SCORE "
-            + PREFIX_DEBT + "DEBT "
-            + "[" + PREFIX_TAG + "TAG]...";
+            + PREFIX_PROVIDER + "PROVIDER] "
+            + "[" + PREFIX_CREDIT_SCORE + "CREDIT_SCORE] "
+            + "[" + PREFIX_DEBT + "DEBT] "
+            + "[" + PREFIX_TAG + "TAG]...\n"
+            + "Card details must be supplied together or omitted entirely.\n"
+            + "Example: " + COMMAND_WORD + " " + PREFIX_REFERENCE + "C0001 " + PREFIX_NAME + "John Doe";
 
     public static final String MESSAGE_SUCCESS = "Added client: %1$s %2$s";
     public static final String MESSAGE_DUPLICATE_PERSON = "A client with reference %1$s already exists.";

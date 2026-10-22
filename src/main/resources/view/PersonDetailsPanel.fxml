@@ -19,19 +19,19 @@
           <Label fx:id="reference" wrapText="true" maxWidth="Infinity" styleClass="details-reference" />
         </VBox>
 
-        <VBox spacing="10" styleClass="details-section">
+        <VBox fx:id="contactSection" spacing="10" styleClass="details-section">
           <Label text="CONTACT" styleClass="details-section-title" />
-          <HBox spacing="12" alignment="TOP_LEFT">
+          <HBox fx:id="phoneRow" spacing="12" alignment="TOP_LEFT">
             <Label text="Phone" minWidth="90" prefWidth="90" styleClass="details-caption" />
             <Label fx:id="phone" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
                    styleClass="details-value" />
           </HBox>
-          <HBox spacing="12" alignment="TOP_LEFT">
+          <HBox fx:id="emailRow" spacing="12" alignment="TOP_LEFT">
             <Label text="Email" minWidth="90" prefWidth="90" styleClass="details-caption" />
             <Label fx:id="email" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
                    styleClass="details-value" />
           </HBox>
-          <HBox spacing="12" alignment="TOP_LEFT">
+          <HBox fx:id="addressRow" spacing="12" alignment="TOP_LEFT">
             <Label text="Address" minWidth="90" prefWidth="90" styleClass="details-caption" />
             <Label fx:id="address" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
                    styleClass="details-value" />
