@@ -71,7 +71,8 @@ public class EditPersonDescriptorTest {
                 + editPersonDescriptor.getExpiryDate().orElse(null) + ", provider="
                 + editPersonDescriptor.getProvider().orElse(null) + ", creditScore="
                 + editPersonDescriptor.getCreditScore().orElse(null) + ", debt="
-                + editPersonDescriptor.getDebt().orElse(null) + ", tags="
+                + editPersonDescriptor.getDebt().orElse(null) + ", serviceNote="
+                + editPersonDescriptor.getServiceNote().orElse(null) + ", tags="
                 + editPersonDescriptor.getTags().orElse(null) + "}";
         assertEquals(expected, editPersonDescriptor.toString());
     }
