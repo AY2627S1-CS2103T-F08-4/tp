@@ -601,7 +601,7 @@ testers are expected to do more _exploratory_ testing.
    1. Add a client using the example `add` command in the User Guide.<br>
       Expected: Select the client. Its details panel shows equal `Created` and `Last Modified` times in local `yyyy-MM-dd HH:mm` format.
 
-   1. Run `list`, then `find John` for that client.<br>
+   1. Run `list`, then `find n/John` for that client.<br>
       Expected: Both times remain unchanged in the selected client's details panel.
 
    1. After the clock reaches the next minute, run `edit 1 p/91234567` while the client is the first search result.<br>

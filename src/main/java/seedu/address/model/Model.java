@@ -73,4 +73,10 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
+
+    /** Returns the display order selected for this session. */
+    SortOrder getSortOrder();
+
+    /** Sets the display order without changing the stored address book. */
+    void setSortOrder(SortOrder sortOrder);
 }

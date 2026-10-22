@@ -1,5 +1,6 @@
 package seedu.address.ui;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
@@ -9,6 +10,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.Person;
 
@@ -38,38 +40,8 @@ public class PersonListPanel extends UiPart<Region> {
         this.selectionHandler = selectionHandler;
     }
 
-    public Person getSelectedPerson() {
-        return personListView.getSelectionModel().getSelectedItem();
-    }
-
-    /** Selects the row with this client reference, or the first row if none matches. */
-    public void selectByReference(ClientReference reference) {
-        for (int i = 0; i < personListView.getItems().size(); i++) {
-            if (reference.equals(personListView.getItems().get(i).getClientReference())) {
-                personListView.getSelectionModel().select(i);
-                personListView.scrollTo(i);
-                selectionHandler.accept(personListView.getItems().get(i));
-                return;
-            }
-        }
-        selectFirst();
-    }
-
-    /** Keeps a selected client after list refresh, falling back to the first visible row. */
-    public void selectMatchingOrFirst(Person previous) {
-        if (previous != null) {
-            for (int i = 0; i < personListView.getItems().size(); i++) {
-                if (previous.isSamePerson(personListView.getItems().get(i))) {
-                    personListView.getSelectionModel().select(i);
-                    selectionHandler.accept(personListView.getItems().get(i));
-                    return;
-                }
-            }
-        }
-        selectFirst();
-    }
-
-    private void selectFirst() {
+    /** Selects the first visible client, or clears the details panel when the list is empty. */
+    void selectFirst() {
         if (personListView.getItems().isEmpty()) {
             personListView.getSelectionModel().clearSelection();
             selectionHandler.accept(null);
@@ -79,21 +51,40 @@ public class PersonListPanel extends UiPart<Region> {
         }
     }
 
-    /** Returns the reference of the selected client, if one is selected. */
-    ClientReference getSelectedClientReference() {
-        Person selected = personListView.getSelectionModel().getSelectedItem();
-        return selected == null ? null : selected.getClientReference();
+    /** Returns the client selected before a command changes the displayed list. */
+    public Person getSelectedPerson() {
+        return personListView.getSelectionModel().getSelectedItem();
     }
 
-    /** Restores selection after the list replaces a client with updated details. */
-    void selectClientByReference(ClientReference reference) {
-        if (reference == null) {
+    /** Applies a command's selection request after its list changes have completed. */
+    public void applySelection(CommandResult result, Person previouslySelected) {
+        ObservableList<Person> displayed = personListView.getItems();
+        int index = indexToSelect(displayed, result, previouslySelected);
+        if (index < 0) {
+            selectFirst();
             return;
         }
-        personListView.getItems().stream()
-                .filter(person -> reference.equals(person.getClientReference()))
-                .findFirst()
-                .ifPresent(person -> personListView.getSelectionModel().select(person));
+        Person selected = displayed.get(index);
+        personListView.getSelectionModel().select(index);
+        personListView.scrollTo(index);
+        // Replacing a client can retain the same row without firing the selection listener.
+        selectionHandler.accept(selected);
+    }
+
+    /** Finds the requested client in the current display order, falling back to its first row. */
+    static int indexToSelect(List<Person> displayed, CommandResult result, Person previouslySelected) {
+        Person desired = result.getSelectionRequest() == CommandResult.SelectionRequest.SELECT_PERSON
+                ? result.getPersonToSelect() : previouslySelected;
+        ClientReference reference = result.getSelectionRequest() == CommandResult.SelectionRequest.SELECT_REFERENCE
+                ? result.getSelectedClientReference().orElseThrow() : null;
+        for (int i = 0; i < displayed.size(); i++) {
+            Person candidate = displayed.get(i);
+            if (reference != null && reference.equals(candidate.getClientReference())
+                    || reference == null && desired != null && desired.isSamePerson(candidate)) {
+                return i;
+            }
+        }
+        return displayed.isEmpty() ? -1 : 0;
     }
 
     /**

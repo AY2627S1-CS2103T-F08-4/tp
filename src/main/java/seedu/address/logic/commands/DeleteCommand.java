@@ -63,7 +63,8 @@ public class DeleteCommand extends Command {
 
         model.deletePerson(personToDelete);
 
-        return new CommandResult(String.format(MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(personToDelete)));
+        return CommandResult.preserveSelectionOrFirst(
+                String.format(MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(personToDelete)));
     }
 
     private Person getPersonByIndex(Model model) throws CommandException {

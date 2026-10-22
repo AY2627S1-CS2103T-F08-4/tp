@@ -76,6 +76,7 @@ public class LogicManager implements Logic {
             }
             ModelManager stagedModel = new ModelManager(model.getAddressBook(), model.getUserPrefs(), clock);
             stagedModel.updateFilteredPersonList(model.getFilteredPersonListPredicate());
+            stagedModel.setSortOrder(model.getSortOrder());
             CommandResult result = command.execute(stagedModel);
             try {
                 addressBookSync.sync(stagedModel.getAddressBook());
