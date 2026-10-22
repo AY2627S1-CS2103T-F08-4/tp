@@ -14,6 +14,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PROVIDER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_REFERENCE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_SERVICE_NOTE;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -25,6 +26,7 @@ import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.tag.Tag;
+import seedu.address.model.person.ServiceNote;
 
 /**
  * Parses input arguments and creates a new EditCommand object
@@ -41,7 +43,7 @@ public class EditCommandParser implements Parser<EditCommand> {
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_REFERENCE, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
                         PREFIX_ADDRESS, PREFIX_CARD_NUMBER, PREFIX_CVV, PREFIX_EXPIRY_DATE, PREFIX_PROVIDER,
-                        PREFIX_CREDIT_SCORE, PREFIX_DEBT, PREFIX_TAG);
+                        PREFIX_CREDIT_SCORE, PREFIX_DEBT, PREFIX_SERVICE_NOTE, PREFIX_TAG);
 
         Index index;
 
@@ -53,7 +55,7 @@ public class EditCommandParser implements Parser<EditCommand> {
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_REFERENCE, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
                 PREFIX_ADDRESS, PREFIX_CARD_NUMBER, PREFIX_CVV, PREFIX_EXPIRY_DATE, PREFIX_PROVIDER,
-                PREFIX_CREDIT_SCORE, PREFIX_DEBT);
+                PREFIX_CREDIT_SCORE, PREFIX_DEBT, PREFIX_SERVICE_NOTE);
 
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
 
@@ -95,6 +97,16 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
         if (argMultimap.getValue(PREFIX_DEBT).isPresent()) {
             editPersonDescriptor.setDebt(ParserUtil.parseDebt(argMultimap.getValue(PREFIX_DEBT).get()));
+        }
+        if (argMultimap.getValue(PREFIX_SERVICE_NOTE).isPresent()) {
+            String note = argMultimap.getValue(PREFIX_SERVICE_NOTE).get().trim();
+            if (note.isEmpty()) {
+                editPersonDescriptor.setServiceNote(null);
+            } else if (!ServiceNote.isValidServiceNote(note)) {
+                throw new ParseException(ServiceNote.MESSAGE_CONSTRAINTS);
+            } else {
+                editPersonDescriptor.setServiceNote(new ServiceNote(note));
+            }
         }
         parseTagsForEdit(argMultimap.getAllValues(PREFIX_TAG)).ifPresent(editPersonDescriptor::setTags);
 

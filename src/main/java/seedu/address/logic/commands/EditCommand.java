@@ -13,6 +13,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PROVIDER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_REFERENCE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_SERVICE_NOTE;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.Collections;
@@ -37,6 +38,7 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.ServiceNote;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -61,6 +63,7 @@ public class EditCommand extends Command {
             + "[" + PREFIX_PROVIDER + "PROVIDER] "
             + "[" + PREFIX_CREDIT_SCORE + "CREDIT_SCORE] "
             + "[" + PREFIX_DEBT + "DEBT] "
+            + "[" + PREFIX_SERVICE_NOTE + "SERVICE_NOTE] "
             + "[" + PREFIX_TAG + "TAG]...\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567 "
@@ -180,19 +183,40 @@ public class EditCommand extends Command {
                     updatedExpiryDate, updatedProvider);
         }
 
-        CreditScore updatedCreditScore = editPersonDescriptor.getCreditScore()
-                .orElse(personToEdit.getCreditScore());
-        Debt updatedDebt = editPersonDescriptor.getDebt().orElse(personToEdit.getDebt());
+        CreditScore updatedCreditScore;
+        if (editPersonDescriptor.getCreditScore().isPresent()) {
+            updatedCreditScore = editPersonDescriptor.getCreditScore().get();
+        } else {
+            updatedCreditScore = personToEdit.getCreditScore();
+        }
+
+        Debt updatedDebt;
+        if (editPersonDescriptor.getDebt().isPresent()) {
+            updatedDebt = editPersonDescriptor.getDebt().get();
+        } else {
+            updatedDebt = personToEdit.getDebt();
+        }
+
+        ServiceNote updatedServiceNote;
+        if (editPersonDescriptor.isServiceNoteEdited()) {
+            if (editPersonDescriptor.getServiceNote().isPresent()) {
+                updatedServiceNote = editPersonDescriptor.getServiceNote().get();
+            } else {
+                updatedServiceNote = null;
+            }
+        } else {
+            updatedServiceNote = personToEdit.getServiceNote();
+        }
 
         if (updatedReference != null) {
             return new Person(updatedReference, updatedName, updatedPhone, updatedEmail,
-                    updatedAddress, updatedCardDetails, updatedCreditScore, updatedDebt, updatedTags, personToEdit.getServiceNote());
+                    updatedAddress, updatedCardDetails, updatedCreditScore, updatedDebt, updatedTags, updatedServiceNote);
         }
         if (updatedCardDetails == null) {
-            return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags, personToEdit.getServiceNote());
+            return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags, updatedServiceNote);
         }
         return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedCardDetails,
-                updatedCreditScore, updatedDebt, updatedTags, personToEdit.getServiceNote());
+                updatedCreditScore, updatedDebt, updatedTags, updatedServiceNote);
     }
 
     @Override
@@ -240,6 +264,8 @@ public class EditCommand extends Command {
         private String provider;
         private CreditScore creditScore;
         private Debt debt;
+        private ServiceNote serviceNote;
+        private boolean serviceNoteEdited;
 
         public EditPersonDescriptor() {}
 
@@ -260,6 +286,8 @@ public class EditCommand extends Command {
             setProvider(toCopy.provider);
             setCreditScore(toCopy.creditScore);
             setDebt(toCopy.debt);
+            setServiceNote(toCopy.serviceNote);
+            serviceNoteEdited = toCopy.serviceNoteEdited;
         }
 
         /**
@@ -267,7 +295,8 @@ public class EditCommand extends Command {
          */
         public boolean isAnyFieldEdited() {
             return CollectionUtil.isAnyNonNull(clientReference, name, phone, email, address,
-                    cardNumber, cvv, expiryDate, provider, creditScore, debt, tags);
+                    cardNumber, cvv, expiryDate, provider, creditScore, debt, tags)
+                    || serviceNoteEdited;
         }
 
         public void setClientReference(ClientReference clientReference) { this.clientReference = clientReference; }
@@ -317,6 +346,12 @@ public class EditCommand extends Command {
         public Optional<CreditScore> getCreditScore() { return Optional.ofNullable(creditScore); }
         public void setDebt(Debt debt) { this.debt = debt; }
         public Optional<Debt> getDebt() { return Optional.ofNullable(debt); }
+        public void setServiceNote(ServiceNote serviceNote) {
+            this.serviceNote = serviceNote;
+            this.serviceNoteEdited = true;
+        }
+        public Optional<ServiceNote> getServiceNote() { return Optional.ofNullable(serviceNote); }
+        public boolean isServiceNoteEdited() { return serviceNoteEdited; }
 
         /**
          * Sets {@code tags} to this object's {@code tags}.
@@ -357,7 +392,9 @@ public class EditCommand extends Command {
                     && Objects.equals(provider, otherEditPersonDescriptor.provider)
                     && Objects.equals(creditScore, otherEditPersonDescriptor.creditScore)
                     && Objects.equals(debt, otherEditPersonDescriptor.debt)
-                    && Objects.equals(tags, otherEditPersonDescriptor.tags);
+                    && Objects.equals(tags, otherEditPersonDescriptor.tags)
+                    && Objects.equals(serviceNote, otherEditPersonDescriptor.serviceNote)
+                    && serviceNoteEdited == otherEditPersonDescriptor.serviceNoteEdited;
         }
 
         @Override
@@ -374,6 +411,7 @@ public class EditCommand extends Command {
                     .add("provider", provider)
                     .add("creditScore", creditScore)
                     .add("debt", debt)
+                    .add("serviceNote", serviceNote)
                     .add("tags", tags)
                     .toString();
         }
