@@ -83,7 +83,8 @@ public class LogsCenter {
 
         // add a FileHandler to log to a file
         try {
-            FileHandler fileHandler = new FileHandler(AppPaths.resolve("addressbook.log").toString(),
+            String logPattern = AppPaths.resolve("addressbook.log").toString().replace("%", "%%");
+            FileHandler fileHandler = new FileHandler(logPattern,
                     MAX_FILE_SIZE_IN_BYTES, MAX_FILE_COUNT, true);
             fileHandler.setFormatter(new SimpleFormatter());
             fileHandler.setLevel(Level.ALL);

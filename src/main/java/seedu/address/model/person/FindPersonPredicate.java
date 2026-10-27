@@ -57,6 +57,11 @@ public class FindPersonPredicate implements Predicate<Person> {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(nameKeywords, phoneNumbers, cardNumber);
+    }
+
+    @Override
     public String toString() {
         return new ToStringBuilder(this).add("nameKeywords", nameKeywords).add("phoneNumbers", phoneNumbers)
                 .add("cardNumber", cardNumber).toString();

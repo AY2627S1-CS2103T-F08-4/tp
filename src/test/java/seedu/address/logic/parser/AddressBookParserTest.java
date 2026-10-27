@@ -58,6 +58,20 @@ public class AddressBookParserTest {
     }
 
     @Test
+    public void parseCommand_unicodeWhitespace_separatesCommandAndArguments() throws Exception {
+        String emSpace = "\u2003";
+        assertTrue(parser.parseCommand(emSpace + "list" + emSpace) instanceof ListCommand);
+        assertEquals(new DeleteCommand(new ClientReference("C0001")),
+                parser.parseCommand("delete" + emSpace + "r/C0001"));
+        assertEquals(new RemoveCardCommand(new ClientReference("C0001")),
+                parser.parseCommand("removecard" + emSpace + "r/C0001"));
+        assertEquals(new SortCommand(SortOrder.DESC), parser.parseCommand("sort" + emSpace + "desc"));
+        assertThrows(ParseException.class, SortCommand.MESSAGE_INVALID_COMMAND, () -> parser.parseCommand(
+                "sort" + emSpace + "asc" + emSpace + "desc"));
+        assertThrows(ParseException.class, () -> parser.parseCommand("list" + emSpace + "unexpected"));
+    }
+
+    @Test
     public void parseCommand_edit() throws Exception {
         Person person = new PersonBuilder().build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(person).build();
