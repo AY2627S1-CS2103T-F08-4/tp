@@ -14,9 +14,12 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PROVIDER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_REFERENCE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
+import java.util.List;
+
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
+import seedu.address.model.person.ClientClash;
 import seedu.address.model.person.Person;
 
 /**
@@ -46,14 +49,21 @@ public class AddCommand extends Command {
     public static final String MESSAGE_DUPLICATE_PERSON = "A client with reference %1$s already exists.";
 
     private final Person toAdd;
+    private final boolean clashConfirmed;
 
     /**
      * Creates an AddCommand to add the specified {@code Person}
      */
     public AddCommand(Person person) {
+        this(person, false);
+    }
+
+    /** Creates an add command, optionally bypassing a previously displayed clash warning. */
+    public AddCommand(Person person, boolean clashConfirmed) {
         requireNonNull(person);
         requireNonNull(person.getClientReference());
         toAdd = person;
+        this.clashConfirmed = clashConfirmed;
     }
 
     @Override
@@ -62,6 +72,15 @@ public class AddCommand extends Command {
 
         if (model.hasPerson(toAdd)) {
             throw new CommandException(String.format(MESSAGE_DUPLICATE_PERSON, toAdd.getClientReference()));
+        }
+
+        List<ClientClash> clashes = model.findClientClashes(toAdd, null);
+        if (!clashConfirmed && !clashes.isEmpty()) {
+            if (clashes.stream().anyMatch(ClientClash::isReferenceClash)) {
+                throw new CommandException("Reference number " + toAdd.getClientReference()
+                        + " already belongs to another client. Reference numbers must be unique.");
+            }
+            return CommandResult.requestClashConfirmation(clashes, "");
         }
 
         model.addPerson(toAdd);
@@ -84,13 +103,15 @@ public class AddCommand extends Command {
             return false;
         }
 
-        return toAdd.equals(otherAddCommand.toAdd);
+        return toAdd.equals(otherAddCommand.toAdd)
+                && clashConfirmed == otherAddCommand.clashConfirmed;
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
                 .add("toAdd", toAdd)
+                .add("clashConfirmed", clashConfirmed)
                 .toString();
     }
 }

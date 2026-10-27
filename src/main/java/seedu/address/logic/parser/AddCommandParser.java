@@ -35,6 +35,8 @@ import seedu.address.model.tag.Tag;
  */
 public class AddCommandParser implements Parser<AddCommand> {
 
+    public static final String CONFIRM_CLASH_FLAG = "--confirm-clash";
+
     public static final String MESSAGE_INCOMPLETE_CARD_DETAILS = "Card details require all four fields: "
             + PREFIX_CARD_NUMBER + "CARD_NUMBER " + PREFIX_CVV + "CVV "
             + PREFIX_EXPIRY_DATE + "EXPIRY_DATE " + PREFIX_PROVIDER + "PROVIDER.";
@@ -45,6 +47,10 @@ public class AddCommandParser implements Parser<AddCommand> {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public AddCommand parse(String args) throws ParseException {
+        boolean clashConfirmed = args.endsWith(CONFIRM_CLASH_FLAG);
+        if (clashConfirmed) {
+            args = args.substring(0, args.length() - CONFIRM_CLASH_FLAG.length()).trim();
+        }
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_REFERENCE, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
                         PREFIX_ADDRESS, PREFIX_CARD_NUMBER, PREFIX_CVV, PREFIX_EXPIRY_DATE, PREFIX_PROVIDER,
@@ -76,7 +82,7 @@ public class AddCommandParser implements Parser<AddCommand> {
 
         Person person = new Person(reference, name, phone, email, address, cardDetails, creditScore, debt, tagList);
 
-        return new AddCommand(person);
+        return new AddCommand(person, clashConfirmed);
     }
 
     /** Parses a complete card group, or returns null when none of its prefixes are supplied. */

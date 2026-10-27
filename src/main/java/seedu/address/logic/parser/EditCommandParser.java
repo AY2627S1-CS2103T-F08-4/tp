@@ -40,6 +40,10 @@ public class EditCommandParser implements Parser<EditCommand> {
      */
     public EditCommand parse(String args) throws ParseException {
         requireNonNull(args);
+        boolean clashConfirmed = args.endsWith(AddCommandParser.CONFIRM_CLASH_FLAG);
+        if (clashConfirmed) {
+            args = args.substring(0, args.length() - AddCommandParser.CONFIRM_CLASH_FLAG.length()).trim();
+        }
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_REFERENCE, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
                         PREFIX_ADDRESS, PREFIX_CARD_NUMBER, PREFIX_CVV, PREFIX_EXPIRY_DATE, PREFIX_PROVIDER,
@@ -114,7 +118,7 @@ public class EditCommandParser implements Parser<EditCommand> {
             throw new ParseException(EditCommand.MESSAGE_NOT_EDITED);
         }
 
-        return new EditCommand(index, editPersonDescriptor);
+        return new EditCommand(index, editPersonDescriptor, clashConfirmed);
     }
 
     /**
