@@ -44,6 +44,7 @@ public class IndexTest {
         // same values -> returns true
         assertTrue(fifthPersonIndex.equals(Index.fromOneBased(5)));
         assertTrue(fifthPersonIndex.equals(Index.fromZeroBased(4)));
+        assertEquals(fifthPersonIndex.hashCode(), Index.fromZeroBased(4).hashCode());
 
         // same object -> returns true
         assertTrue(fifthPersonIndex.equals(fifthPersonIndex));

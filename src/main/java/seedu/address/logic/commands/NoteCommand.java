@@ -34,19 +34,14 @@ public class NoteCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Person client = model.getAddressBook().getPersonList().stream()
-                .filter(person -> reference.equals(person.getClientReference()))
-                .findFirst()
+        Person client = model.findPersonByReference(reference)
                 .orElseThrow(() -> new CommandException("No client found with reference " + reference + "."));
-        if (note == null && client.getServiceNote() == null) {
+        if (note == null && client.getServiceNote().isEmpty()) {
             throw new CommandException("Client " + reference + " has no service note to clear.");
         }
 
-        String action = note == null ? "Cleared" : client.getServiceNote() == null ? "Added" : "Updated";
-        Person updated = new Person(reference, client.getName(), client.getPhone().orElse(null),
-                client.getEmail().orElse(null), client.getAddress().orElse(null), client.getCardDetails().orElse(null),
-                client.getCreditScore().orElse(null), client.getDebt().orElse(null),
-                client.getTags(), note);
+        String action = note == null ? "Cleared" : client.getServiceNote().isEmpty() ? "Added" : "Updated";
+        Person updated = client.withServiceNote(note);
         model.setPerson(client, updated);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         return new CommandResult(action + " service note for " + reference + " " + client.getName() + ".",

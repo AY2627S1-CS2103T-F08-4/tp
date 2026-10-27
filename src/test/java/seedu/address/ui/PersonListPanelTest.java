@@ -32,7 +32,17 @@ class PersonListPanelTest {
         assertEquals(1, PersonListPanel.indexToSelect(displayed,
                 CommandResult.selectPerson("Added", alice), bob));
         assertEquals(1, PersonListPanel.indexToSelect(displayed,
-                new CommandResult("Note updated", alice.getClientReference()), bob));
+                new CommandResult("Note updated", alice.getClientReference().orElse(null)), bob));
+    }
+
+    @Test
+    void indexToSelect_editReference_keepsEditedClient() {
+        Person alice = new PersonBuilder().withClientReference("C0001").withName("Alice").build();
+        Person bob = new PersonBuilder().withClientReference("C0002").withName("Bob").build();
+        Person updatedAlice = new PersonBuilder(alice).withClientReference("C0003").build();
+
+        assertEquals(1, PersonListPanel.indexToSelect(List.of(bob, updatedAlice),
+                CommandResult.selectPerson("Edited", updatedAlice), alice));
     }
 
     @Test

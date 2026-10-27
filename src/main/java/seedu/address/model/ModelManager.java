@@ -48,7 +48,7 @@ public class ModelManager implements Model {
     public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs, Clock clock) {
         requireAllNonNull(addressBook, userPrefs, clock);
 
-        logger.fine("Initializing with address book: " + addressBook + " and user prefs " + userPrefs);
+        logger.fine("Initializing address book model");
 
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
@@ -116,10 +116,10 @@ public class ModelManager implements Model {
     public void setPerson(Person target, Person editedPerson) {
         requireAllNonNull(target, editedPerson);
 
-        Person stamped = editedPerson.withTimestamps(target.getCreatedAt(), clock.instant());
+        Person stamped = editedPerson.withTimestamps(target.getCreatedAt().orElse(null), clock.instant());
         addressBook.setPerson(target, stamped);
         timestampChange = new TimestampChange(TimestampAction.EDIT, referenceOf(stamped),
-                stamped.getCreatedAt(), stamped.getLastModifiedAt());
+                stamped.getCreatedAt().orElse(null), stamped.getLastModifiedAt().orElse(null));
     }
 
     /** Returns the latest staged timestamp change, if this model made one. */
@@ -128,7 +128,7 @@ public class ModelManager implements Model {
     }
 
     private static String referenceOf(Person person) {
-        return person.getClientReference() == null ? null : person.getClientReference().value;
+        return person.getClientReference().map(reference -> reference.value).orElse(null);
     }
 
     //=========== Filtered Person List Accessors =============================================================
@@ -162,7 +162,7 @@ public class ModelManager implements Model {
     @Override
     public void setSortOrder(SortOrder sortOrder) {
         this.sortOrder = requireNonNull(sortOrder);
-        displayedPersons.setComparator(sortOrder.comparator());
+        displayedPersons.setComparator(sortOrder.getComparator());
     }
 
     @Override

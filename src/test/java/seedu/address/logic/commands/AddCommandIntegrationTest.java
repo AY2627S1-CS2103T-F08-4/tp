@@ -59,7 +59,7 @@ public class AddCommandIntegrationTest {
         assertEquals("Added client: C0001 Alex Yeoh", result.getFeedbackToUser());
         assertEquals(1, model.getAddressBook().getPersonList().size());
         Person client = model.getAddressBook().getPersonList().getFirst();
-        assertEquals("C0001", client.getClientReference().value);
+        assertEquals("C0001", client.getClientReference().orElseThrow().value);
         assertEquals("Alex Yeoh", client.getName().fullName);
         assertEquals("87438807", client.getPhone().orElseThrow().value);
         assertEquals("alex@example.com", client.getEmail().orElseThrow().value);
@@ -104,7 +104,7 @@ public class AddCommandIntegrationTest {
         Person before = model.getAddressBook().getPersonList().getFirst();
         parser.parseCommand("edit 1 p/91234567").execute(model);
         Person after = model.getAddressBook().getPersonList().getFirst();
-        assertEquals(before.getClientReference(), after.getClientReference());
+        assertEquals(before.getClientReference().orElse(null), after.getClientReference().orElse(null));
         assertEquals(before.getCardDetails(), after.getCardDetails());
         assertEquals(before.getCreditScore(), after.getCreditScore());
         assertEquals(before.getDebt(), after.getDebt());

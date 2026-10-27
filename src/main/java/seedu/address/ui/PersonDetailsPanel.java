@@ -89,8 +89,7 @@ public class PersonDetailsPanel extends UiPart<Region> {
             return;
         }
 
-        reference.setText(person.getClientReference() == null
-                ? "(none)" : person.getClientReference().value);
+        reference.setText(person.getClientReference().map(value -> value.value).orElse("(none)"));
         name.setText(person.getName().toString());
         setOptionalRow(phoneRow, phone, person.getPhone().map(Object::toString).orElse(""));
         setOptionalRow(emailRow, email, person.getEmail().map(Object::toString).orElse(""));
@@ -110,7 +109,7 @@ public class PersonDetailsPanel extends UiPart<Region> {
         setOptionalRow(createdAtRow, createdAt, timestamps.created());
         setOptionalRow(lastModifiedAtRow, lastModifiedAt, timestamps.lastModified());
         setOptional(timestampUnavailable, timestamps.unavailable());
-        serviceNote.setText(person.getServiceNote() == null ? "(none)" : person.getServiceNote().value);
+        serviceNote.setText(person.getServiceNote().map(value -> value.value).orElse("(none)"));
     }
 
     /** Returns a display-safe summary without the card verification value. */
@@ -126,8 +125,8 @@ public class PersonDetailsPanel extends UiPart<Region> {
 
     /** Returns the visible timestamp values for all combinations of known instants. */
     static TimestampDisplay formatTimestamps(Person person, ZoneId displayZone) {
-        Instant created = person.getCreatedAt();
-        Instant modified = person.getLastModifiedAt();
+        Instant created = person.getCreatedAt().orElse(null);
+        Instant modified = person.getLastModifiedAt().orElse(null);
         if (created == null && modified == null) {
             return new TimestampDisplay("", "", TIMESTAMP_UNAVAILABLE);
         }

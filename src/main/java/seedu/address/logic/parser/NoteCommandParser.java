@@ -8,11 +8,10 @@ import java.util.regex.Pattern;
 import seedu.address.logic.commands.NoteCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.ClientReference;
-import seedu.address.model.person.ServiceNote;
 
 /** Parses the two single-valued parameters of the note command. */
 public class NoteCommandParser implements Parser<NoteCommand> {
-    private static final Pattern PREFIX = Pattern.compile("(?<=\\s)([A-Za-z][A-Za-z0-9]*/)");
+    private static final Pattern PREFIX = Pattern.compile("(?<=\\p{javaWhitespace})([A-Za-z][A-Za-z0-9]*/)");
 
     @Override
     public NoteCommand parse(String args) throws ParseException {
@@ -33,7 +32,7 @@ public class NoteCommandParser implements Parser<NoteCommand> {
         if (referenceValue.isEmpty()) {
             throw new ParseException(NoteCommand.MESSAGE_MISSING_REFERENCE);
         }
-        String[] referenceParts = referenceValue.split("\\s+", 2);
+        String[] referenceParts = referenceValue.split("\\p{javaWhitespace}+", 2);
         ClientReference reference = ParserUtil.parseClientReference(referenceParts[0]);
 
         boolean hasPreamble = !args.substring(0, parameters.getFirst().start()).isBlank();
@@ -56,11 +55,7 @@ public class NoteCommandParser implements Parser<NoteCommand> {
         if (noteParameter == null) {
             throw new ParseException(NoteCommand.MESSAGE_MISSING_NOTE);
         }
-        String noteValue = valueOf(args, parameters, noteParameter).strip();
-        if (!noteValue.isEmpty() && !ServiceNote.isValidServiceNote(noteValue)) {
-            throw new ParseException(ServiceNote.MESSAGE_CONSTRAINTS);
-        }
-        return new NoteCommand(reference, noteValue.isEmpty() ? null : new ServiceNote(noteValue));
+        return new NoteCommand(reference, NoteTextParser.parse(valueOf(args, parameters, noteParameter)));
     }
 
     private static String valueOf(String args, List<Parameter> parameters, Parameter parameter) {

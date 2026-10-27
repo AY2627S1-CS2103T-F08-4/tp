@@ -123,7 +123,7 @@ public class DeleteCommandTest {
         Model model = new ModelManager(addressBook, new UserPrefs());
 
         DeleteCommand command =
-                new DeleteCommand(target.getClientReference());
+                new DeleteCommand(target.getClientReference().orElse(null));
 
         CommandResult result = command.execute(model);
 
@@ -156,7 +156,7 @@ public class DeleteCommandTest {
 
         Model model = new ModelManager(addressBook, new UserPrefs());
 
-        DeleteCommand command = new DeleteCommand(referencedPerson.getClientReference());
+        DeleteCommand command = new DeleteCommand(referencedPerson.getClientReference().orElse(null));
 
         command.execute(model);
 

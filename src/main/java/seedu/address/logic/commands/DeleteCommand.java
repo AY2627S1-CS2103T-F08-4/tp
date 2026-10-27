@@ -78,11 +78,7 @@ public class DeleteCommand extends Command {
     }
 
     private Person getPersonByReference(Model model) throws CommandException {
-        return model.getAddressBook()
-                .getPersonList()
-                .stream()
-                .filter(person -> targetReference.equals(person.getClientReference()))
-                .findFirst()
+        return model.findPersonByReference(targetReference)
                 .orElseThrow(() -> new ClientReferenceNotFoundException(targetReference));
     }
 
