@@ -36,10 +36,6 @@ public class NoteCommand extends Command {
         requireNonNull(model);
         Person client = model.findPersonByReference(reference)
                 .orElseThrow(() -> new CommandException("No client found with reference " + reference + "."));
-        if (note == null && client.getServiceNote().isEmpty()) {
-            throw new CommandException("Client " + reference + " has no service note to clear.");
-        }
-
         String action = note == null ? "Cleared" : client.getServiceNote().isEmpty() ? "Added" : "Updated";
         Person updated = client.withServiceNote(note);
         model.setPerson(client, updated);

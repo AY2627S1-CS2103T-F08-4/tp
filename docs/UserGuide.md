@@ -158,7 +158,7 @@ Format: `edit INDEX [r/REFERENCE] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS
 * Phone, email, and address can be added to incomplete profiles. Omitted fields retain their current values, including missing values. Card details, credit score, and debt cannot be edited yet.
 * When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
 * To remove all of a person's tags, enter `t/` without a tag after it.
-* To remove an existing service note, enter `s/` without a note after it. Clearing a missing note reports an error.
+* To remove a service note, enter `s/` without a note after it. This also succeeds when no note is present.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
@@ -204,7 +204,7 @@ Each client can have one service note. It appears in the last section of the sel
 
 Format: `note r/REFERENCE s/NOTE`
 
-Both prefixes are required, in either order. The reference is case-insensitive. A note can contain up to 200 printable characters on one line; leading and trailing spaces are removed. Setting a note replaces the previous one. Use `s/` with no value to clear an existing note; clearing a missing note reports an error. In both `note` and `edit`, prefix-shaped words inside note text require a backslash: enter `\w/o` to store `w/o`, or `\\` to store a literal backslash.
+Both prefixes are required, in either order. The reference is case-insensitive. A note can contain up to 200 printable characters on one line; leading and trailing spaces are removed. Setting a note replaces the previous one. Use `s/` with no value to clear a note; this also succeeds when no note is present. In both `note` and `edit`, prefix-shaped words inside note text require a backslash: enter `\w/o` to store `w/o`, or `\\` to store a literal backslash.
 
 Examples:
 * `note r/C0001 s/Prefers morning appointments`

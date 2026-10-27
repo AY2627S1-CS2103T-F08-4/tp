@@ -100,11 +100,6 @@ public class EditCommand extends Command {
         }
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
-        if (editPersonDescriptor.isServiceNoteEdited()
-                && editPersonDescriptor.getServiceNote().isEmpty()
-                && personToEdit.getServiceNote().isEmpty()) {
-            throw new CommandException("Client has no service note to clear.");
-        }
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
 
         if (!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)) {

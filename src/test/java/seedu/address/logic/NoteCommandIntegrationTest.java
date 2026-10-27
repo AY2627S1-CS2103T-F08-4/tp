@@ -66,8 +66,33 @@ public class NoteCommandIntegrationTest {
         assertEquals("Cleared service note for C0001 Alex Yeoh.",
                 logic.execute("note r/C0001 s/").getFeedbackToUser());
         assertNull(loadedNote());
-        assertThrows(CommandException.class, "Client C0001 has no service note to clear.", () ->
-                logic.execute("note r/C0001 s/"));
+        assertEquals("Cleared service note for C0001 Alex Yeoh.",
+                logic.execute("note r/C0001 s/").getFeedbackToUser());
+        assertNull(loadedNote());
+    }
+
+    @Test
+    public void execute_clearAbsentNote_recordsEachAction() throws Exception {
+        Instant createdAt = model.getAddressBook().getPersonList().getFirst().getCreatedAt().orElseThrow();
+        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json")));
+
+        Instant noteClearedAt = createdAt.plusSeconds(60);
+        logic = new LogicManager(model, storage, "", false, Clock.fixed(noteClearedAt, ZoneOffset.UTC));
+        assertEquals("Cleared service note for C0001 Alex Yeoh.",
+                logic.execute("note r/C0001 s/").getFeedbackToUser());
+        var savedAfterNote = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow()
+                .getPersonList().getFirst();
+        assertTrue(savedAfterNote.getServiceNote().isEmpty());
+        assertEquals(noteClearedAt, savedAfterNote.getLastModifiedAt().orElseThrow());
+
+        Instant editClearedAt = createdAt.plusSeconds(120);
+        logic = new LogicManager(model, storage, "", false, Clock.fixed(editClearedAt, ZoneOffset.UTC));
+        logic.execute("edit 1 s/");
+        var savedAfterEdit = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow()
+                .getPersonList().getFirst();
+        assertTrue(savedAfterEdit.getServiceNote().isEmpty());
+        assertEquals(editClearedAt, savedAfterEdit.getLastModifiedAt().orElseThrow());
     }
 
     @Test

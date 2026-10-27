@@ -199,11 +199,17 @@ public class EditCommandTest {
     }
 
     @Test
-    public void execute_clearAbsentNote_reportsError() {
+    public void execute_clearAbsentNote_succeeds() {
         EditPersonDescriptor descriptor = new EditPersonDescriptor();
         descriptor.setServiceNote(null);
-        assertCommandFailure(new EditCommand(INDEX_FIRST_PERSON, descriptor), model,
-                "Client has no service note to clear.");
+        Person person = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        EditCommand command = new EditCommand(INDEX_FIRST_PERSON, descriptor);
+
+        assertDoesNotThrow(() -> command.execute(model));
+        Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        assertTrue(editedPerson.getServiceNote().isEmpty());
+        assertEquals(person.getCreatedAt(), editedPerson.getCreatedAt());
+        assertEquals(TEST_CLOCK.instant(), editedPerson.getLastModifiedAt().orElseThrow());
     }
 
     @Test
