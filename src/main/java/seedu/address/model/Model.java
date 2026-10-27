@@ -1,9 +1,11 @@
 package seedu.address.model;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.person.ClientClash;
 import seedu.address.model.person.Person;
 
 /**
@@ -40,6 +42,16 @@ public interface Model {
      * Returns true if a person with the same identity as {@code person} exists in the address book.
      */
     boolean hasPerson(Person person);
+
+    /**
+     * Finds reference, phone, card-number, and email clashes for a proposed
+     * client. During editing, {@code clientBeingEdited} is excluded from the
+     * comparison; when adding a client, it should be {@code null}.
+     */
+    default List<ClientClash> findClientClashes(
+            Person proposedClient, Person clientBeingEdited) {
+        return List.of();
+    }
 
     /**
      * Deletes the given person.
