@@ -155,6 +155,24 @@ public class CommandResult {
         return commandToConfirm;
     }
 
+    /**
+     * Returns a copy of this result associated with the original command that
+     * requires confirmation.
+     */
+    public CommandResult withCommandToConfirm(String commandText) {
+        requireNonNull(commandText);
+
+        return new CommandResult(
+                feedbackToUser,
+                showHelp,
+                exit,
+                selectionRequest,
+                personToSelect,
+                selectedClientReference,
+                clientClashes,
+                commandText);
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {

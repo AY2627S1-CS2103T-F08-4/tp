@@ -79,7 +79,7 @@ public class LogicManager implements Logic {
             stagedModel.setSortOrder(model.getSortOrder());
             CommandResult result = command.execute(stagedModel);
             if (result.requiresClashConfirmation()) {
-                return result;
+                return result.withCommandToConfirm(commandText);
             }
             try {
                 addressBookSync.sync(stagedModel.getAddressBook());
