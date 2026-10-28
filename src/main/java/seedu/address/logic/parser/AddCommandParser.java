@@ -49,7 +49,7 @@ public class AddCommandParser implements Parser<AddCommand> {
     public AddCommand parse(String args) throws ParseException {
         boolean clashConfirmed = args.endsWith(CONFIRM_CLASH_FLAG);
         if (clashConfirmed) {
-            args = args.substring(0, args.length() - CONFIRM_CLASH_FLAG.length()).trim();
+            args = args.substring(0, args.length() - CONFIRM_CLASH_FLAG.length()).stripTrailing();
         }
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_REFERENCE, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,

@@ -41,7 +41,8 @@ public class EditCommandParser implements Parser<EditCommand> {
         requireNonNull(args);
         boolean clashConfirmed = args.endsWith(AddCommandParser.CONFIRM_CLASH_FLAG);
         if (clashConfirmed) {
-            args = args.substring(0, args.length() - AddCommandParser.CONFIRM_CLASH_FLAG.length()).trim();
+            args = args.substring(0, args.length() - AddCommandParser.CONFIRM_CLASH_FLAG.length())
+                    .stripTrailing();
         }
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_REFERENCE, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
