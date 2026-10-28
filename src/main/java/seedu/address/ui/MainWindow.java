@@ -206,7 +206,7 @@ public class MainWindow extends UiPart<Stage> {
         if (response.equals("yes")) {
             String commandToRetry = pendingClashCommand;
             pendingClashCommand = null;
-            return executeNormalCommand(commandToRetry + " --confirm-clash");
+            return executeNormalCommand(commandToRetry + " confirm/y");
         }
 
         if (response.equals("no")) {

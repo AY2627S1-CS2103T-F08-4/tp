@@ -44,6 +44,16 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_clashConfirmation_usesTokenizerPrefix() {
+        Person expected = new Person(new ClientReference("C0001"), new Name("Alex Yeoh"),
+                null, null, null, null, null, null, Collections.emptySet());
+        assertParseSuccess(parser, MINIMAL_ARGUMENTS + " confirm/y", new AddCommand(expected, true));
+        assertParseFailure(parser, MINIMAL_ARGUMENTS + " confirm/n", ParserUtil.MESSAGE_INVALID_CONFIRMATION);
+        assertParseFailure(parser, MINIMAL_ARGUMENTS + " confirm/y confirm/y",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_CONFIRM));
+    }
+
+    @Test
     public void parse_optionalDetails_acceptsEveryCombinationAndCommandHelperOutput() {
         List<String> optionalArguments = List.of(FIELDS.get(2), FIELDS.get(3), FIELDS.get(4),
                 String.join(" ", FIELDS.subList(5, 9)), "cs/0", "d/0.00");

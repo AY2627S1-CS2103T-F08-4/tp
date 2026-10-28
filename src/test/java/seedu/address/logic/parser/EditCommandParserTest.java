@@ -74,6 +74,16 @@ public class EditCommandParserTest {
     }
 
     @Test
+    public void parse_clashConfirmation_usesTokenizerPrefix() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_AMY).build();
+        assertParseSuccess(parser, "1" + PHONE_DESC_AMY + " confirm/y",
+                new EditCommand(INDEX_FIRST_PERSON, descriptor, true));
+        assertParseFailure(parser, "1" + PHONE_DESC_AMY + " confirm/n", ParserUtil.MESSAGE_INVALID_CONFIRMATION);
+        assertParseFailure(parser, "1" + PHONE_DESC_AMY + " confirm/y confirm/y",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_CONFIRM));
+    }
+
+    @Test
     public void parse_invalidPreamble_failure() {
         // negative index
         assertParseFailure(parser, "-5" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);

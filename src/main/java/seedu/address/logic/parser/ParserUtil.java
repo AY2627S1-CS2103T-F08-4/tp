@@ -25,6 +25,16 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_INVALID_CONFIRMATION = "Confirmation must be specified as confirm/y.";
+
+    /** Parses the value of the clash confirmation prefix. */
+    public static boolean parseConfirmation(String confirmation) throws ParseException {
+        requireNonNull(confirmation);
+        if (!confirmation.equalsIgnoreCase("y")) {
+            throw new ParseException(MESSAGE_INVALID_CONFIRMATION);
+        }
+        return true;
+    }
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be

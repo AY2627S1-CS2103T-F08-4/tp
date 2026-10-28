@@ -3,6 +3,7 @@ package seedu.address.logic.parser;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CARD_NUMBER;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CONFIRM;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CREDIT_SCORE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CVV;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_DEBT;
@@ -45,14 +46,13 @@ public class AddCommandParser implements Parser<AddCommand> {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public AddCommand parse(String args) throws ParseException {
-        boolean clashConfirmed = args.endsWith(CliSyntax.CONFIRM_CLASH_FLAG);
-        if (clashConfirmed) {
-            args = args.substring(0, args.length() - CliSyntax.CONFIRM_CLASH_FLAG.length()).stripTrailing();
-        }
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_REFERENCE, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
                         PREFIX_ADDRESS, PREFIX_CARD_NUMBER, PREFIX_CVV, PREFIX_EXPIRY_DATE, PREFIX_PROVIDER,
-                        PREFIX_CREDIT_SCORE, PREFIX_DEBT, PREFIX_TAG);
+                        PREFIX_CREDIT_SCORE, PREFIX_DEBT, PREFIX_TAG, PREFIX_CONFIRM);
+
+        boolean clashConfirmed = argMultimap.getValue(PREFIX_CONFIRM).isPresent()
+                && ParserUtil.parseConfirmation(argMultimap.getValue(PREFIX_CONFIRM).get());
 
         if (!arePrefixesPresent(argMultimap, PREFIX_REFERENCE, PREFIX_NAME)
                 || !argMultimap.getPreamble().isEmpty()) {
@@ -61,7 +61,7 @@ public class AddCommandParser implements Parser<AddCommand> {
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_REFERENCE, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
                 PREFIX_ADDRESS, PREFIX_CARD_NUMBER, PREFIX_CVV, PREFIX_EXPIRY_DATE, PREFIX_PROVIDER,
-                PREFIX_CREDIT_SCORE, PREFIX_DEBT);
+                PREFIX_CREDIT_SCORE, PREFIX_DEBT, PREFIX_CONFIRM);
         ClientReference reference =
                 ParserUtil.parseClientReference(argMultimap.getValue(PREFIX_REFERENCE).orElseThrow());
         Name name = ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).orElseThrow());

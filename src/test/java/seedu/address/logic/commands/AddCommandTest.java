@@ -18,9 +18,11 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
+import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.SortOrder;
+import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
@@ -53,6 +55,34 @@ public class AddCommandTest {
         assertThrows(CommandException.class,
                 String.format(AddCommand.MESSAGE_DUPLICATE_PERSON, validPerson.getClientReference().orElse(null)), ()
                     -> addCommand.execute(modelStub));
+    }
+
+    @Test
+    public void execute_clashingPersonWithoutConfirmation_requestsConfirmation() throws Exception {
+        Person existingPerson = new PersonBuilder().withClientReference("C0001").withPhone("87438807").build();
+        Person clashingPerson = new PersonBuilder().withClientReference("C0002").withPhone("87438807").build();
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(existingPerson);
+        Model model = new ModelManager(addressBook, new UserPrefs());
+
+        CommandResult result = new AddCommand(clashingPerson).execute(model);
+
+        assertTrue(result.requiresClashConfirmation());
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+    }
+
+    @Test
+    public void execute_clashingPersonWithConfirmation_addsPerson() throws Exception {
+        Person existingPerson = new PersonBuilder().withClientReference("C0001").withPhone("87438807").build();
+        Person clashingPerson = new PersonBuilder().withClientReference("C0002").withPhone("87438807").build();
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(existingPerson);
+        Model model = new ModelManager(addressBook, new UserPrefs());
+
+        CommandResult result = new AddCommand(clashingPerson, true).execute(model);
+
+        assertFalse(result.requiresClashConfirmation());
+        assertTrue(model.hasPerson(clashingPerson));
     }
 
     @Test
