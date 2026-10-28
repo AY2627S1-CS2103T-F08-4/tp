@@ -1,14 +1,14 @@
 package seedu.address.model;
 
 import java.time.Clock;
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
-import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.ClientClash;
+import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.Person;
 
 /**

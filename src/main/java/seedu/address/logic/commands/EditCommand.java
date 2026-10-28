@@ -110,17 +110,13 @@ public class EditCommand extends Command {
         Person personToEdit = lastShownList.get(index.getZeroBased());
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
 
-        List<ClientClash> clashes = model.findClientClashes(editedPerson, personToEdit);
-        if (!clashConfirmed && !clashes.isEmpty()) {
-            if (clashes.stream().anyMatch(ClientClash::isReferenceClash)) {
-                throw new CommandException("Reference number " + editedPerson.getClientReference()
-                        + " already belongs to another client. Reference numbers must be unique.");
-            }
-            return CommandResult.requestClashConfirmation(clashes, "");
-        }
-
         if (!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)) {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
+        }
+
+        List<ClientClash> clashes = model.findClientClashes(editedPerson, personToEdit);
+        if (!clashConfirmed && !clashes.isEmpty()) {
+            return CommandResult.requestClashConfirmation(clashes, "");
         }
 
         model.setPerson(personToEdit, editedPerson);

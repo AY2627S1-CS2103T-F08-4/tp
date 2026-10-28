@@ -140,11 +140,6 @@ public class CommandResult {
         return !clientClashes.isEmpty();
     }
 
-    /** Returns true when at least one clash is a reference-number clash. */
-    public boolean hasReferenceClash() {
-        return clientClashes.stream().anyMatch(ClientClash::isReferenceClash);
-    }
-
     /** Returns the clashes that caused this confirmation request. */
     public List<ClientClash> getClientClashes() {
         return clientClashes;

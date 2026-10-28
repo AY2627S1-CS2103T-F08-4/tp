@@ -79,10 +79,6 @@ public class AddCommand extends Command {
 
         List<ClientClash> clashes = model.findClientClashes(toAdd, null);
         if (!clashConfirmed && !clashes.isEmpty()) {
-            if (clashes.stream().anyMatch(ClientClash::isReferenceClash)) {
-                throw new CommandException("Reference number " + toAdd.getClientReference()
-                        + " already belongs to another client. Reference numbers must be unique.");
-            }
             return CommandResult.requestClashConfirmation(clashes, "");
         }
 

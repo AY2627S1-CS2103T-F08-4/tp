@@ -5,9 +5,9 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.Objects;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -18,7 +18,6 @@ import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.person.ClientClash;
-import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.Person;
 
 /**
@@ -133,35 +132,12 @@ public class ModelManager implements Model {
                 continue;
             }
 
-            addReferenceClashIfPresent(proposedClient, existingClient, clashes);
             addPhoneClashIfPresent(proposedClient, existingClient, clashes);
             addCardNumberClashIfPresent(proposedClient, existingClient, clashes);
             addEmailClashIfPresent(proposedClient, existingClient, clashes);
         }
 
         return clashes;
-    }
-
-    /** Adds a reference-number clash when both clients have the same reference. */
-    private static void addReferenceClashIfPresent(
-            Person proposedClient,
-            Person existingClient,
-            List<ClientClash> clashes) {
-
-        if (proposedClient.getClientReference().isEmpty()
-                || existingClient.getClientReference().isEmpty()) {
-            return;
-        }
-
-        ClientReference proposedReference = proposedClient.getClientReference().get();
-        ClientReference existingReference = existingClient.getClientReference().get();
-
-        if (proposedReference.equals(existingReference)) {
-            clashes.add(new ClientClash(
-                    ClientClash.Field.REFERENCE,
-                    proposedReference.value,
-                    existingClient));
-        }
     }
 
     /** Adds a phone-number clash when both clients have the same phone number. */

@@ -39,9 +39,9 @@ public class EditCommandParser implements Parser<EditCommand> {
      */
     public EditCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        boolean clashConfirmed = args.endsWith(AddCommandParser.CONFIRM_CLASH_FLAG);
+        boolean clashConfirmed = args.endsWith(CliSyntax.CONFIRM_CLASH_FLAG);
         if (clashConfirmed) {
-            args = args.substring(0, args.length() - AddCommandParser.CONFIRM_CLASH_FLAG.length())
+            args = args.substring(0, args.length() - CliSyntax.CONFIRM_CLASH_FLAG.length())
                     .stripTrailing();
         }
         ArgumentMultimap argMultimap =
