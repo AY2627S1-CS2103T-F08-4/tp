@@ -38,7 +38,7 @@ TellerFlow is a **desktop application for managing client profiles, optimized fo
 
    * `note r/C0001 s/Prefers morning appointments` : Adds or replaces that client's service note.
 
-   * `sort` : Sorts the displayed clients by name from A to Z.
+   * `sort` or `sort asc` : Sorts the displayed clients by name from A to Z. Use `sort desc` for Z to A, or `sort reset` to restore the original stored order.
 
    * `clear` : Deletes all clients.
 
