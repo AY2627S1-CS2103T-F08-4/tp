@@ -45,19 +45,7 @@ public class Person {
 
     /** Creates a legacy profile with an optional service note. */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, ServiceNote serviceNote) {
-        requireAllNonNull(name, tags);
-        this.clientReference = null;
-        this.name = name;
-        this.phone = phone;
-        this.email = email;
-        this.address = address;
-        this.cardDetails = null;
-        this.creditScore = null;
-        this.debt = null;
-        this.serviceNote = serviceNote;
-        this.tags.addAll(tags);
-        this.createdAt = null;
-        this.lastModifiedAt = null;
+        this(null, name, phone, email, address, null, null, null, tags, serviceNote, null, null);
     }
 
     /**
@@ -71,19 +59,7 @@ public class Person {
     /** Creates an unreferenced profile with card details and an optional service note. */
     public Person(Name name, Phone phone, Email email, Address address, CardDetails cardDetails,
             CreditScore creditScore, Debt debt, Set<Tag> tags, ServiceNote serviceNote) {
-        requireAllNonNull(name, tags);
-        this.clientReference = null;
-        this.name = name;
-        this.phone = phone;
-        this.email = email;
-        this.address = address;
-        this.cardDetails = cardDetails;
-        this.creditScore = creditScore;
-        this.debt = debt;
-        this.serviceNote = serviceNote;
-        this.tags.addAll(tags);
-        this.createdAt = null;
-        this.lastModifiedAt = null;
+        this(null, name, phone, email, address, cardDetails, creditScore, debt, tags, serviceNote, null, null);
     }
 
     /**
@@ -97,7 +73,15 @@ public class Person {
     /** Creates a referenced client with an optional service note. */
     public Person(ClientReference clientReference, Name name, Phone phone, Email email, Address address,
             CardDetails cardDetails, CreditScore creditScore, Debt debt, Set<Tag> tags, ServiceNote serviceNote) {
-        requireAllNonNull(clientReference, name, tags);
+        this(Objects.requireNonNull(clientReference), name, phone, email, address, cardDetails,
+                creditScore, debt, tags, serviceNote, null, null);
+    }
+
+    private Person(ClientReference clientReference, Name name, Phone phone, Email email, Address address,
+            CardDetails cardDetails, CreditScore creditScore, Debt debt, Set<Tag> tags, ServiceNote serviceNote,
+            Instant createdAt, Instant lastModifiedAt) {
+        requireAllNonNull(name, tags);
+        requireAllNonNull(tags);
         this.clientReference = clientReference;
         this.name = name;
         this.phone = phone;
@@ -108,32 +92,38 @@ public class Person {
         this.debt = debt;
         this.serviceNote = serviceNote;
         this.tags.addAll(tags);
-        this.createdAt = null;
-        this.lastModifiedAt = null;
-    }
-
-    private Person(Person source, Instant createdAt, Instant lastModifiedAt) {
-        this.clientReference = source.clientReference;
-        this.name = source.name;
-        this.phone = source.phone;
-        this.email = source.email;
-        this.address = source.address;
-        this.cardDetails = source.cardDetails;
-        this.creditScore = source.creditScore;
-        this.debt = source.debt;
-        this.serviceNote = source.serviceNote;
-        this.tags.addAll(source.tags);
         this.createdAt = createdAt;
         this.lastModifiedAt = lastModifiedAt;
     }
 
     /** Returns a copy with the given timestamps; missing legacy timestamps may be null. */
     public Person withTimestamps(Instant createdAt, Instant lastModifiedAt) {
-        return new Person(this, createdAt, lastModifiedAt);
+        return new Person(clientReference, name, phone, email, address, cardDetails, creditScore, debt,
+                tags, serviceNote, createdAt, lastModifiedAt);
     }
 
-    public ClientReference getClientReference() {
-        return clientReference;
+    /** Returns a copy with a changed service note. */
+    public Person withServiceNote(ServiceNote note) {
+        return new Person(clientReference, name, phone, email, address, cardDetails, creditScore, debt,
+                tags, note, createdAt, lastModifiedAt);
+    }
+
+    /** Returns a copy without card details. */
+    public Person withoutCardDetails() {
+        return new Person(clientReference, name, phone, email, address, null, creditScore, debt,
+                tags, serviceNote, createdAt, lastModifiedAt);
+    }
+
+    /** Returns a copy with supplied fields while preserving this person's timestamps. */
+    public Person withDetails(ClientReference reference, Name newName, Phone newPhone, Email newEmail,
+            Address newAddress, CardDetails newCard, CreditScore newScore, Debt newDebt,
+            Set<Tag> newTags, ServiceNote newNote) {
+        return new Person(reference, newName, newPhone, newEmail, newAddress, newCard, newScore,
+                newDebt, newTags, newNote, createdAt, lastModifiedAt);
+    }
+
+    public Optional<ClientReference> getClientReference() {
+        return Optional.ofNullable(clientReference);
     }
 
     public Name getName() {
@@ -167,8 +157,8 @@ public class Person {
         return Optional.ofNullable(debt);
     }
 
-    public ServiceNote getServiceNote() {
-        return serviceNote;
+    public Optional<ServiceNote> getServiceNote() {
+        return Optional.ofNullable(serviceNote);
     }
 
     /**
@@ -179,14 +169,14 @@ public class Person {
         return Collections.unmodifiableSet(tags);
     }
 
-    /** Returns the creation instant, or null if it was not recorded. */
-    public Instant getCreatedAt() {
-        return createdAt;
+    /** Returns the creation instant, or empty if it was not recorded. */
+    public Optional<Instant> getCreatedAt() {
+        return Optional.ofNullable(createdAt);
     }
 
-    /** Returns the most recent edit instant, or null if it was not recorded. */
-    public Instant getLastModifiedAt() {
-        return lastModifiedAt;
+    /** Returns the most recent edit instant, or empty if it was not recorded. */
+    public Optional<Instant> getLastModifiedAt() {
+        return Optional.ofNullable(lastModifiedAt);
     }
 
     /**

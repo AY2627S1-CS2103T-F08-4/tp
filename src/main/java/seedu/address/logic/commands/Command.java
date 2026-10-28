@@ -17,6 +17,7 @@ public abstract class Command {
      */
     public abstract CommandResult execute(Model model) throws CommandException;
 
+    /** Returns whether executing this command changes persisted client data. */
     public abstract boolean isDataChanging();
 
 }

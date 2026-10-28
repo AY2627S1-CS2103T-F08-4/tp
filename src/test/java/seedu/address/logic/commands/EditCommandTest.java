@@ -1,5 +1,6 @@
 package seedu.address.logic.commands;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,7 +10,6 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
-import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
@@ -57,7 +57,9 @@ public class EditCommandTest {
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), TEST_CLOCK);
         expectedModel.setPerson(legacy, editedPerson);
 
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEquals(CommandResult.selectPerson(expectedMessage, editedPerson),
+                assertDoesNotThrow(() -> editCommand.execute(model)));
+        assertEquals(expectedModel, model);
     }
 
     @Test
@@ -75,7 +77,9 @@ public class EditCommandTest {
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), TEST_CLOCK);
         expectedModel.setPerson(legacy, editedPerson);
 
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEquals(CommandResult.selectPerson(expectedMessage, editedPerson),
+                assertDoesNotThrow(() -> editCommand.execute(model)));
+        assertEquals(expectedModel, model);
     }
 
     @Test
@@ -89,7 +93,9 @@ public class EditCommandTest {
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), TEST_CLOCK);
         expectedModel.setPerson(model.getFilteredPersonList().get(0), editedPerson);
 
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEquals(CommandResult.selectPerson(expectedMessage, editedPerson),
+                assertDoesNotThrow(() -> editCommand.execute(model)));
+        assertEquals(expectedModel, model);
     }
 
     @Test
@@ -110,7 +116,9 @@ public class EditCommandTest {
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), TEST_CLOCK);
         expectedModel.setPerson(lastPerson, editedPerson);
 
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEquals(CommandResult.selectPerson(expectedMessage, editedPerson),
+                assertDoesNotThrow(() -> editCommand.execute(model)));
+        assertEquals(expectedModel, model);
     }
 
     @Test
@@ -157,7 +165,9 @@ public class EditCommandTest {
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), TEST_CLOCK);
         expectedModel.setPerson(editedPerson, editedPerson);
 
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEquals(CommandResult.selectPerson(expectedMessage, editedPerson),
+                assertDoesNotThrow(() -> editCommand.execute(model)));
+        assertEquals(expectedModel, model);
     }
 
     @Test
@@ -174,7 +184,9 @@ public class EditCommandTest {
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), TEST_CLOCK);
         expectedModel.setPerson(model.getFilteredPersonList().get(0), editedPerson);
 
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEquals(CommandResult.selectPerson(expectedMessage, editedPerson),
+                assertDoesNotThrow(() -> editCommand.execute(model)));
+        assertEquals(expectedModel, model);
     }
 
     @Test
@@ -184,6 +196,20 @@ public class EditCommandTest {
         EditCommand editCommand = new EditCommand(INDEX_SECOND_PERSON, descriptor);
 
         assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_clearAbsentNote_succeeds() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptor();
+        descriptor.setServiceNote(null);
+        Person person = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        EditCommand command = new EditCommand(INDEX_FIRST_PERSON, descriptor);
+
+        assertDoesNotThrow(() -> command.execute(model));
+        Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        assertTrue(editedPerson.getServiceNote().isEmpty());
+        assertEquals(person.getCreatedAt(), editedPerson.getCreatedAt());
+        assertEquals(TEST_CLOCK.instant(), editedPerson.getLastModifiedAt().orElseThrow());
     }
 
     @Test
@@ -232,6 +258,7 @@ public class EditCommandTest {
         EditPersonDescriptor copyDescriptor = new EditPersonDescriptor(DESC_AMY);
         EditCommand commandWithSameValues = new EditCommand(INDEX_FIRST_PERSON, copyDescriptor);
         assertTrue(standardCommand.equals(commandWithSameValues));
+        assertEquals(standardCommand.hashCode(), commandWithSameValues.hashCode());
 
         // same object -> returns true
         assertTrue(standardCommand.equals(standardCommand));

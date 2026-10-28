@@ -161,6 +161,19 @@ public class UniquePersonListTest {
     }
 
     @Test
+    public void setPersons_distinguishesReferencedAndLegacyIdentities() {
+        Person legacy = new PersonBuilder().withName("Alex").build();
+        Person referenced = new PersonBuilder().withName("Alex").withClientReference("C0001").build();
+        Person sameReference = new PersonBuilder().withName("Other").withClientReference("C0001").build();
+        uniquePersonList.setPersons(List.of(legacy, referenced));
+        assertEquals(2, uniquePersonList.asUnmodifiableObservableList().size());
+        assertThrows(DuplicatePersonException.class, () ->
+                uniquePersonList.setPersons(List.of(referenced, sameReference)));
+        assertThrows(DuplicatePersonException.class, () ->
+                uniquePersonList.setPersons(List.of(legacy, new PersonBuilder(legacy).build())));
+    }
+
+    @Test
     public void asUnmodifiableObservableList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, ()
             -> uniquePersonList.asUnmodifiableObservableList().remove(0));

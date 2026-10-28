@@ -8,11 +8,11 @@ import seedu.address.model.SortOrder;
 public class SortCommandParser implements Parser<SortCommand> {
     @Override
     public SortCommand parse(String args) throws ParseException {
-        String trimmed = args.trim();
+        String trimmed = args.strip();
         if (trimmed.isEmpty()) {
             return new SortCommand(SortOrder.ASC);
         }
-        String[] tokens = trimmed.split("\\s+");
+        String[] tokens = trimmed.split("\\p{javaWhitespace}+");
         if (tokens.length > 1) {
             throw new ParseException(SortCommand.MESSAGE_INVALID_COMMAND);
         }

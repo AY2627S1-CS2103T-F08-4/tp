@@ -24,9 +24,7 @@ public class FindCommandParser implements Parser<FindCommand> {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public FindCommand parse(String args) throws ParseException {
-        // Normalize whitespace before prefixes while preserving whitespace within stored card numbers.
-        String normalizedArgs = " " + args.replaceAll("\\s+(?=(?:n|p|cn)/)", " ");
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(normalizedArgs,
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" " + args,
                 PREFIX_NAME, PREFIX_PHONE, PREFIX_CARD_NUMBER);
         if (!argMultimap.getPreamble().isEmpty()) {
             throw new ParseException(
@@ -39,9 +37,6 @@ public class FindCommandParser implements Parser<FindCommand> {
         String cardNumber = null;
         if (argMultimap.getValue(PREFIX_CARD_NUMBER).isPresent()) {
             String value = argMultimap.getValue(PREFIX_CARD_NUMBER).get();
-            if (value.contains("/")) {
-                throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
-            }
             cardNumber = ParserUtil.parseCardNumber(value);
         }
         if (nameKeywords.isEmpty() && phoneKeywords.isEmpty() && cardNumber == null) {
@@ -67,6 +62,6 @@ public class FindCommandParser implements Parser<FindCommand> {
         if (value.isEmpty() || value.contains("/")) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }
-        return List.of(value.split("\\s+"));
+        return List.of(value.split("\\p{javaWhitespace}+"));
     }
 }

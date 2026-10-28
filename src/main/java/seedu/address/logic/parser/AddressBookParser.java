@@ -31,7 +31,7 @@ public class AddressBookParser {
      * Used for initial separation of command word and args.
      */
     private static final Pattern BASIC_COMMAND_FORMAT =
-            Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)", Pattern.DOTALL);
+            Pattern.compile("(?<commandWord>[^\\p{javaWhitespace}]+)(?<arguments>.*)", Pattern.DOTALL);
     private static final Logger logger = LogsCenter.getLogger(AddressBookParser.class);
 
     /**
@@ -42,7 +42,7 @@ public class AddressBookParser {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public Command parseCommand(String userInput) throws ParseException {
-        final Matcher matcher = BASIC_COMMAND_FORMAT.matcher(userInput.trim());
+        final Matcher matcher = BASIC_COMMAND_FORMAT.matcher(userInput.strip());
         if (!matcher.matches()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, HelpCommand.MESSAGE_USAGE));
         }
@@ -53,25 +53,43 @@ public class AddressBookParser {
         // Note to developers: Change LOG_LEVEL in LogsCenter to enable lower level (i.e., FINE, FINER and lower)
         // log messages such as the one below.
         // Lower level log messages are used sparingly to minimize noise in the code.
-        logger.fine("Command word: " + commandWord + "; Arguments: " + arguments);
+        logger.fine("Parsing command");
 
         return switch (commandWord) {
             case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
             case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
             case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);
             case RemoveCardCommand.COMMAND_WORD -> new RemoveCardCommandParser().parse(arguments);
-            case ClearCommand.COMMAND_WORD -> new ClearCommand();
+            case ClearCommand.COMMAND_WORD -> {
+                requireNoArguments(arguments, ClearCommand.COMMAND_WORD);
+                yield new ClearCommand();
+            }
             case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);
-            case ListCommand.COMMAND_WORD -> new ListCommand();
+            case ListCommand.COMMAND_WORD -> {
+                requireNoArguments(arguments, ListCommand.COMMAND_WORD);
+                yield new ListCommand();
+            }
             case SortCommand.COMMAND_WORD -> new SortCommandParser().parse(arguments);
             case NoteCommand.COMMAND_WORD -> new NoteCommandParser().parse(arguments);
-            case ExitCommand.COMMAND_WORD -> new ExitCommand();
-            case HelpCommand.COMMAND_WORD -> new HelpCommand();
+            case ExitCommand.COMMAND_WORD -> {
+                requireNoArguments(arguments, ExitCommand.COMMAND_WORD);
+                yield new ExitCommand();
+            }
+            case HelpCommand.COMMAND_WORD -> {
+                requireNoArguments(arguments, HelpCommand.MESSAGE_USAGE);
+                yield new HelpCommand();
+            }
             default -> {
-                logger.finer("This user input caused a ParseException: " + userInput);
+                logger.finer("Unknown command word");
                 throw new ParseException(MESSAGE_UNKNOWN_COMMAND);
             }
         };
+    }
+
+    private static void requireNoArguments(String arguments, String usage) throws ParseException {
+        if (!arguments.isBlank()) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, usage));
+        }
     }
 
 }

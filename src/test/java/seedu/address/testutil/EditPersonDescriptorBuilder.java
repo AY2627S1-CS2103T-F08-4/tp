@@ -40,7 +40,7 @@ public class EditPersonDescriptorBuilder {
         descriptor.setEmail(person.getEmail().orElse(null));
         descriptor.setAddress(person.getAddress().orElse(null));
         descriptor.setTags(person.getTags());
-        descriptor.setClientReference(person.getClientReference());
+        descriptor.setClientReference(person.getClientReference().orElse(null));
         descriptor.setCreditScore(person.getCreditScore().orElse(null));
         descriptor.setDebt(person.getDebt().orElse(null));
         if (person.getCardDetails().orElse(null) != null) {

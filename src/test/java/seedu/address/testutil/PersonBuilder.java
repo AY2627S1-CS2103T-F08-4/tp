@@ -64,7 +64,7 @@ public class PersonBuilder {
      * Initializes the PersonBuilder with the data of {@code personToCopy}.
      */
     public PersonBuilder(Person personToCopy) {
-        clientReference = personToCopy.getClientReference();
+        clientReference = personToCopy.getClientReference().orElse(null);
         name = personToCopy.getName();
         phone = personToCopy.getPhone().orElse(null);
         email = personToCopy.getEmail().orElse(null);
@@ -73,9 +73,9 @@ public class PersonBuilder {
         creditScore = personToCopy.getCreditScore().orElse(null);
         debt = personToCopy.getDebt().orElse(null);
         tags = new HashSet<>(personToCopy.getTags());
-        createdAt = personToCopy.getCreatedAt();
-        lastModifiedAt = personToCopy.getLastModifiedAt();
-        serviceNote = personToCopy.getServiceNote();
+        createdAt = personToCopy.getCreatedAt().orElse(null);
+        lastModifiedAt = personToCopy.getLastModifiedAt().orElse(null);
+        serviceNote = personToCopy.getServiceNote().orElse(null);
     }
 
     /**
