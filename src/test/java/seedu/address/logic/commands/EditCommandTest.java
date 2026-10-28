@@ -200,13 +200,24 @@ public class EditCommandTest {
 
     @Test
     public void execute_clearAbsentNote_succeeds() {
+        Instant timestamp = TEST_CLOCK.instant();
+        Person person = new PersonBuilder()
+                .withClientReference("C9999")
+                .withCardDetails("6011000000000004", "123", "12/28", "Visa")
+                .build()
+                .withTimestamps(timestamp, timestamp);
+
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(person);
+        Model isolatedModel = new ModelManager(addressBook, new UserPrefs(), TEST_CLOCK);
+
         EditPersonDescriptor descriptor = new EditPersonDescriptor();
         descriptor.setServiceNote(null);
-        Person person = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         EditCommand command = new EditCommand(INDEX_FIRST_PERSON, descriptor);
 
-        assertDoesNotThrow(() -> command.execute(model));
-        Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        assertDoesNotThrow(() -> command.execute(isolatedModel));
+        Person editedPerson = isolatedModel.getFilteredPersonList()
+                .get(INDEX_FIRST_PERSON.getZeroBased());
         assertTrue(editedPerson.getServiceNote().isEmpty());
         assertEquals(person.getCreatedAt(), editedPerson.getCreatedAt());
         assertEquals(TEST_CLOCK.instant(), editedPerson.getLastModifiedAt().orElseThrow());
