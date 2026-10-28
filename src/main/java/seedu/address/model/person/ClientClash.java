@@ -34,8 +34,18 @@ public record ClientClash(Field field, String value, Person existingClient) {
 
     /** Returns a message suitable for displaying to the user. */
     public String formatMessage() {
-        return field + " '" + value + "' clashes with client "
+        String displayValue = field == Field.CARD_NUMBER
+                ? maskCardNumber(value)
+                : value;
+        return field + " '" + displayValue + "' clashes with client "
                 + existingClient.getClientReference()
                 + " (" + existingClient.getName() + ")";
+    }
+
+    /** Masks all but the last four characters of a card number for display. */
+    private static String maskCardNumber(String cardNumber) {
+        return cardNumber.length() <= 4
+                ? cardNumber
+                : "****" + cardNumber.substring(cardNumber.length() - 4);
     }
 }
