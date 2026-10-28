@@ -23,6 +23,17 @@ public class NoteCommandParserTest {
     }
 
     @Test
+    public void parse_escapedPrefix_decodesLiteralText() throws Exception {
+        assertEquals(new NoteCommand(new ClientReference("C0001"),
+                new ServiceNote("Discuss w/o guarantor")),
+                parser.parse(" r/C0001 s/Discuss \\w/o guarantor"));
+        assertEquals(new NoteCommand(new ClientReference("C0001"),
+                new ServiceNote("Use \\ path")),
+                parser.parse(" r/C0001 s/Use \\\\ path"));
+        assertFailure(" r/C0001 s/Discuss w/o guarantor", NoteCommand.MESSAGE_INVALID_FORMAT);
+    }
+
+    @Test
     public void parse_invalidParameters_reportsSpecifiedOrder() {
         assertFailure(" s/Hello n/Alex", NoteCommand.MESSAGE_MISSING_REFERENCE);
         assertFailure(" r/invalid! n/Alex s/Hello", ClientReference.MESSAGE_CONSTRAINTS);

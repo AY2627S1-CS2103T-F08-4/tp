@@ -37,7 +37,7 @@ public class PersonUtil {
      */
     public static String getPersonDetails(Person person) {
         StringBuilder sb = new StringBuilder();
-        sb.append(PREFIX_REFERENCE + person.getClientReference().value + " ");
+        sb.append(PREFIX_REFERENCE + person.getClientReference().orElseThrow().value + " ");
         sb.append(PREFIX_NAME + person.getName().fullName + " ");
         person.getPhone().ifPresent(phone -> sb.append(PREFIX_PHONE).append(phone.value).append(" "));
         person.getEmail().ifPresent(email -> sb.append(PREFIX_EMAIL).append(email.value).append(" "));

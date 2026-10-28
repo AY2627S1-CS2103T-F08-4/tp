@@ -15,6 +15,7 @@ import static seedu.address.testutil.TypicalPersons.BOB;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -27,12 +28,20 @@ import seedu.address.testutil.PersonBuilder;
 public class PersonTest {
 
     @Test
+    public void constructor_nullTagElement_throwsNullPointerException() {
+        Set<Tag> tags = new HashSet<>();
+        tags.add(null);
+        assertThrows(NullPointerException.class, () ->
+                new Person(new Name("Alex"), null, null, null, tags));
+    }
+
+    @Test
     public void constructor_minimalReferencedProfile_hasNoOptionalDetails() {
         Person person = new Person(new ClientReference("c0001"), new Name("John Doe"),
                 null, null, null, null, null, null, Collections.emptySet());
 
-        assertEquals(new ClientReference("C0001"), person.getClientReference());
-        assertEquals("C0001", person.getClientReference().value);
+        assertEquals(new ClientReference("C0001"), person.getClientReference().orElse(null));
+        assertEquals("C0001", person.getClientReference().orElseThrow().value);
         assertEquals(new Name("John Doe"), person.getName());
         assertEquals(Collections.emptySet(), person.getTags());
         assertEquals(Optional.empty(), person.getPhone());
@@ -61,8 +70,8 @@ public class PersonTest {
             Person referenced = new Person(reference, name, phone, email, address, card, score, debt, tags);
             Person legacy = new Person(name, phone, email, address, card, score, debt, tags);
 
-            assertEquals(reference, referenced.getClientReference());
-            assertNull(legacy.getClientReference());
+            assertEquals(reference, referenced.getClientReference().orElse(null));
+            assertNull(legacy.getClientReference().orElse(null));
             for (Person person : List.of(referenced, legacy)) {
                 String context = "Optional detail combination: " + mask;
                 assertEquals(name, person.getName(), context);

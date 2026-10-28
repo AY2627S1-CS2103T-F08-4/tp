@@ -72,6 +72,18 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
+    public void read_malformedShapes_throwDataLoadingException() throws Exception {
+        Path file = testFolder.resolve("invalid.json");
+        List<String> malformed = List.of("null", "{\"persons\":null}", "{\"persons\":[null]}",
+                "{\"persons\":[{\"name\":\"Alex\",\"tags\":[null]}]}",
+                "{\"persons\":[{\"name\":\"Alex\",\"serviceNote\":null}]}");
+        for (String json : malformed) {
+            Files.writeString(file, json);
+            assertThrows(DataLoadingException.class, () -> new JsonAddressBookStorage(file).readAddressBook());
+        }
+    }
+
+    @Test
     public void readAddressBook_invalidPersonAddressBook_throwDataLoadingException() {
         assertThrows(DataLoadingException.class, () -> readAddressBook("invalidPersonAddressBook.json"));
     }
@@ -250,7 +262,8 @@ public class JsonAddressBookStorageTest {
     public void readAndSaveAddressBook_clientWithServiceNote_preservesNote() throws Exception {
         Path filePath = testFolder.resolve("ServiceNoteAddressBook.json");
         Person base = new PersonBuilder().withClientReference("C0001").build();
-        Person withNote = new Person(base.getClientReference(), base.getName(), base.getPhone().orElse(null),
+        Person withNote = new Person(base.getClientReference().orElse(null), base.getName(),
+                base.getPhone().orElse(null),
                 base.getEmail().orElse(null), base.getAddress().orElse(null), base.getCardDetails().orElse(null),
                 base.getCreditScore().orElse(null), base.getDebt().orElse(null), base.getTags(),
                 new ServiceNote("Called about renewal"));

@@ -125,7 +125,8 @@ public class EditCommand extends Command {
 
         model.setPerson(personToEdit, editedPerson);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
+        return CommandResult.selectPerson(String.format(MESSAGE_EDIT_PERSON_SUCCESS,
+                Messages.format(editedPerson)), editedPerson);
     }
 
     /**
@@ -134,13 +135,15 @@ public class EditCommand extends Command {
      */
     private static Person createEditedPerson(Person personToEdit, EditPersonDescriptor editPersonDescriptor)
             throws CommandException {
-        assert personToEdit != null;
+        assert personToEdit != null : "An edit target must exist before reconstruction";
 
         ClientReference updatedReference;
         if (editPersonDescriptor.getClientReference().isPresent()) {
             updatedReference = editPersonDescriptor.getClientReference().get();
+        } else if (personToEdit.getClientReference().isPresent()) {
+            updatedReference = personToEdit.getClientReference().get();
         } else {
-            updatedReference = personToEdit.getClientReference();
+            updatedReference = null;
         }
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
@@ -222,22 +225,11 @@ public class EditCommand extends Command {
                 updatedServiceNote = null;
             }
         } else {
-            updatedServiceNote = personToEdit.getServiceNote();
+            updatedServiceNote = personToEdit.getServiceNote().orElse(null);
         }
 
-        if (updatedReference != null) {
-            return new Person(updatedReference, updatedName, updatedPhone, updatedEmail,
-                    updatedAddress, updatedCardDetails, updatedCreditScore,
-                    updatedDebt, updatedTags, updatedServiceNote);
-        }
-
-        if (updatedCardDetails == null) {
-            return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress,
-                    updatedCardDetails, updatedCreditScore, updatedDebt,
-                    updatedTags, updatedServiceNote);
-        }
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedCardDetails,
-                updatedCreditScore, updatedDebt, updatedTags, updatedServiceNote);
+        return personToEdit.withDetails(updatedReference, updatedName, updatedPhone, updatedEmail,
+                updatedAddress, updatedCardDetails, updatedCreditScore, updatedDebt, updatedTags, updatedServiceNote);
     }
 
     @Override
@@ -259,6 +251,11 @@ public class EditCommand extends Command {
         return index.equals(otherEditCommand.index)
                 && editPersonDescriptor.equals(otherEditCommand.editPersonDescriptor)
                 && clashConfirmed == otherEditCommand.clashConfirmed;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(index, editPersonDescriptor);
     }
 
     @Override
@@ -465,6 +462,12 @@ public class EditCommand extends Command {
                     && Objects.equals(tags, otherEditPersonDescriptor.tags)
                     && Objects.equals(serviceNote, otherEditPersonDescriptor.serviceNote)
                     && serviceNoteEdited == otherEditPersonDescriptor.serviceNoteEdited;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, phone, email, address, clientReference, cardNumber, cvv,
+                    expiryDate, provider, creditScore, debt, tags, serviceNote, serviceNoteEdited);
         }
 
         @Override

@@ -66,13 +66,38 @@ public class NoteCommandIntegrationTest {
         assertEquals("Cleared service note for C0001 Alex Yeoh.",
                 logic.execute("note r/C0001 s/").getFeedbackToUser());
         assertNull(loadedNote());
-        assertThrows(CommandException.class, "Client C0001 has no service note to clear.", () ->
-                logic.execute("note r/C0001 s/"));
+        assertEquals("Cleared service note for C0001 Alex Yeoh.",
+                logic.execute("note r/C0001 s/").getFeedbackToUser());
+        assertNull(loadedNote());
+    }
+
+    @Test
+    public void execute_clearAbsentNote_recordsEachAction() throws Exception {
+        Instant createdAt = model.getAddressBook().getPersonList().getFirst().getCreatedAt().orElseThrow();
+        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json")));
+
+        Instant noteClearedAt = createdAt.plusSeconds(60);
+        logic = new LogicManager(model, storage, "", false, Clock.fixed(noteClearedAt, ZoneOffset.UTC));
+        assertEquals("Cleared service note for C0001 Alex Yeoh.",
+                logic.execute("note r/C0001 s/").getFeedbackToUser());
+        var savedAfterNote = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow()
+                .getPersonList().getFirst();
+        assertTrue(savedAfterNote.getServiceNote().isEmpty());
+        assertEquals(noteClearedAt, savedAfterNote.getLastModifiedAt().orElseThrow());
+
+        Instant editClearedAt = createdAt.plusSeconds(120);
+        logic = new LogicManager(model, storage, "", false, Clock.fixed(editClearedAt, ZoneOffset.UTC));
+        logic.execute("edit 1 s/");
+        var savedAfterEdit = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow()
+                .getPersonList().getFirst();
+        assertTrue(savedAfterEdit.getServiceNote().isEmpty());
+        assertEquals(editClearedAt, savedAfterEdit.getLastModifiedAt().orElseThrow());
     }
 
     @Test
     public void execute_noteAndEdit_preserveNoteAndCreationTimeAcrossReloads() throws Exception {
-        Instant createdAt = model.getAddressBook().getPersonList().getFirst().getCreatedAt();
+        Instant createdAt = model.getAddressBook().getPersonList().getFirst().getCreatedAt().orElse(null);
         Instant noteAddedAt = createdAt.plusSeconds(60);
         Instant editedAt = createdAt.plusSeconds(120);
         Instant noteUpdatedAt = createdAt.plusSeconds(180);
@@ -83,25 +108,25 @@ public class NoteCommandIntegrationTest {
         logic.execute("note r/C0001 s/Prefers mornings");
         var savedAfterNote = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow()
                 .getPersonList().getFirst();
-        assertEquals("Prefers mornings", savedAfterNote.getServiceNote().value);
-        assertEquals(createdAt, savedAfterNote.getCreatedAt());
-        assertEquals(noteAddedAt, savedAfterNote.getLastModifiedAt());
+        assertEquals("Prefers mornings", savedAfterNote.getServiceNote().orElseThrow().value);
+        assertEquals(createdAt, savedAfterNote.getCreatedAt().orElse(null));
+        assertEquals(noteAddedAt, savedAfterNote.getLastModifiedAt().orElse(null));
 
         logic = new LogicManager(model, storage, "", false, Clock.fixed(editedAt, ZoneOffset.UTC));
         logic.execute("edit 1 p/91234567");
         var savedAfterEdit = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow()
                 .getPersonList().getFirst();
-        assertEquals("Prefers mornings", savedAfterEdit.getServiceNote().value);
-        assertEquals(createdAt, savedAfterEdit.getCreatedAt());
-        assertEquals(editedAt, savedAfterEdit.getLastModifiedAt());
+        assertEquals("Prefers mornings", savedAfterEdit.getServiceNote().orElseThrow().value);
+        assertEquals(createdAt, savedAfterEdit.getCreatedAt().orElse(null));
+        assertEquals(editedAt, savedAfterEdit.getLastModifiedAt().orElse(null));
 
         logic = new LogicManager(model, storage, "", false, Clock.fixed(noteUpdatedAt, ZoneOffset.UTC));
         logic.execute("note r/C0001 s/Prefers afternoons");
         var savedAfterUpdate = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow()
                 .getPersonList().getFirst();
-        assertEquals("Prefers afternoons", savedAfterUpdate.getServiceNote().value);
-        assertEquals(createdAt, savedAfterUpdate.getCreatedAt());
-        assertEquals(noteUpdatedAt, savedAfterUpdate.getLastModifiedAt());
+        assertEquals("Prefers afternoons", savedAfterUpdate.getServiceNote().orElseThrow().value);
+        assertEquals(createdAt, savedAfterUpdate.getCreatedAt().orElse(null));
+        assertEquals(noteUpdatedAt, savedAfterUpdate.getLastModifiedAt().orElse(null));
     }
 
     @Test
@@ -140,7 +165,7 @@ public class NoteCommandIntegrationTest {
 
         assertThrows(CommandException.class, LogicManager.SAVE_FAILURE_MESSAGE, () ->
                 logic.execute("note r/C0001 s/Replacement"));
-        assertEquals("Original", model.getFilteredPersonList().getFirst().getServiceNote().value);
+        assertEquals("Original", model.getFilteredPersonList().getFirst().getServiceNote().orElseThrow().value);
         assertEquals(originalJson, Files.readString(dataPath));
     }
 
@@ -171,12 +196,12 @@ public class NoteCommandIntegrationTest {
 
     private ServiceNote loadedNote() throws DataLoadingException {
         return new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow()
-                .getPersonList().getFirst().getServiceNote();
+                .getPersonList().getFirst().getServiceNote().orElse(null);
     }
 
     private void assertInvalidSavedNote(JsonNode saved) throws Exception {
         Files.writeString(dataPath, JsonUtil.toJsonString(saved));
         assertThrows(DataLoadingException.class, () -> new JsonAddressBookStorage(dataPath).readAddressBook());
-        assertTrue(model.getFilteredPersonList().getFirst().getServiceNote() == null);
+        assertTrue(model.getFilteredPersonList().getFirst().getServiceNote().orElse(null) == null);
     }
 }

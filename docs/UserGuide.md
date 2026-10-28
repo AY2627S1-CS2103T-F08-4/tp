@@ -64,8 +64,8 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
+* Commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, reject extra text.<br>
+  For example, `help 123` is invalid.
   The `sort` command checks its optional order argument and rejects any additional text.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -158,7 +158,7 @@ Format: `edit INDEX [r/REFERENCE] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS
 * Phone, email, and address can be added to incomplete profiles. Omitted fields retain their current values, including missing values. Card details, credit score, and debt cannot be edited yet.
 * When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
 * To remove all of a person's tags, enter `t/` without a tag after it.
-* To remove a service note, enter `s/` without a note after it.
+* To remove a service note, enter `s/` without a note after it. This also succeeds when no note is present.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
@@ -204,7 +204,7 @@ Each client can have one service note. It appears in the last section of the sel
 
 Format: `note r/REFERENCE s/NOTE`
 
-Both prefixes are required, in either order. The reference is case-insensitive. A note can contain up to 200 printable characters on one line; leading and trailing spaces are removed. Setting a note replaces the previous one. Use `s/` with no value to clear it.
+Both prefixes are required, in either order. The reference is case-insensitive. A note can contain up to 200 printable characters on one line; leading and trailing spaces are removed. Setting a note replaces the previous one. Use `s/` with no value to clear a note; this also succeeds when no note is present. In both `note` and `edit`, prefix-shaped words inside note text require a backslash: enter `\w/o` to store `w/o`, or `\\` to store a literal backslash.
 
 Examples:
 * `note r/C0001 s/Prefers morning appointments`
@@ -275,6 +275,7 @@ On startup, saved clients appear in the main window with `Loaded [COUNT] client(
 ### Editing the data file
 
 AddressBook data is saved automatically as a plaintext JSON file `[JAR file location]/data/addressbook.json`. This includes client references and card details. Advanced users are welcome to update data directly by editing that data file.
+Preferences and logs are also saved beside the JAR. IDE and Gradle launches use the current working directory.
 
 <box type="warning" seamless>
 

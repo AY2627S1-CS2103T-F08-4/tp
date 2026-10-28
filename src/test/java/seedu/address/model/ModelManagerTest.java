@@ -83,8 +83,8 @@ public class ModelManagerTest {
         stampedModel.addPerson(new PersonBuilder().withClientReference("C0001").build());
 
         var saved = stampedModel.getAddressBook().getPersonList().getFirst();
-        assertEquals(CREATED, saved.getCreatedAt());
-        assertEquals(CREATED, saved.getLastModifiedAt());
+        assertEquals(CREATED, saved.getCreatedAt().orElse(null));
+        assertEquals(CREATED, saved.getLastModifiedAt().orElse(null));
     }
 
     @Test
@@ -99,8 +99,8 @@ public class ModelManagerTest {
         stampedModel.setPerson(original, original);
 
         var saved = stampedModel.getAddressBook().getPersonList().getFirst();
-        assertEquals(CREATED, saved.getCreatedAt());
-        assertEquals(MODIFIED, saved.getLastModifiedAt());
+        assertEquals(CREATED, saved.getCreatedAt().orElse(null));
+        assertEquals(MODIFIED, saved.getLastModifiedAt().orElse(null));
     }
 
     @Test
@@ -113,8 +113,8 @@ public class ModelManagerTest {
         stampedModel.setPerson(ALICE, new PersonBuilder(ALICE).withPhone("91234567").build());
 
         var saved = stampedModel.getAddressBook().getPersonList().getFirst();
-        assertNull(saved.getCreatedAt());
-        assertEquals(MODIFIED, saved.getLastModifiedAt());
+        assertNull(saved.getCreatedAt().orElse(null));
+        assertEquals(MODIFIED, saved.getLastModifiedAt().orElse(null));
     }
 
     @Test

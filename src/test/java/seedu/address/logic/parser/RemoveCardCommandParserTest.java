@@ -14,6 +14,7 @@ public class RemoveCardCommandParserTest {
     @Test
     public void parse_validReference_normalizesToUppercase() {
         assertParseSuccess(parser, "  r/c0001  ", new RemoveCardCommand(new ClientReference("C0001")));
+        assertParseSuccess(parser, "\u2003r/c0001\u2003", new RemoveCardCommand(new ClientReference("C0001")));
     }
 
     @Test
@@ -25,6 +26,7 @@ public class RemoveCardCommandParserTest {
     @Test
     public void parse_repeatedReference_reportsRepeatedParameter() {
         assertParseFailure(parser, "r/C0001 r/C0002", RemoveCardCommandParser.MESSAGE_REPEATED_PARAMETER);
+        assertParseFailure(parser, "r/C0001\u2003r/C0002", RemoveCardCommandParser.MESSAGE_REPEATED_PARAMETER);
     }
 
     @Test
@@ -32,6 +34,7 @@ public class RemoveCardCommandParserTest {
         assertParseFailure(parser, "r/C0001 h/abcde", RemoveCardCommandParser.MESSAGE_INVALID_COMMAND);
         assertParseFailure(parser, "extra r/C0001", RemoveCardCommandParser.MESSAGE_INVALID_COMMAND);
         assertParseFailure(parser, "h/abcde", RemoveCardCommandParser.MESSAGE_INVALID_COMMAND);
+        assertParseFailure(parser, "r/C0001\u2003extra", RemoveCardCommandParser.MESSAGE_INVALID_COMMAND);
     }
 
     @Test

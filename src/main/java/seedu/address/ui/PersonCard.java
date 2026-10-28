@@ -21,8 +21,6 @@ public class PersonCard extends UiPart<Region> {
      * @see <a href="https://github.com/se-edu/addressbook-level4/issues/336">The issue on AddressBook level 4</a>
      */
 
-    public final Person person;
-
     @FXML
     private HBox cardPane;
     @FXML
@@ -37,11 +35,9 @@ public class PersonCard extends UiPart<Region> {
      */
     public PersonCard(Person person, int displayedIndex) {
         super(FXML);
-        this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
-        setOptionalLabel(clientReference, person.getClientReference() == null
-                ? "" : person.getClientReference().value);
+        setOptionalLabel(clientReference, person.getClientReference().map(value -> value.value).orElse(""));
     }
 
     private static void setOptionalLabel(Label label, String text) {

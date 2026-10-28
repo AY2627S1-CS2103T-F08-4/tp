@@ -1,10 +1,13 @@
 package seedu.address.model;
 
+import java.time.Clock;
+import java.util.Optional;
 import java.util.List;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.ClientClash;
 import seedu.address.model.person.Person;
 
@@ -42,6 +45,38 @@ public interface Model {
      * Returns true if a person with the same identity as {@code person} exists in the address book.
      */
     boolean hasPerson(Person person);
+
+    /** Finds a referenced client, or returns empty when no such client exists. */
+    default Optional<Person> findPersonByReference(ClientReference reference) {
+        return getAddressBook().getPersonList().stream()
+                .filter(person -> person.getClientReference().filter(reference::equals).isPresent())
+                .findFirst();
+    }
+
+    /** Creates an isolated working model that can be committed after persistence succeeds. */
+    default ModelStage beginStaging(Clock clock) {
+        Model source = this;
+        ModelManager staged = new ModelManager(getAddressBook(), getUserPrefs(), clock);
+        staged.updateFilteredPersonList(getFilteredPersonListPredicate());
+        staged.setSortOrder(getSortOrder());
+        return new ModelStage() {
+            @Override
+            public Model model() {
+                return staged;
+            }
+
+            @Override
+            public void commit() {
+                source.setAddressBook(staged.getAddressBook());
+                source.updateFilteredPersonList(staged.getFilteredPersonListPredicate());
+            }
+
+            @Override
+            public Optional<String> timestampAction() {
+                return staged.getTimestampChange().map(change -> change.action().name());
+            }
+        };
+    }
 
     /**
      * Finds reference, phone, card-number, and email clashes for a proposed

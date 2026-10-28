@@ -61,7 +61,9 @@ public class AddCommand extends Command {
     /** Creates an add command, optionally bypassing a previously displayed clash warning. */
     public AddCommand(Person person, boolean clashConfirmed) {
         requireNonNull(person);
-        requireNonNull(person.getClientReference());
+        if (person.getClientReference().isEmpty()) {
+            throw new IllegalArgumentException("A client reference is required");
+        }
         toAdd = person;
         this.clashConfirmed = clashConfirmed;
     }
@@ -71,7 +73,8 @@ public class AddCommand extends Command {
         requireNonNull(model);
 
         if (model.hasPerson(toAdd)) {
-            throw new CommandException(String.format(MESSAGE_DUPLICATE_PERSON, toAdd.getClientReference()));
+            throw new CommandException(String.format(MESSAGE_DUPLICATE_PERSON,
+                    toAdd.getClientReference().orElseThrow()));
         }
 
         List<ClientClash> clashes = model.findClientClashes(toAdd, null);
@@ -85,7 +88,7 @@ public class AddCommand extends Command {
 
         model.addPerson(toAdd);
         return CommandResult.selectPerson(
-                String.format(MESSAGE_SUCCESS, toAdd.getClientReference(), toAdd.getName()), toAdd);
+                String.format(MESSAGE_SUCCESS, toAdd.getClientReference().orElseThrow(), toAdd.getName()), toAdd);
     }
 
     @Override
@@ -105,6 +108,11 @@ public class AddCommand extends Command {
 
         return toAdd.equals(otherAddCommand.toAdd)
                 && clashConfirmed == otherAddCommand.clashConfirmed;
+    }
+
+    @Override
+    public int hashCode() {
+        return toAdd.hashCode();
     }
 
     @Override

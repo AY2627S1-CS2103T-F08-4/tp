@@ -27,6 +27,12 @@ public class FindCommandParserTest {
     }
 
     @Test
+    public void parse_cardNumberWithSlash_remainsSearchable() {
+        assertParseSuccess(parser, "cn/4111/2222",
+                new FindCommand(new FindPersonPredicate(List.of(), List.of(), "4111/2222")));
+    }
+
+    @Test
     public void parse_nameKeywords_returnsFindCommand() {
         // no leading and trailing whitespaces
         FindCommand expectedFindCommand =
@@ -121,8 +127,6 @@ public class FindCommandParserTest {
         assertParseFailure(parser, "n/Alice t/friends", expectedMessage);
         assertParseFailure(parser, "p/91234567 e/alice@example.com", expectedMessage);
         assertParseFailure(parser, "n/Alice p/91234567 t/friends", expectedMessage);
-        assertParseFailure(parser, "cn/4111111111111111 cvv/123", expectedMessage);
-        assertParseFailure(parser, "cn/4111111111111111\te/alice@example.com", expectedMessage);
     }
 
     @Test

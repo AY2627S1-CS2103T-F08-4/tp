@@ -39,6 +39,7 @@ public class ParserUtilTest {
     @Test
     public void parseClientReference_validValue_trimsAndNormalizesCase() throws Exception {
         assertEquals(new ClientReference("SG-1024"), ParserUtil.parseClientReference("  sg-1024  "));
+        assertEquals(new ClientReference("SG-1024"), ParserUtil.parseClientReference("\u2003sg-1024\u2003"));
     }
 
     @Test
@@ -87,6 +88,7 @@ public class ParserUtilTest {
 
         // Leading and trailing whitespaces
         assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("  1  "));
+        assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("\u20031\u2003"));
     }
 
     @Test

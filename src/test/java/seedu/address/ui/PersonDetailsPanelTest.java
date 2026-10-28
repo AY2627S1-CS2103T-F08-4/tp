@@ -183,7 +183,7 @@ class PersonDetailsPanelTest {
     @Test
     void formatCardDetails_referencedPersonWithoutCard_returnsEmptyText() {
         var withCard = new PersonBuilder().withClientReference("C0001").build();
-        var withoutCard = new Person(withCard.getClientReference(), withCard.getName(),
+        var withoutCard = new Person(withCard.getClientReference().orElse(null), withCard.getName(),
                 withCard.getPhone().orElse(null), withCard.getEmail().orElse(null), withCard.getAddress().orElse(null),
                 null, withCard.getCreditScore().orElse(null),
                 withCard.getDebt().orElse(null), withCard.getTags());
