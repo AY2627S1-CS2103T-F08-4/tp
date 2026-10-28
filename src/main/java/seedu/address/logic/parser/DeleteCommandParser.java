@@ -16,7 +16,7 @@ public class DeleteCommandParser implements Parser<DeleteCommand> {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public DeleteCommand parse(String args) throws ParseException {
-        String trimmedArgs = args.trim();
+        String trimmedArgs = args.strip();
 
         if (trimmedArgs.startsWith(CliSyntax.PREFIX_REFERENCE.getPrefix())) {
             return parseReferenceDelete(trimmedArgs);
@@ -35,7 +35,7 @@ public class DeleteCommandParser implements Parser<DeleteCommand> {
     }
 
     private DeleteCommand parseReferenceDelete(String args) throws ParseException {
-        if (!args.matches("r/\\S+")) {
+        if (!args.matches("r/[^\\p{javaWhitespace}]+")) {
             throw new ParseException(
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT,
                             DeleteCommand.MESSAGE_USAGE));

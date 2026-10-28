@@ -52,7 +52,9 @@ public class AddCommand extends Command {
      */
     public AddCommand(Person person) {
         requireNonNull(person);
-        requireNonNull(person.getClientReference());
+        if (person.getClientReference().isEmpty()) {
+            throw new IllegalArgumentException("A client reference is required");
+        }
         toAdd = person;
     }
 
@@ -61,12 +63,13 @@ public class AddCommand extends Command {
         requireNonNull(model);
 
         if (model.hasPerson(toAdd)) {
-            throw new CommandException(String.format(MESSAGE_DUPLICATE_PERSON, toAdd.getClientReference()));
+            throw new CommandException(String.format(MESSAGE_DUPLICATE_PERSON,
+                    toAdd.getClientReference().orElseThrow()));
         }
 
         model.addPerson(toAdd);
         return CommandResult.selectPerson(
-                String.format(MESSAGE_SUCCESS, toAdd.getClientReference(), toAdd.getName()), toAdd);
+                String.format(MESSAGE_SUCCESS, toAdd.getClientReference().orElseThrow(), toAdd.getName()), toAdd);
     }
 
     @Override
@@ -85,6 +88,11 @@ public class AddCommand extends Command {
         }
 
         return toAdd.equals(otherAddCommand.toAdd);
+    }
+
+    @Override
+    public int hashCode() {
+        return toAdd.hashCode();
     }
 
     @Override

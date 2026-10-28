@@ -17,6 +17,7 @@ public class AddressBookSync {
 
     private final Storage storage;
 
+    /** Creates a synchronizer that writes through the supplied storage. */
     public AddressBookSync(Storage storage) {
         this.storage = requireNonNull(storage);
     }

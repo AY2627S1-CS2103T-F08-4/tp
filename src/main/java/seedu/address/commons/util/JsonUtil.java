@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -63,11 +64,19 @@ public class JsonUtil {
         try {
             jsonFile = deserializeObjectFromJsonFile(filePath, classOfObjectToDeserialize);
         } catch (IOException e) {
-            logger.warning("Error reading from jsonFile file " + filePath + ": " + e);
+            logger.warning("Error reading JSON data file");
             throw new DataLoadingException(e);
         }
 
+        if (jsonFile == null) {
+            throw new DataLoadingException(new IOException("JSON root must not be null"));
+        }
         return Optional.of(jsonFile);
+    }
+
+    /** Converts an already-read tree without reading the file again. */
+    public static <T> T fromJsonNode(JsonNode node, Class<T> type) throws JsonProcessingException {
+        return objectMapper.treeToValue(node, type);
     }
 
     /**

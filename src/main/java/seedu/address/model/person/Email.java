@@ -11,8 +11,9 @@ public class Email {
 
     public static final String MESSAGE_CONSTRAINTS =
             "Email must be in the form local-part@domain, for example alex@example.com.";
-    private static final String DOMAIN_LABEL = "[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?";
-    public static final String VALIDATION_REGEX = "[^\\s\\p{Z}@]+@(?:" + DOMAIN_LABEL + "\\.)+" + DOMAIN_LABEL;
+    public static final String VALIDATION_REGEX =
+            "[^\\s\\p{Z}@]+@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+"
+                    + "[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?";
 
     public final String value;
 

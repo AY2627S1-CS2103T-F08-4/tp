@@ -34,11 +34,14 @@ public class DeleteCommandParserTest {
     @Test
     public void parse_lowercaseReference_normalizesToUppercase() {
         assertParseSuccess(parser, "r/c0001", new DeleteCommand(new ClientReference("C0001")));
+        assertParseSuccess(parser, "\u2003r/c0001\u2003", new DeleteCommand(new ClientReference("C0001")));
     }
 
     @Test
     public void parse_referenceWithExtraText_throwsParseException() {
         assertParseFailure(parser, "r/C0001 extra",
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
+        assertParseFailure(parser, "r/C0001\u2003extra",
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
     }
 }

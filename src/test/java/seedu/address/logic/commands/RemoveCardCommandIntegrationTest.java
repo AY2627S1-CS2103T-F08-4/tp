@@ -55,7 +55,7 @@ public class RemoveCardCommandIntegrationTest {
         assertEquals("Removed card ending in 1111 from client C0001", result.getFeedbackToUser());
         assertEquals(1, model.getFilteredPersonList().size());
         Person after = model.getFilteredPersonList().getFirst();
-        assertEquals(before.getClientReference(), after.getClientReference());
+        assertEquals(before.getClientReference().orElse(null), after.getClientReference().orElse(null));
         assertEquals(before.getName(), after.getName());
         assertEquals(before.getPhone(), after.getPhone());
         assertEquals(before.getEmail(), after.getEmail());
@@ -82,8 +82,8 @@ public class RemoveCardCommandIntegrationTest {
         logic.execute("removecard r/C0001");
 
         Person after = model.getAddressBook().getPersonList().getFirst();
-        assertEquals(before.getServiceNote(), after.getServiceNote());
-        assertEquals(before.getCreatedAt(), after.getCreatedAt());
+        assertEquals(before.getServiceNote().orElse(null), after.getServiceNote().orElse(null));
+        assertEquals(before.getCreatedAt().orElse(null), after.getCreatedAt().orElse(null));
         assertEquals("91234567", after.getPhone().orElseThrow().value);
         assertTrue(after.getEmail().isEmpty());
         assertTrue(after.getAddress().isEmpty());

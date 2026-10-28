@@ -27,9 +27,7 @@ public class RemoveCardCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Person client = model.getAddressBook().getPersonList().stream()
-                .filter(person -> reference.equals(person.getClientReference()))
-                .findFirst()
+        Person client = model.findPersonByReference(reference)
                 .orElseThrow(() -> new CommandException(String.format(MESSAGE_CLIENT_NOT_FOUND, reference)));
         if (client.getCardDetails().isEmpty()) {
             throw new CommandException(String.format(MESSAGE_CARD_NOT_FOUND, reference));
@@ -37,10 +35,7 @@ public class RemoveCardCommand extends Command {
 
         String cardNumber = client.getCardDetails().orElseThrow().getCardNumber();
         String cardEnding = cardNumber.substring(Math.max(0, cardNumber.length() - 4));
-        Person updatedClient = new Person(client.getClientReference(), client.getName(), client.getPhone().orElse(null),
-                client.getEmail().orElse(null), client.getAddress().orElse(null), null,
-                client.getCreditScore().orElse(null), client.getDebt().orElse(null),
-                client.getTags(), client.getServiceNote());
+        Person updatedClient = client.withoutCardDetails();
         model.setPerson(client, updatedClient);
         return new CommandResult(String.format(MESSAGE_SUCCESS, cardEnding, reference));
     }

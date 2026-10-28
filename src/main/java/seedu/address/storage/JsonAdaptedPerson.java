@@ -111,7 +111,7 @@ class JsonAdaptedPerson {
      * Converts a given {@code Person} into this class for Jackson use.
      */
     public JsonAdaptedPerson(Person source) {
-        clientReference = source.getClientReference() == null ? null : source.getClientReference().value;
+        clientReference = source.getClientReference().map(reference -> reference.value).orElse(null);
         name = source.getName().fullName;
         phone = source.getPhone().map(value -> value.value).orElse(null);
         email = source.getEmail().map(value -> value.value).orElse(null);
@@ -119,9 +119,9 @@ class JsonAdaptedPerson {
         cardDetails = source.getCardDetails().map(JsonAdaptedCardDetails::new).orElse(null);
         creditScore = source.getCreditScore().map(Object::toString).orElse(null);
         debt = source.getDebt().map(Object::toString).orElse(null);
-        createdAt = source.getCreatedAt() == null ? null : source.getCreatedAt().toString();
-        lastModifiedAt = source.getLastModifiedAt() == null ? null : source.getLastModifiedAt().toString();
-        serviceNote = source.getServiceNote() == null ? null : TextNode.valueOf(source.getServiceNote().value);
+        createdAt = source.getCreatedAt().map(Object::toString).orElse(null);
+        lastModifiedAt = source.getLastModifiedAt().map(Object::toString).orElse(null);
+        serviceNote = source.getServiceNote().map(note -> TextNode.valueOf(note.value)).orElse(null);
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
@@ -158,6 +158,9 @@ class JsonAdaptedPerson {
 
         final List<Tag> personTags = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
+            if (tag == null) {
+                throw new IllegalValueException("Tags list contains a null tag.");
+            }
             personTags.add(tag.toModelType());
         }
 
@@ -198,10 +201,11 @@ class JsonAdaptedPerson {
                     modelCreditScore, modelDebt, modelTags, modelNote)
                     .withTimestamps(modelCreatedAt, modelLastModifiedAt);
         } catch (IllegalArgumentException e) {
-            throw new IllegalValueException(e.getMessage());
+            throw new IllegalValueException(e.getMessage(), e);
         }
     }
 
+    /** Parses an optional ISO instant while preserving the cause of malformed saved data. */
     private static Instant parseTimestamp(String value) throws IllegalValueException {
         if (value == null) {
             return null;
@@ -209,7 +213,7 @@ class JsonAdaptedPerson {
         try {
             return Instant.parse(value);
         } catch (DateTimeParseException e) {
-            throw new IllegalValueException(INVALID_TIMESTAMP_MESSAGE);
+            throw new IllegalValueException(INVALID_TIMESTAMP_MESSAGE, e);
         }
     }
 

@@ -70,8 +70,8 @@ TellerFlow is a **desktop application for managing client profiles, optimized fo
 
 * Each prefix may appear only once per command, except `t/`, which can be repeated in `add` and `edit` to supply multiple tags.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
+* Commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, reject extra text.<br>
+  For example, `help 123` is invalid.
   The `sort` command checks its optional order argument and rejects any additional text.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -178,7 +178,7 @@ Format: `edit INDEX [r/REFERENCE] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS
 * Use `r/` to change a client's reference. The new reference must be unique, ignoring case.
 * When editing tags, all of the client's existing tags are replaced by the supplied tags; adding tags is not cumulative.
 * To remove all of a client's tags, enter `t/` without a tag after it.
-* Use `s/NOTE` to add or replace a service note, following the length and character rules in [Maintaining a service note](#maintaining-a-service-note-note). Enter `s/` without a note to remove it.
+* Use `s/NOTE` to add or replace a service note, following the length, character, and escaping rules in [Maintaining a service note](#maintaining-a-service-note-note). Enter `s/` without a note to remove it. This also succeeds when no note is present.
 * Phone, email, address, card fields, credit score, and debt cannot be cleared by entering empty values. Use `removecard` to remove a card.
 * After a successful edit, the full client list is displayed again, retaining the active sort order.
 
@@ -228,11 +228,10 @@ Each client can have one service note. It appears in the last section of the sel
 
 Format: `note r/REFERENCE s/NOTE`
 
-Both prefixes are required, in either order. The reference is case-insensitive. A note can contain up to 200 printable characters on one line; leading and trailing spaces are removed. Setting a note replaces the previous one. Use `s/` with no value to clear it.
+Both prefixes are required, in either order. The reference is case-insensitive. A note can contain up to 200 printable characters on one line; leading and trailing spaces are removed. Setting a note replaces the previous one. Use `s/` with no value to clear a note; this also succeeds when no note is present.
 
 * The reference can identify any client, even if that client is outside the current `find` results.
-* Each prefix must appear exactly once. Text that looks like a prefix after whitespace, such as `r/`, `s/`, or `w/`, is treated as another parameter, not part of the note. Write `with` instead of `w/`, for example.
-* Trying to clear an absent service note is rejected with `Client C0001 has no service note to clear.` (with the requested reference).
+* Each prefix must appear exactly once. In both `note` and `edit`, escape prefix-shaped words in note text with a backslash so they are stored as text. For example, enter `\w/o` to store `w/o`, `\r/` to store `r/`, or `\\` to store a literal backslash. Unescaped prefix-shaped words after whitespace are treated as parameters or rejected.
 * A successful `note` command saves the change immediately, updates `Last Modified`, restores the full list in the active sort order, and selects the affected client.
 
 Examples:
@@ -303,14 +302,14 @@ On startup, saved clients appear in the main window with `Loaded [COUNT] client(
 
 ### Editing the data file
 
-TellerFlow data is saved automatically as a plaintext JSON file `data/addressbook.json`, relative to the working directory from which you start the app. If you follow the quick-start instructions and `cd` to the folder containing the JAR, the data file is in that folder's `data` subfolder. Starting the app from a different working directory uses a separate data file there. The status bar shows the data-file path.
+TellerFlow data is saved automatically as a plaintext JSON file `data/addressbook.json` under the folder containing the packaged JAR. Preferences and logs are also saved beside the JAR. IDE and Gradle launches use the current working directory instead. The status bar shows the data-file path.
 
 The file includes client references, contact details, card details (including CVV), credit score, debt, tags, timestamps, and service notes when recorded. Advanced users can edit this file while TellerFlow is closed.
 
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid or unreadable, including a malformed timestamp value, TellerFlow starts with an empty list in protected mode and shows `Unable to load client data. Existing data was not changed. Add, delete, edit, and clear commands are disabled for this session.` All data-changing commands, including `note` and `removecard`, are disabled until you fix the file and restart; the existing file is not overwritten. Back up the file before editing it.<br>
+If your changes make the data file invalid or unreadable, including a malformed timestamp value, TellerFlow starts with an empty list in protected mode and shows `Unable to load client data. Existing data was not changed. Commands that modify client data are disabled for this session.` All data-changing commands, including `note` and `removecard`, are disabled until you fix the file and restart; the existing file is not overwritten. Back up the file before editing it.<br>
 Values in the file must follow the same field requirements as command input. Edit the data file only if you are confident that you can update it correctly.
 </box>
 
@@ -323,7 +322,7 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Close TellerFlow on both computers. Copy `data/addressbook.json` from the old computer's working directory into the `data` subfolder of the working directory you will use on the new computer, replacing any existing file after backing it up. Start TellerFlow from that directory to load the transferred clients.
+**A**: Close TellerFlow on both computers. Copy `data/addressbook.json` from the folder containing the old computer's JAR into the `data` subfolder beside the JAR on the new computer, replacing any existing file after backing it up. Start TellerFlow to load the transferred clients. For IDE or Gradle launches, use the respective working directories instead of the JAR folders.
 
 --------------------------------------------------------------------------------------------------------------------
 

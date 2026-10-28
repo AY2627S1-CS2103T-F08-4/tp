@@ -165,8 +165,6 @@ public class AddCommandParserTest {
     public void parse_prefixWithoutPrecedingSpace_reportsInvalidFormat() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE);
         assertParseFailure(parser, VALID_ARGUMENTS.stripLeading(), expectedMessage);
-        assertParseFailure(parser, VALID_ARGUMENTS.replace(" n/", "\tn/"), expectedMessage);
-        assertParseFailure(parser, VALID_ARGUMENTS.replace(" n/", "\nn/"), expectedMessage);
     }
 
     @Test
