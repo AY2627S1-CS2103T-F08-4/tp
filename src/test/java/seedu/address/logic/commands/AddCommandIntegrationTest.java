@@ -78,7 +78,10 @@ public class AddCommandIntegrationTest {
     @Test
     public void execute_sharedNameAndContactDetails_distinctReferencesAccepted() throws Exception {
         parser.parseCommand(ADD_CLIENT).execute(model);
-        parser.parseCommand(ADD_CLIENT.replace("C0001", "C0002")).execute(model);
+        parser.parseCommand(ADD_CLIENT.replace("C0001", "C0002")
+                .replace("87438807", "87438808")
+                .replace("alex@example.com", "alex2@example.com")
+                .replace("4111111111111111", "5555555555554444")).execute(model);
         assertEquals(2, model.getAddressBook().getPersonList().size());
         Person first = model.getAddressBook().getPersonList().get(0);
         Person second = model.getAddressBook().getPersonList().get(1);

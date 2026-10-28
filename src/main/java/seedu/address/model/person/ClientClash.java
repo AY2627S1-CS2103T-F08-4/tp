@@ -30,8 +30,11 @@ public record ClientClash(Field field, String value, Person existingClient) {
         String displayValue = field == Field.CARD_NUMBER
                 ? maskCardNumber(value)
                 : value;
+        String displayReference = existingClient.getClientReference()
+                .map(ClientReference::toString)
+                .orElse("(no reference)");
         return field + " '" + displayValue + "' clashes with client "
-                + existingClient.getClientReference()
+                + displayReference
                 + " (" + existingClient.getName() + ")";
     }
 

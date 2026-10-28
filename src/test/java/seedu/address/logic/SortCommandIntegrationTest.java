@@ -138,7 +138,13 @@ public class SortCommandIntegrationTest {
     }
 
     private static Person client(String reference, String name) {
-        return new PersonBuilder().withClientReference(reference).withName(name).build();
+        int number = Integer.parseInt(reference.substring(1));
+        return new PersonBuilder().withClientReference(reference).withName(name)
+                .withPhone("900000" + String.format("%02d", number))
+                .withEmail(reference.toLowerCase() + "@example.com")
+                .withCardDetails("400000000000" + String.format("%04d", number),
+                        "123", "12/28", "Visa")
+                .build();
     }
 
     private static AddressBook book(Person... persons) {

@@ -71,7 +71,8 @@ public class CommandResultTest {
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
                 + ", exit=" + commandResult.isExit()
-                + ", selectionRequest=PRESERVE_OR_FIRST, personToSelect=null}";
+                + ", selectionRequest=PRESERVE_OR_FIRST, personToSelect=null"
+                + ", clientClashes=[], commandToConfirm=null}";
         assertEquals(expected, commandResult.toString());
     }
 }
