@@ -45,6 +45,10 @@ public class AddCommandParser implements Parser<AddCommand> {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public AddCommand parse(String args) throws ParseException {
+        boolean clashConfirmed = args.endsWith(CliSyntax.CONFIRM_CLASH_FLAG);
+        if (clashConfirmed) {
+            args = args.substring(0, args.length() - CliSyntax.CONFIRM_CLASH_FLAG.length()).stripTrailing();
+        }
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_REFERENCE, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
                         PREFIX_ADDRESS, PREFIX_CARD_NUMBER, PREFIX_CVV, PREFIX_EXPIRY_DATE, PREFIX_PROVIDER,
@@ -76,7 +80,7 @@ public class AddCommandParser implements Parser<AddCommand> {
 
         Person person = new Person(reference, name, phone, email, address, cardDetails, creditScore, debt, tagList);
 
-        return new AddCommand(person);
+        return new AddCommand(person, clashConfirmed);
     }
 
     /** Parses a complete card group, or returns null when none of its prefixes are supplied. */

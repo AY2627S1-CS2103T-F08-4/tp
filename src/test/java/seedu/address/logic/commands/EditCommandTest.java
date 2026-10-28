@@ -86,7 +86,7 @@ public class EditCommandTest {
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
         Person editedPerson = new PersonBuilder().build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(editedPerson).build();
-        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor);
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor, true);
 
         String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
@@ -109,7 +109,7 @@ public class EditCommandTest {
 
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB)
                 .withPhone(VALID_PHONE_BOB).withTags(VALID_TAG_HUSBAND).build();
-        EditCommand editCommand = new EditCommand(indexLastPerson, descriptor);
+        EditCommand editCommand = new EditCommand(indexLastPerson, descriptor, true);
 
         String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
@@ -126,7 +126,7 @@ public class EditCommandTest {
         Person original = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
 
         EditCommand command = new EditCommand(INDEX_FIRST_PERSON,
-                new EditPersonDescriptorBuilder().withCvv("456").build());
+                new EditPersonDescriptorBuilder().withCvv("456").build(), true);
         command.execute(model);
 
         Person edited = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
@@ -157,7 +157,7 @@ public class EditCommandTest {
 
     @Test
     public void execute_noFieldSpecifiedUnfilteredList_success() {
-        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptor());
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptor(), true);
         Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
 
         String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
@@ -177,7 +177,7 @@ public class EditCommandTest {
         Person personInFilteredList = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         Person editedPerson = new PersonBuilder(personInFilteredList).withName(VALID_NAME_BOB).build();
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
-                new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build());
+                new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build(), true);
 
         String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
@@ -200,13 +200,24 @@ public class EditCommandTest {
 
     @Test
     public void execute_clearAbsentNote_succeeds() {
+        Instant timestamp = TEST_CLOCK.instant();
+        Person person = new PersonBuilder()
+                .withClientReference("C9999")
+                .withCardDetails("6011000000000004", "123", "12/28", "Visa")
+                .build()
+                .withTimestamps(timestamp, timestamp);
+
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(person);
+        Model isolatedModel = new ModelManager(addressBook, new UserPrefs(), TEST_CLOCK);
+
         EditPersonDescriptor descriptor = new EditPersonDescriptor();
         descriptor.setServiceNote(null);
-        Person person = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         EditCommand command = new EditCommand(INDEX_FIRST_PERSON, descriptor);
 
-        assertDoesNotThrow(() -> command.execute(model));
-        Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        assertDoesNotThrow(() -> command.execute(isolatedModel));
+        Person editedPerson = isolatedModel.getFilteredPersonList()
+                .get(INDEX_FIRST_PERSON.getZeroBased());
         assertTrue(editedPerson.getServiceNote().isEmpty());
         assertEquals(person.getCreatedAt(), editedPerson.getCreatedAt());
         assertEquals(TEST_CLOCK.instant(), editedPerson.getLastModifiedAt().orElseThrow());
@@ -282,7 +293,7 @@ public class EditCommandTest {
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
         EditCommand editCommand = new EditCommand(index, editPersonDescriptor);
         String expected = EditCommand.class.getCanonicalName() + "{index=" + index + ", editPersonDescriptor="
-                + editPersonDescriptor + "}";
+                + editPersonDescriptor + ", clashConfirmed=false}";
         assertEquals(expected, editCommand.toString());
     }
 

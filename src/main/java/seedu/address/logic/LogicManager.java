@@ -79,6 +79,9 @@ public class LogicManager implements Logic {
             ModelStage stage = model.beginStaging(clock);
             Model stagedModel = stage.model();
             CommandResult result = command.execute(stagedModel);
+            if (result.requiresClashConfirmation()) {
+                return result.withCommandToConfirm(commandText);
+            }
             try {
                 addressBookSync.sync(stagedModel.getAddressBook());
             } catch (CommandException e) {

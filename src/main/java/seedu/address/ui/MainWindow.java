@@ -39,6 +39,9 @@ public class MainWindow extends UiPart<Stage> {
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
 
+    /** The original command waiting for a typed yes/no response. */
+    private String pendingClashCommand;
+
     @FXML
     private StackPane commandBoxPlaceholder;
 
@@ -187,9 +190,56 @@ public class MainWindow extends UiPart<Stage> {
      * @see seedu.address.logic.Logic#execute(String)
      */
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
+        String normalizedCommand = commandText.trim().toLowerCase();
+
+        if (pendingClashCommand != null) {
+            return handleClashConfirmation(normalizedCommand);
+        }
+
+        return executeNormalCommand(commandText);
+    }
+
+    /** Handles a typed response to a pending clash warning. */
+    private CommandResult handleClashConfirmation(String response)
+            throws CommandException, ParseException {
+
+        if (response.equals("yes")) {
+            String commandToRetry = pendingClashCommand;
+            pendingClashCommand = null;
+            return executeNormalCommand(commandToRetry + " --confirm-clash");
+        }
+
+        if (response.equals("no")) {
+            pendingClashCommand = null;
+            CommandResult cancelledResult = new CommandResult("Operation cancelled.");
+            resultDisplay.setFeedbackToUser(cancelledResult.getFeedbackToUser());
+            return cancelledResult;
+        }
+
+        CommandResult invalidResponse = new CommandResult("Please type yes or no.");
+        resultDisplay.setFeedbackToUser(invalidResponse.getFeedbackToUser());
+        return invalidResponse;
+    }
+
+    /** Executes a command and updates the UI with its result. */
+    private CommandResult executeNormalCommand(String commandText)
+            throws CommandException, ParseException {
         try {
             Person previouslySelected = personListPanel.getSelectedPerson();
             CommandResult commandResult = logic.execute(commandText);
+
+            if (commandResult.requiresClashConfirmation()) {
+                pendingClashCommand = commandResult.getCommandToConfirm();
+
+                String warningMessage = commandResult.getFeedbackToUser()
+                        + System.lineSeparator()
+                        + "Type yes to proceed or no to cancel.";
+
+                resultDisplay.setFeedbackToUser(warningMessage);
+                logger.info("Clash confirmation required for: " + pendingClashCommand);
+                return commandResult;
+            }
+
             personListPanel.applySelection(commandResult, previouslySelected);
             logger.info("Command completed");
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());

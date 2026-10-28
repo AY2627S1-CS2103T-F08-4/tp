@@ -84,7 +84,8 @@ public class AddCommandTest {
     public void toStringMethod() {
         Person alice = new PersonBuilder(ALICE).withClientReference("C0001").build();
         AddCommand addCommand = new AddCommand(alice);
-        String expected = AddCommand.class.getCanonicalName() + "{toAdd=" + alice + "}";
+        String expected = AddCommand.class.getCanonicalName() + "{toAdd=" + alice
+                + ", clashConfirmed=false}";
         assertEquals(expected, addCommand.toString());
     }
 

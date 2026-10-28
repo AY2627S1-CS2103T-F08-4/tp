@@ -239,8 +239,8 @@ public class LogicManagerTest {
                         .withCardDetails("4111111111111111", "123", "12/28", "Visa").build(),
                 new PersonBuilder(minimal).withClientReference("C0006").withCreditScore("0").build(),
                 new PersonBuilder(minimal).withClientReference("C0007").withDebt("0.00").build(),
-                new PersonBuilder(minimal).withClientReference("C0008").withPhone("91234567")
-                        .withEmail("john@example.com").withCreditScore("0").withDebt("25.50")
+                new PersonBuilder(minimal).withClientReference("C0008").withPhone("91234568")
+                        .withEmail("john8@example.com").withCreditScore("0").withDebt("25.50")
                         .withTags("friend").build());
         Path dataPath = temporaryFolder.resolve("addressBook.json");
 
@@ -279,7 +279,7 @@ public class LogicManagerTest {
         logic.execute("add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street"
                 + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
         logic.execute("add r/C0002 n/Bernice Yu p/87438808 e/bernice@example.com a/20 Main Street"
-                + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
+                + " cn/5555555555554444 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
         String savedJson = Files.readString(dataPath);
 
         CommandResult result = logic.execute("find p/87438808");
@@ -323,7 +323,7 @@ public class LogicManagerTest {
         logic.execute("add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street"
                 + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
         logic.execute("add r/C0002 n/Bernice Yu p/87438808 e/bernice@example.com a/20 Main Street"
-                + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
+                + " cn/5555555555554444 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
         logic.execute("find n/Bernice");
         logic.execute("delete 1");
 

@@ -31,6 +31,7 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.CardDetails;
+import seedu.address.model.person.ClientClash;
 import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.CreditScore;
 import seedu.address.model.person.Debt;
@@ -77,17 +78,24 @@ public class EditCommand extends Command {
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
+    private final boolean clashConfirmed;
 
     /**
      * @param index of the person in the filtered person list to edit
      * @param editPersonDescriptor details to edit the person with
      */
     public EditCommand(Index index, EditPersonDescriptor editPersonDescriptor) {
+        this(index, editPersonDescriptor, false);
+    }
+
+    /** Creates an edit command, optionally bypassing a previously displayed clash warning. */
+    public EditCommand(Index index, EditPersonDescriptor editPersonDescriptor, boolean clashConfirmed) {
         requireNonNull(index);
         requireNonNull(editPersonDescriptor);
 
         this.index = index;
         this.editPersonDescriptor = new EditPersonDescriptor(editPersonDescriptor);
+        this.clashConfirmed = clashConfirmed;
     }
 
     @Override
@@ -104,6 +112,11 @@ public class EditCommand extends Command {
 
         if (!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)) {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
+        }
+
+        List<ClientClash> clashes = model.findClientClashes(editedPerson, personToEdit);
+        if (!clashConfirmed && !clashes.isEmpty()) {
+            return CommandResult.requestClashConfirmation(clashes, "");
         }
 
         model.setPerson(personToEdit, editedPerson);
@@ -232,7 +245,8 @@ public class EditCommand extends Command {
         }
 
         return index.equals(otherEditCommand.index)
-                && editPersonDescriptor.equals(otherEditCommand.editPersonDescriptor);
+                && editPersonDescriptor.equals(otherEditCommand.editPersonDescriptor)
+                && clashConfirmed == otherEditCommand.clashConfirmed;
     }
 
     @Override
@@ -245,6 +259,7 @@ public class EditCommand extends Command {
         return new ToStringBuilder(this)
                 .add("index", index)
                 .add("editPersonDescriptor", editPersonDescriptor)
+                .add("clashConfirmed", clashConfirmed)
                 .toString();
     }
 

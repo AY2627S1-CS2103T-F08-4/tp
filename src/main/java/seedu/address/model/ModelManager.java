@@ -5,6 +5,8 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -15,6 +17,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.person.ClientClash;
 import seedu.address.model.person.Person;
 
 /**
@@ -96,6 +99,113 @@ public class ModelManager implements Model {
     public boolean hasPerson(Person person) {
         requireNonNull(person);
         return addressBook.hasPerson(person);
+    }
+
+    /**
+     * Finds fields in {@code proposedClient} that have the same values as
+     * fields belonging to another client in the address book.
+     *
+     * <p>The reference number, phone number, card number, and email address
+     * are checked independently. A proposed client may therefore produce
+     * multiple clashes with one or more existing clients.
+     *
+     * @param proposedClient the client that is about to be added or saved
+     * @param clientBeingEdited the existing client being edited, or
+     *                          {@code null} when adding a new client
+     * @return all detected clashes
+     */
+    @Override
+    public List<ClientClash> findClientClashes(
+            Person proposedClient,
+            Person clientBeingEdited) {
+
+        requireNonNull(proposedClient);
+
+        List<ClientClash> clashes = new ArrayList<>();
+
+        for (Person existingClient : addressBook.getPersonList()) {
+            /*
+             * During editing, ignore the original client. Otherwise an
+             * unchanged field would clash with the client itself.
+             */
+            if (existingClient.equals(clientBeingEdited)) {
+                continue;
+            }
+
+            addPhoneClashIfPresent(proposedClient, existingClient, clashes);
+            addCardNumberClashIfPresent(proposedClient, existingClient, clashes);
+            addEmailClashIfPresent(proposedClient, existingClient, clashes);
+        }
+
+        return clashes;
+    }
+
+    /** Adds a phone-number clash when both clients have the same phone number. */
+    private static void addPhoneClashIfPresent(
+            Person proposedClient,
+            Person existingClient,
+            List<ClientClash> clashes) {
+
+        if (proposedClient.getPhone().isEmpty()
+                || existingClient.getPhone().isEmpty()) {
+            return;
+        }
+
+        String proposedPhone = proposedClient.getPhone().get().value;
+        String existingPhone = existingClient.getPhone().get().value;
+
+        if (proposedPhone.equals(existingPhone)) {
+            clashes.add(new ClientClash(
+                    ClientClash.Field.PHONE,
+                    proposedPhone,
+                    existingClient));
+        }
+    }
+
+    /** Adds a card-number clash when both clients have the same card number. */
+    private static void addCardNumberClashIfPresent(
+            Person proposedClient,
+            Person existingClient,
+            List<ClientClash> clashes) {
+
+        if (proposedClient.getCardDetails().isEmpty()
+                || existingClient.getCardDetails().isEmpty()) {
+            return;
+        }
+
+        String proposedCardNumber = proposedClient.getCardDetails()
+                .get().getCardNumber();
+        String existingCardNumber = existingClient.getCardDetails()
+                .get().getCardNumber();
+
+        if (proposedCardNumber.equals(existingCardNumber)) {
+            clashes.add(new ClientClash(
+                    ClientClash.Field.CARD_NUMBER,
+                    proposedCardNumber,
+                    existingClient));
+        }
+    }
+
+    /** Adds an email-address clash when both clients have the same email. */
+    private static void addEmailClashIfPresent(
+            Person proposedClient,
+            Person existingClient,
+            List<ClientClash> clashes) {
+
+        if (proposedClient.getEmail().isEmpty()
+                || existingClient.getEmail().isEmpty()) {
+            return;
+        }
+
+        String proposedEmail = proposedClient.getEmail().get().value;
+        String existingEmail = existingClient.getEmail().get().value;
+
+        if (proposedEmail.equals(existingEmail)) {
+            clashes.add(new ClientClash(
+                    ClientClash.Field.EMAIL,
+                    proposedEmail,
+                    existingClient));
+        }
     }
 
     @Override

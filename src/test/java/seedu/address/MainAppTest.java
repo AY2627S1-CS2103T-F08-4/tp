@@ -43,8 +43,8 @@ public class MainAppTest {
                 new JsonUserPrefsStorage(testFolder.resolve("prefs.json")));
         LogicManager logic = new LogicManager(initialData.model(), storage);
 
-        logic.execute("add r/C0001 n/New Client p/87438807 e/new@example.com a/10 Main Street"
-                + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
+        logic.execute("add r/C9999 n/New Client p/90000001 e/new-client@example.com a/10 Main Street"
+                + " cn/6011000000000004 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
 
         assertTrue(Files.exists(dataPath));
         assertEquals(SampleDataUtil.getSamplePersons().length + 1,
