@@ -120,49 +120,99 @@ public class EditCommand extends Command {
             throws CommandException {
         assert personToEdit != null : "An edit target must exist before reconstruction";
 
-        ClientReference updatedReference = editPersonDescriptor.getClientReference()
-                .or(personToEdit::getClientReference).orElse(null);
+        ClientReference updatedReference;
+        if (editPersonDescriptor.getClientReference().isPresent()) {
+            updatedReference = editPersonDescriptor.getClientReference().get();
+        } else if (personToEdit.getClientReference().isPresent()) {
+            updatedReference = personToEdit.getClientReference().get();
+        } else {
+            updatedReference = null;
+        }
+
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
         Phone updatedPhone = editPersonDescriptor.getPhone().or(personToEdit::getPhone).orElse(null);
         Email updatedEmail = editPersonDescriptor.getEmail().or(personToEdit::getEmail).orElse(null);
         Address updatedAddress = editPersonDescriptor.getAddress().or(personToEdit::getAddress).orElse(null);
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
-        CardDetails updatedCardDetails = mergeCardDetails(personToEdit, editPersonDescriptor);
-        CreditScore updatedCreditScore = editPersonDescriptor.getCreditScore()
-                .or(personToEdit::getCreditScore).orElse(null);
-        Debt updatedDebt = editPersonDescriptor.getDebt().or(personToEdit::getDebt).orElse(null);
-        ServiceNote updatedServiceNote = editPersonDescriptor.isServiceNoteEdited()
-                ? editPersonDescriptor.getServiceNote().orElse(null)
-                : personToEdit.getServiceNote().orElse(null);
+        CardDetails existingCardDetails = personToEdit.getCardDetails().orElse(null);
+        String updatedCardNumber;
+        if (editPersonDescriptor.getCardNumber().isPresent()) {
+            updatedCardNumber = editPersonDescriptor.getCardNumber().get();
+        } else if (existingCardDetails != null) {
+            updatedCardNumber = existingCardDetails.getCardNumber();
+        } else {
+            updatedCardNumber = null;
+        }
 
-        return personToEdit.withDetails(updatedReference, updatedName, updatedPhone, updatedEmail,
-                updatedAddress, updatedCardDetails, updatedCreditScore, updatedDebt, updatedTags, updatedServiceNote);
-    }
+        String updatedCvv;
+        if (editPersonDescriptor.getCvv().isPresent()) {
+            updatedCvv = editPersonDescriptor.getCvv().get();
+        } else if (existingCardDetails != null) {
+            updatedCvv = existingCardDetails.getCvv();
+        } else {
+            updatedCvv = null;
+        }
 
-    /** Merges edited card fields with an existing complete card. */
-    private static CardDetails mergeCardDetails(Person current, EditPersonDescriptor editPersonDescriptor)
-            throws CommandException {
-        CardDetails existing = current.getCardDetails().orElse(null);
-        boolean isCardFieldEdited = editPersonDescriptor.getCardNumber().isPresent()
+        String updatedExpiryDate;
+        if (editPersonDescriptor.getExpiryDate().isPresent()) {
+            updatedExpiryDate = editPersonDescriptor.getExpiryDate().get();
+        } else if (existingCardDetails != null) {
+            updatedExpiryDate = existingCardDetails.getExpiryDate();
+        } else {
+            updatedExpiryDate = null;
+        }
+
+        String updatedProvider;
+        if (editPersonDescriptor.getProvider().isPresent()) {
+            updatedProvider = editPersonDescriptor.getProvider().get();
+        } else if (existingCardDetails != null) {
+            updatedProvider = existingCardDetails.getProvider();
+        } else {
+            updatedProvider = null;
+        }
+
+        boolean cardFieldEdited = editPersonDescriptor.getCardNumber().isPresent()
                 || editPersonDescriptor.getCvv().isPresent()
                 || editPersonDescriptor.getExpiryDate().isPresent()
                 || editPersonDescriptor.getProvider().isPresent();
-        if (!isCardFieldEdited) {
-            return existing;
+        CardDetails updatedCardDetails = existingCardDetails;
+        if (cardFieldEdited) {
+            if (updatedCardNumber == null || updatedCvv == null
+                    || updatedExpiryDate == null || updatedProvider == null) {
+                throw new CommandException(MESSAGE_INCOMPLETE_CARD_DETAILS);
+            }
+            updatedCardDetails = new CardDetails(updatedCardNumber, updatedCvv,
+                    updatedExpiryDate, updatedProvider);
         }
-        String number = editPersonDescriptor.getCardNumber()
-                .orElseGet(() -> existing == null ? null : existing.getCardNumber());
-        String cvv = editPersonDescriptor.getCvv()
-                .orElseGet(() -> existing == null ? null : existing.getCvv());
-        String expiry = editPersonDescriptor.getExpiryDate()
-                .orElseGet(() -> existing == null ? null : existing.getExpiryDate());
-        String provider = editPersonDescriptor.getProvider()
-                .orElseGet(() -> existing == null ? null : existing.getProvider());
-        if (number == null || cvv == null || expiry == null || provider == null) {
-            throw new CommandException(MESSAGE_INCOMPLETE_CARD_DETAILS);
+
+        CreditScore updatedCreditScore;
+        if (editPersonDescriptor.getCreditScore().isPresent()) {
+            updatedCreditScore = editPersonDescriptor.getCreditScore().get();
+        } else {
+            updatedCreditScore = personToEdit.getCreditScore().orElse(null);
         }
-        return new CardDetails(number, cvv, expiry, provider);
+
+        Debt updatedDebt;
+        if (editPersonDescriptor.getDebt().isPresent()) {
+            updatedDebt = editPersonDescriptor.getDebt().get();
+        } else {
+            updatedDebt = personToEdit.getDebt().orElse(null);
+        }
+
+        ServiceNote updatedServiceNote;
+        if (editPersonDescriptor.isServiceNoteEdited()) {
+            if (editPersonDescriptor.getServiceNote().isPresent()) {
+                updatedServiceNote = editPersonDescriptor.getServiceNote().get();
+            } else {
+                updatedServiceNote = null;
+            }
+        } else {
+            updatedServiceNote = personToEdit.getServiceNote().orElse(null);
+        }
+
+        return personToEdit.withDetails(updatedReference, updatedName, updatedPhone, updatedEmail,
+                updatedAddress, updatedCardDetails, updatedCreditScore, updatedDebt, updatedTags, updatedServiceNote);
     }
 
     @Override
