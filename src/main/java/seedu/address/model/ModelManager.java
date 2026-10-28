@@ -18,6 +18,7 @@ import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.person.ClientClash;
+import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.Person;
 
 /**
@@ -147,16 +148,18 @@ public class ModelManager implements Model {
             Person existingClient,
             List<ClientClash> clashes) {
 
-        if (proposedClient.getClientReference() == null
-                || existingClient.getClientReference() == null) {
+        if (proposedClient.getClientReference().isEmpty()
+                || existingClient.getClientReference().isEmpty()) {
             return;
         }
 
-        if (proposedClient.getClientReference()
-                .equals(existingClient.getClientReference())) {
+        ClientReference proposedReference = proposedClient.getClientReference().get();
+        ClientReference existingReference = existingClient.getClientReference().get();
+
+        if (proposedReference.equals(existingReference)) {
             clashes.add(new ClientClash(
                     ClientClash.Field.REFERENCE,
-                    proposedClient.getClientReference().value,
+                    proposedReference.value,
                     existingClient));
         }
     }
