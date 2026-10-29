@@ -3,6 +3,12 @@
 skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
+skinparam classAttributeFontColor #FFFFFF
+skinparam classAttributeIconSize 0
+skinparam dpi 150
+skinparam nodesep 30
+skinparam ranksep 50
+left to right direction
 
 Package Model as ModelPackage <<Rectangle>>{
 Class "<<interface>>\nReadOnlyAddressBook" as ReadOnlyAddressBook
@@ -11,17 +17,64 @@ Class "<<interface>>\nModel" as Model
 Class AddressBook
 Class ModelManager
 Class UserPrefs
+Class "<<enumeration>>\nSortOrder" as SortOrder {
+  ORIGINAL
+  ASC
+  DESC
+}
 
 Class UniquePersonList
-Class Person
-Class Address
-Class Email
-Class Name
-Class Phone
-Class Tag
-
-Class I #FFFFFF
+Class Person {
+  - createdAt : Instant [0..1]
+  - lastModifiedAt : Instant [0..1]
 }
+Class ClientReference {
+  + value : String
+}
+Class Name {
+  + fullName : String
+}
+Class Phone {
+  + value : String
+}
+Class Email {
+  + value : String
+}
+Class Address {
+  + value : String
+}
+Class CardDetails {
+  - cardNumber : String
+  - cvv : String
+  - expiryDate : String
+  - provider : String
+}
+Class CreditScore {
+  - value : BigInteger
+}
+Class Debt {
+  - amount : BigDecimal
+}
+Class ServiceNote {
+  + value : String
+}
+Class Tag {
+  + tagName : String
+}
+}
+
+show Person fields
+show ClientReference fields
+show Name fields
+show Phone fields
+show Email fields
+show Address fields
+show CardDetails fields
+show CreditScore fields
+show Debt fields
+show ServiceNote fields
+show Tag fields
+show SortOrder members
 
 Class HiddenOutside #FFFFFF
 HiddenOutside ..> Model
@@ -33,22 +86,22 @@ Model .right.> ReadOnlyUserPrefs
 Model .left.> ReadOnlyAddressBook
 ModelManager -left-> "1" AddressBook
 ModelManager -right-> "1" UserPrefs
+ModelManager -down-> "1" SortOrder : sortOrder
 UserPrefs .up.|> ReadOnlyUserPrefs
 
 AddressBook *--> "1" UniquePersonList
-UniquePersonList --> "~* all" Person
-Person *--> Name
-Person *--> Phone
-Person *--> Email
-Person *--> Address
-Person *--> "*" Tag
+UniquePersonList --> "0..*" Person : all
+ModelManager --> "0..*" Person : displayed
 
-Person -[hidden]up--> I
-UniquePersonList -[hidden]right-> I
+Person --> "clientReference\n0..1" ClientReference
+Person --> "name\n1" Name
+Person --> "phone\n0..1" Phone
+Person --> "email\n0..1" Email
+Person --> "address\n0..1" Address
+Person --> "cardDetails\n0..1" CardDetails
+Person --> "creditScore\n0..1" CreditScore
+Person --> "debt\n0..1" Debt
+Person --> "serviceNote\n0..1" ServiceNote
+Person --> "tags\n0..* {unique}" Tag
 
-Name -[hidden]right-> Phone
-Phone -[hidden]right-> Address
-Address -[hidden]right-> Email
-
-ModelManager --> "~* filtered" Person
 @enduml
