@@ -1,15 +1,18 @@
 package seedu.address.ui;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
@@ -26,6 +29,9 @@ import seedu.address.model.person.Person;
 public class MainWindow extends UiPart<Stage> {
 
     private static final String FXML = "MainWindow.fxml";
+    private static final double MIN_WINDOW_WIDTH = 650;
+    private static final double MIN_WINDOW_HEIGHT = 500;
+    private static final double SCREEN_MARGIN = 40;
 
     private final Logger logger = LogsCenter.getLogger(getClass());
 
@@ -144,12 +150,42 @@ public class MainWindow extends UiPart<Stage> {
      * Sets the default size based on {@code guiSettings}.
      */
     private void setWindowDefaultSize(GuiSettings guiSettings) {
-        primaryStage.setHeight(guiSettings.getWindowHeight());
-        primaryStage.setWidth(guiSettings.getWindowWidth());
+        Rectangle2D screenBounds = findTargetScreen(guiSettings);
+        double maxWidth = Math.max(MIN_WINDOW_WIDTH, screenBounds.getWidth() - SCREEN_MARGIN);
+        double maxHeight = Math.max(MIN_WINDOW_HEIGHT, screenBounds.getHeight() - SCREEN_MARGIN);
+        double width = clamp(guiSettings.getWindowWidth(), MIN_WINDOW_WIDTH, maxWidth);
+        double height = clamp(guiSettings.getWindowHeight(), MIN_WINDOW_HEIGHT, maxHeight);
+
+        double x = screenBounds.getMinX() + (screenBounds.getWidth() - width) / 2;
+        double y = screenBounds.getMinY() + (screenBounds.getHeight() - height) / 2;
         if (guiSettings.getWindowCoordinates() != null) {
-            primaryStage.setX(guiSettings.getWindowCoordinates().getX());
-            primaryStage.setY(guiSettings.getWindowCoordinates().getY());
+            x = guiSettings.getWindowCoordinates().getX();
+            y = guiSettings.getWindowCoordinates().getY();
         }
+
+        primaryStage.setWidth(width);
+        primaryStage.setHeight(height);
+        primaryStage.setX(clamp(x, screenBounds.getMinX(), screenBounds.getMaxX() - width));
+        primaryStage.setY(clamp(y, screenBounds.getMinY(), screenBounds.getMaxY() - height));
+    }
+
+    /** Finds the saved window's screen, falling back to the primary screen. */
+    private static Rectangle2D findTargetScreen(GuiSettings guiSettings) {
+        if (guiSettings.getWindowCoordinates() != null) {
+            double x = guiSettings.getWindowCoordinates().getX();
+            double y = guiSettings.getWindowCoordinates().getY();
+            List<Screen> screens = Screen.getScreens();
+            for (Screen screen : screens) {
+                if (screen.getVisualBounds().contains(x, y)) {
+                    return screen.getVisualBounds();
+                }
+            }
+        }
+        return Screen.getPrimary().getVisualBounds();
+    }
+
+    private static double clamp(double value, double minimum, double maximum) {
+        return Math.max(minimum, Math.min(value, maximum));
     }
 
     /**
