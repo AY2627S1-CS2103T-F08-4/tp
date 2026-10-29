@@ -236,7 +236,7 @@ public class MainWindow extends UiPart<Stage> {
                         + "Type yes to proceed or no to cancel.";
 
                 resultDisplay.setFeedbackToUser(warningMessage);
-                logger.info("Clash confirmation required for: " + pendingClashCommand);
+                logger.info("Clash confirmation required");
                 return commandResult;
             }
 

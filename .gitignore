@@ -2,6 +2,8 @@
 /.gradle/
 /build/
 src/main/resources/docs/
+/alpha_test/
+.gitignore
 
 # IDEA files
 src/.idea/
