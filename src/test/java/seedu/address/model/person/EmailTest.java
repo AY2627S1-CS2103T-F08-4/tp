@@ -9,6 +9,18 @@ import org.junit.jupiter.api.Test;
 public class EmailTest {
 
     @Test
+    public void isSameMailboxAs_comparesOnlyDomainWithoutCase() {
+        Email email = new Email("alice@example.com");
+        assertTrue(email.isSameMailboxAs(new Email("alice@EXAMPLE.COM")));
+        assertTrue(new Email("alice@Example.Com").isSameMailboxAs(email));
+        assertTrue(email.isSameMailboxAs(new Email("alice@example.com")));
+        assertFalse(email.isSameMailboxAs(new Email("Alice@example.com")));
+        assertFalse(email.isSameMailboxAs(new Email("alice@other.com")));
+        assertFalse(email.isSameMailboxAs(new Email("alicea@example.com")));
+        assertThrows(NullPointerException.class, () -> email.isSameMailboxAs(null));
+    }
+
+    @Test
     public void constructor_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new Email(null));
     }
