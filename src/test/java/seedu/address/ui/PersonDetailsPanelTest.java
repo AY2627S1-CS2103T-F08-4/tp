@@ -21,9 +21,14 @@ import org.junit.jupiter.api.Test;
 import org.w3c.dom.NodeList;
 
 import javafx.application.Platform;
+import javafx.geometry.Bounds;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.text.Text;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.Email;
@@ -198,6 +203,43 @@ class PersonDetailsPanelTest {
         Region displayed = row == null ? label : row;
         assertEquals(!expectedText.isEmpty(), displayed.isVisible(), id + " visibility");
         assertEquals(!expectedText.isEmpty(), displayed.isManaged(), id + " layout space");
+    }
+
+    @Test
+    void showPerson_longTag_wrapsInsideViewportWhenResized() throws Exception {
+        runOnFxThread(() -> {
+            String longTag = "RequiresSupervisorApprovalBeforeProcessingInternationalWireTransfersAboveDailyLimit";
+            Person person = new PersonBuilder().withTags(longTag, "VIP").build();
+            PersonDetailsPanel panel = new PersonDetailsPanel();
+            panel.showPerson(person);
+            StackPane container = new StackPane(panel.getRoot());
+            Scene scene = new Scene(container);
+            scene.getStylesheets().add(PersonDetailsPanel.class.getResource("/view/DarkTheme.css").toExternalForm());
+
+            for (double width : new double[] {320, 480, 300}) {
+                container.resize(width, 600);
+                container.applyCss();
+                container.layout();
+                ScrollPane scrollPane = (ScrollPane) panel.getRoot();
+                FlowPane tags = (FlowPane) scrollPane.lookup("#tags");
+                Label label = (Label) tags.getChildren().getFirst();
+                Bounds viewport = scrollPane.lookup(".viewport").localToScene(
+                        scrollPane.lookup(".viewport").getLayoutBounds());
+                Bounds renderedTag = label.localToScene(label.getLayoutBounds());
+
+                assertEquals(longTag, label.getText());
+                assertTrue(renderedTag.getMinX() >= viewport.getMinX() - 1);
+                assertTrue(renderedTag.getMaxX() <= viewport.getMaxX() + 1,
+                        "Full tag must fit within viewport at width " + width);
+                Text text = (Text) label.lookup(".text");
+                Text singleLine = new Text(longTag);
+                singleLine.setFont(label.getFont());
+                assertTrue(text.getLayoutBounds().getHeight() > singleLine.getLayoutBounds().getHeight(),
+                        "Long tag should occupy multiple lines");
+                assertTrue(label.getHeight() >= label.prefHeight(label.getWidth()) - 1,
+                        "All wrapped lines must have enough height");
+            }
+        });
     }
 
     private static void runOnFxThread(Runnable action) throws Exception {

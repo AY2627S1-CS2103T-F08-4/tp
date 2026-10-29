@@ -100,7 +100,13 @@ public class PersonDetailsPanel extends UiPart<Region> {
         setOptionalRow(debtRow, debt, person.getDebt().map(Object::toString).orElse(""));
         tags.getChildren().clear();
         person.getTags().stream().sorted(Comparator.comparing(tag -> tag.tagName))
-                .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+                .forEach(tag -> {
+                    Label label = new Label(tag.tagName);
+                    label.setWrapText(true);
+                    label.setMinWidth(0);
+                    label.maxWidthProperty().bind(tags.widthProperty());
+                    tags.getChildren().add(label);
+                });
         setShown(tagsRow, !tags.getChildren().isEmpty());
         setShown(financialSection, cardDetailsRow.isManaged() || creditScoreRow.isManaged()
                 || debtRow.isManaged() || tagsRow.isManaged());
