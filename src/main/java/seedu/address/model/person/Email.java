@@ -36,6 +36,15 @@ public class Email {
                 && test.substring(test.lastIndexOf('.') + 1).replaceAll("[^a-zA-Z]", "").length() >= 2;
     }
 
+    /** Compares mailbox identities, preserving local-part case and ignoring domain case. */
+    public boolean isSameMailboxAs(Email other) {
+        requireNonNull(other);
+        int separator = value.indexOf('@');
+        int otherSeparator = other.value.indexOf('@');
+        return value.substring(0, separator).equals(other.value.substring(0, otherSeparator))
+                && value.substring(separator + 1).equalsIgnoreCase(other.value.substring(otherSeparator + 1));
+    }
+
     @Override
     public String toString() {
         return value;
