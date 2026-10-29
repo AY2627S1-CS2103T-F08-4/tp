@@ -135,13 +135,13 @@ The `Model` component,
 
 #### Client profile fields
 
-`Person` is an immutable client profile. The diagram shows its stored fields, including the types used for client references, contact details, card and financial information, service notes, tags, and timestamps. `CardDetails` is expanded to show its four required fields; the other value types are shown by name in the `Person` attributes.
+`Person` is an immutable client profile. The diagram shows its stored fields, including the types used for client references, contact details, card and financial information, service notes, tags, and timestamps. All value types, including `CardDetails`, are shown consistently as attribute types; their internal fields are omitted.
 
-<puml src="diagrams/PersonClassDiagram.puml" width="700" alt="Person fields with optional client details and timestamps, and the four fields in CardDetails" />
+<puml src="diagrams/PersonClassDiagram.puml" width="450" alt="Person attributes showing required name, optional client details and timestamps, and a set of tags" />
 
-An attribute multiplicity of `0..1` means the stored field may be `null`; `name` is required. `tags` is a non-null set that can be empty. The phone, email, address, card, credit score, and debt getters return `Optional` values even though their stored fields are nullable. `getClientReference()`, `getServiceNote()`, `getCreatedAt()`, and `getLastModifiedAt()` return nullable values directly.
+An attribute multiplicity of `0..1` means the stored field may be `null`; `name` is required. `tags` is a non-null set that can be empty. All getters for nullable fields return `Optional` values.
 
-New clients created through `add` require a `ClientReference`. Unreferenced legacy profiles remain supported. References determine client identity when present; profiles without references retain name-based identity. Contact, card, credit score, and debt fields may be absent independently. If a card is present, all four `CardDetails` strings are required.
+New clients created through `add` require a `ClientReference`. Unreferenced legacy profiles remain supported. References determine client identity when present; profiles without references retain name-based identity. Contact, card, credit score, and debt fields may be absent independently. If a card is present, its `cardNumber`, `cvv`, `expiryDate`, and `provider` fields are required strings.
 
 `createdAt` and `lastModifiedAt` use `java.time.Instant`. `ModelManager#addPerson` supplies both timestamps, while `ModelManager#setPerson` preserves the creation time and updates the modification time using its clock. Older profiles may lack either timestamp. See [Client creation and modification timestamps](#client-creation-and-modification-timestamps) for the persistence and display behavior.
 

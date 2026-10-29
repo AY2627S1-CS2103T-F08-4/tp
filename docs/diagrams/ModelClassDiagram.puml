@@ -12,12 +12,9 @@ Class "<<interface>>\nReadOnlyAddressBook" as ReadOnlyAddressBook
 Class "<<interface>>\nReadOnlyUserPrefs" as ReadOnlyUserPrefs
 Class "<<interface>>\nModel" as Model
 Class AddressBook
-Class ModelManager {
-  - filteredPersons : FilteredList<Person>
-  - displayedPersons : SortedList<Person>
-}
+Class ModelManager
 Class UserPrefs
-Enum SortOrder {
+Class "<<enumeration>>\nSortOrder" as SortOrder {
   ORIGINAL
   ASC
   DESC
@@ -27,7 +24,6 @@ Class UniquePersonList
 Class Person
 }
 
-show ModelManager fields
 show SortOrder members
 
 Class HiddenOutside #FFFFFF
@@ -40,10 +36,12 @@ Model .right.> ReadOnlyUserPrefs
 Model .left.> ReadOnlyAddressBook
 ModelManager -left-> "1" AddressBook
 ModelManager -right-> "1" UserPrefs
-ModelManager --> "1" SortOrder : sortOrder
+ModelManager -down-> "1" SortOrder : sortOrder
 UserPrefs .up.|> ReadOnlyUserPrefs
 
 AddressBook *--> "1" UniquePersonList
 UniquePersonList -right-> "0..*" Person : all
+ModelManager -down-> "0..*" Person : displayed
+Person -[hidden]right-> SortOrder
 
 @enduml

@@ -22,15 +22,5 @@ class Person {
   - lastModifiedAt : Instant [0..1]
 }
 
-class CardDetails {
-  - cardNumber : String
-  - cvv : String
-  - expiryDate : String
-  - provider : String
-}
-
 show Person fields
-show CardDetails fields
-
-Person *-right-> "0..1" CardDetails
 @enduml
