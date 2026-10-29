@@ -28,7 +28,7 @@ public class ParserUtil {
     public static final String MESSAGE_INVALID_CONFIRMATION = "Confirmation must be specified as confirm/y.";
 
     /** Parses the value of the clash confirmation prefix. */
-    public static boolean parseConfirmation(String confirmation) throws ParseException {
+    public static boolean isValidConfirmation(String confirmation) throws ParseException {
         requireNonNull(confirmation);
         if (!confirmation.equalsIgnoreCase("y")) {
             throw new ParseException(MESSAGE_INVALID_CONFIRMATION);

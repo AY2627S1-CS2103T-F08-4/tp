@@ -78,7 +78,7 @@ public class EditCommand extends Command {
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
-    private final boolean clashConfirmed;
+    private final boolean isClashConfirmed;
 
     /**
      * @param index of the person in the filtered person list to edit
@@ -89,13 +89,13 @@ public class EditCommand extends Command {
     }
 
     /** Creates an edit command, optionally bypassing a previously displayed clash warning. */
-    public EditCommand(Index index, EditPersonDescriptor editPersonDescriptor, boolean clashConfirmed) {
+    public EditCommand(Index index, EditPersonDescriptor editPersonDescriptor, boolean isClashConfirmed) {
         requireNonNull(index);
         requireNonNull(editPersonDescriptor);
 
         this.index = index;
         this.editPersonDescriptor = new EditPersonDescriptor(editPersonDescriptor);
-        this.clashConfirmed = clashConfirmed;
+        this.isClashConfirmed = isClashConfirmed;
     }
 
     @Override
@@ -115,7 +115,7 @@ public class EditCommand extends Command {
         }
 
         List<ClientClash> clashes = model.findClientClashes(editedPerson, personToEdit);
-        if (!clashConfirmed && !clashes.isEmpty()) {
+        if (!isClashConfirmed && !clashes.isEmpty()) {
             return CommandResult.requestClashConfirmation(clashes, "");
         }
 
@@ -133,14 +133,8 @@ public class EditCommand extends Command {
             throws CommandException {
         assert personToEdit != null : "An edit target must exist before reconstruction";
 
-        ClientReference updatedReference;
-        if (editPersonDescriptor.getClientReference().isPresent()) {
-            updatedReference = editPersonDescriptor.getClientReference().get();
-        } else if (personToEdit.getClientReference().isPresent()) {
-            updatedReference = personToEdit.getClientReference().get();
-        } else {
-            updatedReference = null;
-        }
+        ClientReference updatedReference = editPersonDescriptor.getClientReference()
+                .orElse(personToEdit.getClientReference().orElse(null));
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
         Phone updatedPhone = editPersonDescriptor.getPhone().or(personToEdit::getPhone).orElse(null);
@@ -148,84 +142,47 @@ public class EditCommand extends Command {
         Address updatedAddress = editPersonDescriptor.getAddress().or(personToEdit::getAddress).orElse(null);
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
-        CardDetails existingCardDetails = personToEdit.getCardDetails().orElse(null);
-        String updatedCardNumber;
-        if (editPersonDescriptor.getCardNumber().isPresent()) {
-            updatedCardNumber = editPersonDescriptor.getCardNumber().get();
-        } else if (existingCardDetails != null) {
-            updatedCardNumber = existingCardDetails.getCardNumber();
-        } else {
-            updatedCardNumber = null;
-        }
-
-        String updatedCvv;
-        if (editPersonDescriptor.getCvv().isPresent()) {
-            updatedCvv = editPersonDescriptor.getCvv().get();
-        } else if (existingCardDetails != null) {
-            updatedCvv = existingCardDetails.getCvv();
-        } else {
-            updatedCvv = null;
-        }
-
-        String updatedExpiryDate;
-        if (editPersonDescriptor.getExpiryDate().isPresent()) {
-            updatedExpiryDate = editPersonDescriptor.getExpiryDate().get();
-        } else if (existingCardDetails != null) {
-            updatedExpiryDate = existingCardDetails.getExpiryDate();
-        } else {
-            updatedExpiryDate = null;
-        }
-
-        String updatedProvider;
-        if (editPersonDescriptor.getProvider().isPresent()) {
-            updatedProvider = editPersonDescriptor.getProvider().get();
-        } else if (existingCardDetails != null) {
-            updatedProvider = existingCardDetails.getProvider();
-        } else {
-            updatedProvider = null;
-        }
-
-        boolean cardFieldEdited = editPersonDescriptor.getCardNumber().isPresent()
-                || editPersonDescriptor.getCvv().isPresent()
-                || editPersonDescriptor.getExpiryDate().isPresent()
-                || editPersonDescriptor.getProvider().isPresent();
-        CardDetails updatedCardDetails = existingCardDetails;
-        if (cardFieldEdited) {
-            if (updatedCardNumber == null || updatedCvv == null
-                    || updatedExpiryDate == null || updatedProvider == null) {
-                throw new CommandException(MESSAGE_INCOMPLETE_CARD_DETAILS);
-            }
-            updatedCardDetails = new CardDetails(updatedCardNumber, updatedCvv,
-                    updatedExpiryDate, updatedProvider);
-        }
-
-        CreditScore updatedCreditScore;
-        if (editPersonDescriptor.getCreditScore().isPresent()) {
-            updatedCreditScore = editPersonDescriptor.getCreditScore().get();
-        } else {
-            updatedCreditScore = personToEdit.getCreditScore().orElse(null);
-        }
-
-        Debt updatedDebt;
-        if (editPersonDescriptor.getDebt().isPresent()) {
-            updatedDebt = editPersonDescriptor.getDebt().get();
-        } else {
-            updatedDebt = personToEdit.getDebt().orElse(null);
-        }
-
-        ServiceNote updatedServiceNote;
-        if (editPersonDescriptor.isServiceNoteEdited()) {
-            if (editPersonDescriptor.getServiceNote().isPresent()) {
-                updatedServiceNote = editPersonDescriptor.getServiceNote().get();
-            } else {
-                updatedServiceNote = null;
-            }
-        } else {
-            updatedServiceNote = personToEdit.getServiceNote().orElse(null);
-        }
+        CardDetails updatedCardDetails = mergeCardDetails(personToEdit, editPersonDescriptor);
+        CreditScore updatedCreditScore = editPersonDescriptor.getCreditScore()
+                .orElse(personToEdit.getCreditScore().orElse(null));
+        Debt updatedDebt = editPersonDescriptor.getDebt().orElse(personToEdit.getDebt().orElse(null));
+        ServiceNote updatedServiceNote = mergeServiceNote(personToEdit, editPersonDescriptor);
 
         return personToEdit.withDetails(updatedReference, updatedName, updatedPhone, updatedEmail,
                 updatedAddress, updatedCardDetails, updatedCreditScore, updatedDebt, updatedTags, updatedServiceNote);
+    }
+
+    private static CardDetails mergeCardDetails(Person person, EditPersonDescriptor descriptor)
+            throws CommandException {
+        CardDetails existing = person.getCardDetails().orElse(null);
+        boolean isCardFieldEdited = descriptor.getCardNumber().isPresent()
+                || descriptor.getCvv().isPresent()
+                || descriptor.getExpiryDate().isPresent()
+                || descriptor.getProvider().isPresent();
+
+        if (!isCardFieldEdited) {
+            return existing;
+        }
+
+        String cardNumber = descriptor.getCardNumber()
+                .orElse(existing == null ? null : existing.getCardNumber());
+        String cvv = descriptor.getCvv().orElse(existing == null ? null : existing.getCvv());
+        String expiryDate = descriptor.getExpiryDate()
+                .orElse(existing == null ? null : existing.getExpiryDate());
+        String provider = descriptor.getProvider()
+                .orElse(existing == null ? null : existing.getProvider());
+
+        if (cardNumber == null || cvv == null || expiryDate == null || provider == null) {
+            throw new CommandException(MESSAGE_INCOMPLETE_CARD_DETAILS);
+        }
+        return new CardDetails(cardNumber, cvv, expiryDate, provider);
+    }
+
+    private static ServiceNote mergeServiceNote(Person person, EditPersonDescriptor descriptor) {
+        if (!descriptor.isServiceNoteEdited()) {
+            return person.getServiceNote().orElse(null);
+        }
+        return descriptor.getServiceNote().orElse(null);
     }
 
     @Override
@@ -246,7 +203,7 @@ public class EditCommand extends Command {
 
         return index.equals(otherEditCommand.index)
                 && editPersonDescriptor.equals(otherEditCommand.editPersonDescriptor)
-                && clashConfirmed == otherEditCommand.clashConfirmed;
+                && isClashConfirmed == otherEditCommand.isClashConfirmed;
     }
 
     @Override
@@ -259,7 +216,7 @@ public class EditCommand extends Command {
         return new ToStringBuilder(this)
                 .add("index", index)
                 .add("editPersonDescriptor", editPersonDescriptor)
-                .add("clashConfirmed", clashConfirmed)
+                .add("isClashConfirmed", isClashConfirmed)
                 .toString();
     }
 
@@ -281,7 +238,7 @@ public class EditCommand extends Command {
         private CreditScore creditScore;
         private Debt debt;
         private ServiceNote serviceNote;
-        private boolean serviceNoteEdited;
+        private boolean isServiceNoteEdited;
 
         public EditPersonDescriptor() {}
 
@@ -303,7 +260,7 @@ public class EditCommand extends Command {
             setCreditScore(toCopy.creditScore);
             setDebt(toCopy.debt);
             setServiceNote(toCopy.serviceNote);
-            serviceNoteEdited = toCopy.serviceNoteEdited;
+            isServiceNoteEdited = toCopy.isServiceNoteEdited;
         }
 
         /**
@@ -312,7 +269,7 @@ public class EditCommand extends Command {
         public boolean isAnyFieldEdited() {
             return CollectionUtil.isAnyNonNull(clientReference, name, phone, email, address,
                     cardNumber, cvv, expiryDate, provider, creditScore, debt, tags)
-                    || serviceNoteEdited;
+                    || isServiceNoteEdited;
         }
 
         public void setClientReference(ClientReference clientReference) {
@@ -405,7 +362,7 @@ public class EditCommand extends Command {
 
         public void setServiceNote(ServiceNote serviceNote) {
             this.serviceNote = serviceNote;
-            this.serviceNoteEdited = true;
+            this.isServiceNoteEdited = true;
         }
 
         public Optional<ServiceNote> getServiceNote() {
@@ -413,7 +370,7 @@ public class EditCommand extends Command {
         }
 
         public boolean isServiceNoteEdited() {
-            return serviceNoteEdited;
+            return isServiceNoteEdited;
         }
 
         /**
@@ -457,13 +414,13 @@ public class EditCommand extends Command {
                     && Objects.equals(debt, otherEditPersonDescriptor.debt)
                     && Objects.equals(tags, otherEditPersonDescriptor.tags)
                     && Objects.equals(serviceNote, otherEditPersonDescriptor.serviceNote)
-                    && serviceNoteEdited == otherEditPersonDescriptor.serviceNoteEdited;
+                    && isServiceNoteEdited == otherEditPersonDescriptor.isServiceNoteEdited;
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(name, phone, email, address, clientReference, cardNumber, cvv,
-                    expiryDate, provider, creditScore, debt, tags, serviceNote, serviceNoteEdited);
+                    expiryDate, provider, creditScore, debt, tags, serviceNote, isServiceNoteEdited);
         }
 
         @Override

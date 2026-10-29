@@ -179,8 +179,8 @@ public class PersonDetailsPanel extends UiPart<Region> {
         setShown(label, text != null && !text.isBlank());
     }
 
-    private static void setShown(Region region, boolean shown) {
-        region.setVisible(shown);
-        region.setManaged(shown);
+    private static void setShown(Region region, boolean isShown) {
+        region.setVisible(isShown);
+        region.setManaged(isShown);
     }
 }

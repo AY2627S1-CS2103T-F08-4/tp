@@ -31,7 +31,7 @@ public class MainAppTest {
         MainApp.InitialData initialData = load(dataPath);
         assertEquals("No saved client data found. Showing sample clients.", initialData.message());
         assertEquals(SampleDataUtil.getSampleAddressBook(), initialData.model().getAddressBook());
-        assertFalse(initialData.protectedMode());
+        assertFalse(initialData.isProtectedMode());
         assertFalse(Files.exists(dataPath));
     }
 
@@ -58,7 +58,7 @@ public class MainAppTest {
         MainApp.InitialData initialData = load(dataPath);
         assertEquals("No saved client data found.", initialData.message());
         assertTrue(initialData.model().getAddressBook().getPersonList().isEmpty());
-        assertFalse(initialData.protectedMode());
+        assertFalse(initialData.isProtectedMode());
     }
 
     @Test
@@ -74,7 +74,7 @@ public class MainAppTest {
         MainApp.InitialData initialData = load(dataPath);
         assertEquals("Loaded 2 client(s).", initialData.message());
         assertEquals(saved, initialData.model().getAddressBook());
-        assertFalse(initialData.protectedMode());
+        assertFalse(initialData.isProtectedMode());
     }
 
     @Test
@@ -84,7 +84,7 @@ public class MainAppTest {
         MainApp.InitialData initialData = load(dataPath);
         assertEquals(LogicManager.LOAD_FAILURE_MESSAGE, initialData.message());
         assertTrue(initialData.model().getAddressBook().getPersonList().isEmpty());
-        assertTrue(initialData.protectedMode());
+        assertTrue(initialData.isProtectedMode());
         assertEquals("invalid json", Files.readString(dataPath));
     }
 
@@ -102,7 +102,7 @@ public class MainAppTest {
         MainApp.InitialData initialData = load(dataPath);
 
         assertEquals(LogicManager.LOAD_FAILURE_MESSAGE, initialData.message());
-        assertTrue(initialData.protectedMode());
+        assertTrue(initialData.isProtectedMode());
         assertTrue(initialData.model().getAddressBook().getPersonList().isEmpty());
         assertEquals(corrupted, Files.readString(dataPath));
     }
@@ -117,7 +117,7 @@ public class MainAppTest {
 
         MainApp.InitialData initialData = load(dataPath);
 
-        assertFalse(initialData.protectedMode());
+        assertFalse(initialData.isProtectedMode());
         assertEquals("Loaded 1 client(s).", initialData.message());
         assertEquals(json, Files.readString(dataPath));
         Person person = initialData.model().getAddressBook().getPersonList().getFirst();
@@ -134,7 +134,7 @@ public class MainAppTest {
         Files.createDirectory(dataPath);
         MainApp.InitialData initialData = load(dataPath);
         assertEquals(LogicManager.LOAD_FAILURE_MESSAGE, initialData.message());
-        assertTrue(initialData.protectedMode());
+        assertTrue(initialData.isProtectedMode());
         assertTrue(Files.isDirectory(dataPath));
     }
 

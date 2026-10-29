@@ -45,8 +45,8 @@ public class EditCommandParser implements Parser<EditCommand> {
                         PREFIX_ADDRESS, PREFIX_CARD_NUMBER, PREFIX_CVV, PREFIX_EXPIRY_DATE, PREFIX_PROVIDER,
                         PREFIX_CREDIT_SCORE, PREFIX_DEBT, PREFIX_SERVICE_NOTE, PREFIX_TAG, PREFIX_CONFIRM);
 
-        boolean clashConfirmed = argMultimap.getValue(PREFIX_CONFIRM).isPresent()
-                && ParserUtil.parseConfirmation(argMultimap.getValue(PREFIX_CONFIRM).get());
+        boolean isClashConfirmed = argMultimap.getValue(PREFIX_CONFIRM).isPresent()
+                && ParserUtil.isValidConfirmation(argMultimap.getValue(PREFIX_CONFIRM).get());
 
         Index index;
 
@@ -110,7 +110,7 @@ public class EditCommandParser implements Parser<EditCommand> {
             throw new ParseException(EditCommand.MESSAGE_NOT_EDITED);
         }
 
-        return new EditCommand(index, editPersonDescriptor, clashConfirmed);
+        return new EditCommand(index, editPersonDescriptor, isClashConfirmed);
     }
 
     /**
