@@ -93,7 +93,7 @@ class PersonDetailsPanelTest {
             assertLabel(root, "email", PersonBuilder.DEFAULT_EMAIL);
             assertLabel(root, "address", PersonBuilder.DEFAULT_ADDRESS);
             assertLabel(root, "reference", "C0001");
-            assertLabel(root, "cardDetails", "Visa ****3456 exp 12/28");
+            assertLabel(root, "cardDetails", "Visa ****3456 CVV: 123 expiry: 12/28");
             assertLabel(root, "creditScore", "700");
             assertLabel(root, "debt", "0.00");
         });
@@ -119,12 +119,12 @@ class PersonDetailsPanelTest {
     }
 
     @Test
-    void formatCardDetails_completeCardDetails_masksCardNumberAndOmitsCvv() {
+    void formatCardDetails_completeCardDetails_masksCardNumberAndDisplaysCvvAndExpiry() {
         var person = new PersonBuilder()
                 .withCardDetails("1234567890123456", "123", "12/28", "Visa")
                 .build();
 
-        assertEquals("Visa ****3456 exp 12/28", PersonDetailsPanel.formatCardDetails(person));
+        assertEquals("Visa ****3456 CVV: 123 expiry: 12/28", PersonDetailsPanel.formatCardDetails(person));
     }
 
     @Test

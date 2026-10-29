@@ -64,7 +64,7 @@ class EmailClashIntegrationTest {
         String command = "add r/EMAILB n/Bob Lim e/alice@EXAMPLE.COM";
         assertTrue(logic.execute(command).requiresClashConfirmation());
 
-        assertFalse(logic.execute(command + " --confirm-clash").requiresClashConfirmation());
+        assertFalse(logic.execute(command + " confirm/y").requiresClashConfirmation());
         assertEquals("alice@EXAMPLE.COM", new JsonAddressBookStorage(dataPath).readAddressBook()
                 .orElseThrow().getPersonList().get(1).getEmail().orElseThrow().value);
     }

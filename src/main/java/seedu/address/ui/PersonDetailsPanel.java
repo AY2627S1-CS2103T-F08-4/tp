@@ -7,8 +7,10 @@ import java.util.Comparator;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -19,11 +21,14 @@ import seedu.address.model.person.Person;
 /** Displays the currently selected client's details. */
 public class PersonDetailsPanel extends UiPart<Region> {
     private static final String FXML = "PersonDetailsPanel.fxml";
+    private static final double SCROLL_SPEED_MULTIPLIER = 2.5;
     private static final String TIMESTAMP_UNAVAILABLE = "Timestamp information is unavailable for this profile.";
     private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @FXML
     private Label emptyMessage;
+    @FXML
+    private ScrollPane detailsScrollPane;
     @FXML
     private VBox details;
     @FXML
@@ -78,7 +83,15 @@ public class PersonDetailsPanel extends UiPart<Region> {
     /** Loads the details panel with no client selected. */
     public PersonDetailsPanel() {
         super(FXML);
+        detailsScrollPane.addEventFilter(ScrollEvent.SCROLL, this::handleScroll);
         showPerson(null);
+    }
+
+    /** Scrolls the details pane faster so it feels consistent with the client list. */
+    private void handleScroll(ScrollEvent event) {
+        detailsScrollPane.setVvalue(detailsScrollPane.getVvalue()
+                - event.getDeltaY() * SCROLL_SPEED_MULTIPLIER / 100.0);
+        event.consume();
     }
 
     /** Shows the selected client, or the empty state when {@code person} is null. */
@@ -121,14 +134,16 @@ public class PersonDetailsPanel extends UiPart<Region> {
         serviceNote.setText(person.getServiceNote().map(value -> value.value).orElse("(none)"));
     }
 
-    /** Returns a display-safe summary without the card verification value. */
+    /** Returns a summary of the card details with the card number masked. */
     static String formatCardDetails(Person person) {
         return person.getCardDetails().map(details -> {
             String cardNumber = details.getCardNumber();
             String maskedCardNumber = cardNumber.length() <= 4
                     ? cardNumber
                     : "****" + cardNumber.substring(cardNumber.length() - 4);
-            return details.getProvider() + " " + maskedCardNumber + " exp " + details.getExpiryDate();
+            return details.getProvider() + " " + maskedCardNumber
+                    + " CVV: " + details.getCvv()
+                    + " expiry: " + details.getExpiryDate();
         }).orElse("");
     }
 

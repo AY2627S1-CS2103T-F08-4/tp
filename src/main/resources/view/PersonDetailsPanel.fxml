@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="client-details"
+<ScrollPane fx:id="detailsScrollPane" fitToWidth="true" hbarPolicy="NEVER" styleClass="client-details"
             xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
   <content>
     <VBox spacing="18">
