@@ -51,8 +51,8 @@ public class AddCommandParser implements Parser<AddCommand> {
                         PREFIX_ADDRESS, PREFIX_CARD_NUMBER, PREFIX_CVV, PREFIX_EXPIRY_DATE, PREFIX_PROVIDER,
                         PREFIX_CREDIT_SCORE, PREFIX_DEBT, PREFIX_TAG, PREFIX_CONFIRM);
 
-        boolean clashConfirmed = argMultimap.getValue(PREFIX_CONFIRM).isPresent()
-                && ParserUtil.parseConfirmation(argMultimap.getValue(PREFIX_CONFIRM).get());
+        boolean isClashConfirmed = argMultimap.getValue(PREFIX_CONFIRM).isPresent()
+                && ParserUtil.isValidConfirmation(argMultimap.getValue(PREFIX_CONFIRM).get());
 
         if (!arePrefixesPresent(argMultimap, PREFIX_REFERENCE, PREFIX_NAME)
                 || !argMultimap.getPreamble().isEmpty()) {
@@ -80,7 +80,7 @@ public class AddCommandParser implements Parser<AddCommand> {
 
         Person person = new Person(reference, name, phone, email, address, cardDetails, creditScore, debt, tagList);
 
-        return new AddCommand(person, clashConfirmed);
+        return new AddCommand(person, isClashConfirmed);
     }
 
     /** Parses a complete card group, or returns null when none of its prefixes are supplied. */

@@ -97,7 +97,7 @@ public class MainApp extends Application {
         InitialData initialData = initModelManager(storage, userPrefs);
         model = initialData.model();
 
-        logic = new LogicManager(model, storage, initialData.message(), initialData.protectedMode());
+        logic = new LogicManager(model, storage, initialData.message(), initialData.isProtectedMode());
 
         ui = new UiManager(logic, storage.getAddressBookFilePath());
     }
@@ -130,7 +130,7 @@ public class MainApp extends Application {
         }
     }
 
-    record InitialData(Model model, String message, boolean protectedMode) { }
+    record InitialData(Model model, String message, boolean isProtectedMode) { }
 
     /**
      * Returns a {@code UserPrefs} using the file at {@code storage}'s user prefs file path,

@@ -71,8 +71,8 @@ public class AddCommandIntegrationTest {
         assertEquals("700", client.getCreditScore().orElseThrow().toString());
         assertEquals("1250.50", client.getDebt().orElseThrow().toString());
         assertEquals(1, client.getTags().size());
-        assertFalse(result.isShowHelp());
-        assertFalse(result.isExit());
+        assertFalse(result.shouldShowHelp());
+        assertFalse(result.shouldExit());
     }
 
     @Test

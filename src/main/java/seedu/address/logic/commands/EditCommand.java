@@ -78,7 +78,7 @@ public class EditCommand extends Command {
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
-    private final boolean clashConfirmed;
+    private final boolean isClashConfirmed;
 
     /**
      * @param index of the person in the filtered person list to edit
@@ -89,13 +89,13 @@ public class EditCommand extends Command {
     }
 
     /** Creates an edit command, optionally bypassing a previously displayed clash warning. */
-    public EditCommand(Index index, EditPersonDescriptor editPersonDescriptor, boolean clashConfirmed) {
+    public EditCommand(Index index, EditPersonDescriptor editPersonDescriptor, boolean isClashConfirmed) {
         requireNonNull(index);
         requireNonNull(editPersonDescriptor);
 
         this.index = index;
         this.editPersonDescriptor = new EditPersonDescriptor(editPersonDescriptor);
-        this.clashConfirmed = clashConfirmed;
+        this.isClashConfirmed = isClashConfirmed;
     }
 
     @Override
@@ -115,7 +115,7 @@ public class EditCommand extends Command {
         }
 
         List<ClientClash> clashes = model.findClientClashes(editedPerson, personToEdit);
-        if (!clashConfirmed && !clashes.isEmpty()) {
+        if (!isClashConfirmed && !clashes.isEmpty()) {
             return CommandResult.requestClashConfirmation(clashes, "");
         }
 
@@ -185,12 +185,12 @@ public class EditCommand extends Command {
             updatedProvider = null;
         }
 
-        boolean cardFieldEdited = editPersonDescriptor.getCardNumber().isPresent()
+        boolean isCardFieldEdited = editPersonDescriptor.getCardNumber().isPresent()
                 || editPersonDescriptor.getCvv().isPresent()
                 || editPersonDescriptor.getExpiryDate().isPresent()
                 || editPersonDescriptor.getProvider().isPresent();
         CardDetails updatedCardDetails = existingCardDetails;
-        if (cardFieldEdited) {
+        if (isCardFieldEdited) {
             if (updatedCardNumber == null || updatedCvv == null
                     || updatedExpiryDate == null || updatedProvider == null) {
                 throw new CommandException(MESSAGE_INCOMPLETE_CARD_DETAILS);
@@ -246,7 +246,7 @@ public class EditCommand extends Command {
 
         return index.equals(otherEditCommand.index)
                 && editPersonDescriptor.equals(otherEditCommand.editPersonDescriptor)
-                && clashConfirmed == otherEditCommand.clashConfirmed;
+                && isClashConfirmed == otherEditCommand.isClashConfirmed;
     }
 
     @Override
@@ -259,7 +259,7 @@ public class EditCommand extends Command {
         return new ToStringBuilder(this)
                 .add("index", index)
                 .add("editPersonDescriptor", editPersonDescriptor)
-                .add("clashConfirmed", clashConfirmed)
+                .add("isClashConfirmed", isClashConfirmed)
                 .toString();
     }
 
@@ -281,7 +281,7 @@ public class EditCommand extends Command {
         private CreditScore creditScore;
         private Debt debt;
         private ServiceNote serviceNote;
-        private boolean serviceNoteEdited;
+        private boolean isServiceNoteEdited;
 
         public EditPersonDescriptor() {}
 
@@ -303,7 +303,7 @@ public class EditCommand extends Command {
             setCreditScore(toCopy.creditScore);
             setDebt(toCopy.debt);
             setServiceNote(toCopy.serviceNote);
-            serviceNoteEdited = toCopy.serviceNoteEdited;
+            isServiceNoteEdited = toCopy.isServiceNoteEdited;
         }
 
         /**
@@ -312,7 +312,7 @@ public class EditCommand extends Command {
         public boolean isAnyFieldEdited() {
             return CollectionUtil.isAnyNonNull(clientReference, name, phone, email, address,
                     cardNumber, cvv, expiryDate, provider, creditScore, debt, tags)
-                    || serviceNoteEdited;
+                    || isServiceNoteEdited;
         }
 
         public void setClientReference(ClientReference clientReference) {
@@ -405,7 +405,7 @@ public class EditCommand extends Command {
 
         public void setServiceNote(ServiceNote serviceNote) {
             this.serviceNote = serviceNote;
-            this.serviceNoteEdited = true;
+            this.isServiceNoteEdited = true;
         }
 
         public Optional<ServiceNote> getServiceNote() {
@@ -413,7 +413,7 @@ public class EditCommand extends Command {
         }
 
         public boolean isServiceNoteEdited() {
-            return serviceNoteEdited;
+            return isServiceNoteEdited;
         }
 
         /**
@@ -457,13 +457,13 @@ public class EditCommand extends Command {
                     && Objects.equals(debt, otherEditPersonDescriptor.debt)
                     && Objects.equals(tags, otherEditPersonDescriptor.tags)
                     && Objects.equals(serviceNote, otherEditPersonDescriptor.serviceNote)
-                    && serviceNoteEdited == otherEditPersonDescriptor.serviceNoteEdited;
+                    && isServiceNoteEdited == otherEditPersonDescriptor.isServiceNoteEdited;
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(name, phone, email, address, clientReference, cardNumber, cvv,
-                    expiryDate, provider, creditScore, debt, tags, serviceNote, serviceNoteEdited);
+                    expiryDate, provider, creditScore, debt, tags, serviceNote, isServiceNoteEdited);
         }
 
         @Override

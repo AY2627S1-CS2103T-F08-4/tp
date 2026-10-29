@@ -49,7 +49,7 @@ public class AddCommand extends Command {
     public static final String MESSAGE_DUPLICATE_PERSON = "A client with reference %1$s already exists.";
 
     private final Person toAdd;
-    private final boolean clashConfirmed;
+    private final boolean isClashConfirmed;
 
     /**
      * Creates an AddCommand to add the specified {@code Person}
@@ -59,13 +59,13 @@ public class AddCommand extends Command {
     }
 
     /** Creates an add command, optionally bypassing a previously displayed clash warning. */
-    public AddCommand(Person person, boolean clashConfirmed) {
+    public AddCommand(Person person, boolean isClashConfirmed) {
         requireNonNull(person);
         if (person.getClientReference().isEmpty()) {
             throw new IllegalArgumentException("A client reference is required");
         }
         toAdd = person;
-        this.clashConfirmed = clashConfirmed;
+        this.isClashConfirmed = isClashConfirmed;
     }
 
     @Override
@@ -78,7 +78,7 @@ public class AddCommand extends Command {
         }
 
         List<ClientClash> clashes = model.findClientClashes(toAdd, null);
-        if (!clashConfirmed && !clashes.isEmpty()) {
+        if (!isClashConfirmed && !clashes.isEmpty()) {
             return CommandResult.requestClashConfirmation(clashes, "");
         }
 
@@ -103,7 +103,7 @@ public class AddCommand extends Command {
         }
 
         return toAdd.equals(otherAddCommand.toAdd)
-                && clashConfirmed == otherAddCommand.clashConfirmed;
+                && isClashConfirmed == otherAddCommand.isClashConfirmed;
     }
 
     @Override
@@ -115,7 +115,7 @@ public class AddCommand extends Command {
     public String toString() {
         return new ToStringBuilder(this)
                 .add("toAdd", toAdd)
-                .add("clashConfirmed", clashConfirmed)
+                .add("isClashConfirmed", isClashConfirmed)
                 .toString();
     }
 }

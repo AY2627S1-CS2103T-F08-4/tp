@@ -25,10 +25,10 @@ public class CommandResult {
     private final String feedbackToUser;
 
     /** Help information should be shown to the user. */
-    private final boolean showHelp;
+    private final boolean shouldShowHelp;
 
     /** The application should exit. */
-    private final boolean exit;
+    private final boolean shouldExit;
     private final ClientReference selectedClientReference;
     private final SelectionRequest selectionRequest;
     private final Person personToSelect;
@@ -38,20 +38,20 @@ public class CommandResult {
     /**
      * Constructs a {@code CommandResult} with the specified fields.
      */
-    public CommandResult(String feedbackToUser, boolean showHelp, boolean exit) {
-        this(feedbackToUser, showHelp, exit, SelectionRequest.PRESERVE_OR_FIRST,
+    public CommandResult(String feedbackToUser, boolean shouldShowHelp, boolean shouldExit) {
+        this(feedbackToUser, shouldShowHelp, shouldExit, SelectionRequest.PRESERVE_OR_FIRST,
                 null, null, List.of(), null);
     }
 
-    private CommandResult(String feedbackToUser, boolean showHelp, boolean exit,
+    private CommandResult(String feedbackToUser, boolean shouldShowHelp, boolean shouldExit,
             SelectionRequest selectionRequest,
             Person personToSelect,
             ClientReference selectedClientReference,
             List<ClientClash> clientClashes,
             String commandToConfirm) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
-        this.showHelp = showHelp;
-        this.exit = exit;
+        this.shouldShowHelp = shouldShowHelp;
+        this.shouldExit = shouldExit;
         this.selectedClientReference = selectedClientReference;
         this.selectionRequest = requireNonNull(selectionRequest);
         this.personToSelect = personToSelect;
@@ -115,12 +115,12 @@ public class CommandResult {
         return feedbackToUser;
     }
 
-    public boolean isShowHelp() {
-        return showHelp;
+    public boolean shouldShowHelp() {
+        return shouldShowHelp;
     }
 
-    public boolean isExit() {
-        return exit;
+    public boolean shouldExit() {
+        return shouldExit;
     }
 
     public Optional<ClientReference> getSelectedClientReference() {
@@ -159,8 +159,8 @@ public class CommandResult {
 
         return new CommandResult(
                 feedbackToUser,
-                showHelp,
-                exit,
+                shouldShowHelp,
+                shouldExit,
                 selectionRequest,
                 personToSelect,
                 selectedClientReference,
@@ -180,8 +180,8 @@ public class CommandResult {
         }
 
         return feedbackToUser.equals(otherCommandResult.feedbackToUser)
-                && showHelp == otherCommandResult.showHelp
-                && exit == otherCommandResult.exit
+                && shouldShowHelp == otherCommandResult.shouldShowHelp
+                && shouldExit == otherCommandResult.shouldExit
                 && selectionRequest == otherCommandResult.selectionRequest
                 && Objects.equals(personToSelect, otherCommandResult.personToSelect)
                 && Objects.equals(selectedClientReference, otherCommandResult.selectedClientReference)
@@ -191,7 +191,7 @@ public class CommandResult {
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit, selectedClientReference,
+        return Objects.hash(feedbackToUser, shouldShowHelp, shouldExit, selectedClientReference,
                 selectionRequest, personToSelect, clientClashes, commandToConfirm);
     }
 
@@ -199,8 +199,8 @@ public class CommandResult {
     public String toString() {
         ToStringBuilder builder = new ToStringBuilder(this)
                 .add("feedbackToUser", feedbackToUser)
-                .add("showHelp", showHelp)
-                .add("exit", exit)
+                .add("shouldShowHelp", shouldShowHelp)
+                .add("shouldExit", shouldExit)
                 .add("selectionRequest", selectionRequest)
                 .add("personToSelect", personToSelect)
                 .add("clientClashes", clientClashes)

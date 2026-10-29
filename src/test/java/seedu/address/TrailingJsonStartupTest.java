@@ -35,12 +35,12 @@ public class TrailingJsonStartupTest {
             String corrupted = validJson + tail;
             Files.writeString(dataPath, corrupted);
             MainApp.InitialData initialData = load(dataPath);
-            assertTrue(initialData.protectedMode());
+            assertTrue(initialData.isProtectedMode());
             assertEquals(LogicManager.LOAD_FAILURE_MESSAGE, initialData.message());
             StorageManager storage = new StorageManager(addressBookStorage,
                     new JsonUserPrefsStorage(testFolder.resolve("prefs.json")));
             LogicManager logic = new LogicManager(initialData.model(), storage,
-                    initialData.message(), initialData.protectedMode());
+                    initialData.message(), initialData.isProtectedMode());
 
             assertThrows(CommandException.class, () -> logic.execute("add r/ALPHAEXTRA n/Extra Client"));
             assertEquals(corrupted, Files.readString(dataPath));
