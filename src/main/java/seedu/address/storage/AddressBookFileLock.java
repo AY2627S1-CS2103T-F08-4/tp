@@ -11,7 +11,9 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Optional;
 
-/** Holds exclusive access to an address book for the lifetime of an application instance. */
+/**
+ * Holds exclusive access to an address book for the lifetime of an application instance.
+ */
 public final class AddressBookFileLock implements AutoCloseable {
     private final FileChannel channel;
     private final FileLock lock;
@@ -34,7 +36,7 @@ public final class AddressBookFileLock implements AutoCloseable {
         Files.createDirectories(absolutePath.getParent());
         Path lockPath = absolutePath.resolveSibling(absolutePath.getFileName() + ".lock");
         FileChannel channel = FileChannel.open(lockPath, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-        boolean acquired = false;
+        boolean isLockAcquired = false;
         try {
             FileLock lock;
             try {
@@ -45,16 +47,18 @@ public final class AddressBookFileLock implements AutoCloseable {
             if (lock == null) {
                 return Optional.empty();
             }
-            acquired = true;
+            isLockAcquired = true;
             return Optional.of(new AddressBookFileLock(channel, lock));
         } finally {
-            if (!acquired) {
+            if (!isLockAcquired) {
                 channel.close();
             }
         }
     }
 
-    /** Releases access, retaining the companion file to avoid races between waiting instances. */
+    /**
+     * Releases access, retaining the companion file to avoid races between waiting instances.
+     */
     @Override
     public void close() throws IOException {
         try {

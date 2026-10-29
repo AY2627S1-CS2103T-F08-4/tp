@@ -11,18 +11,22 @@ import javafx.scene.control.DialogPane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-/** Launches a real JavaFX application to exercise the blocked-startup dialog in a separate process. */
+/**
+ * Launches a real JavaFX application to exercise the blocked-startup dialog in a separate process.
+ */
 public class StartupDialogProbe {
     public static void main(String[] args) {
         Application.launch(BlockedApp.class, args);
     }
 
-    /** Attempts startup while the parent test process holds the data lock. */
+    /**
+     * Attempts startup while the parent test process holds the data lock.
+     */
     public static class BlockedApp extends MainApp {
         @Override
         public void init() {
             Path dataPath = Path.of(getParameters().getRaw().getFirst());
-            if (initStorage(dataPath.resolveSibling("prefs.json"), dataPath)) {
+            if (isStorageInitialized(dataPath.resolveSibling("prefs.json"), dataPath)) {
                 throw new IllegalStateException("Second instance unexpectedly acquired the data lock");
             }
         }

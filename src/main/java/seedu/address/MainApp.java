@@ -55,11 +55,15 @@ public class MainApp extends Application {
         logger.info("=============================[ Initializing AddressBook ]===========================");
         super.init();
 
-        initStorage(USER_PREFS_FILE_PATH, ADDRESS_BOOK_FILE_PATH);
+        isStorageInitialized(USER_PREFS_FILE_PATH, ADDRESS_BOOK_FILE_PATH);
     }
 
-    /** Acquires exclusive access before reading data or preferences. Returns false if startup is blocked. */
-    boolean initStorage(Path prefsPath, Path dataPath) {
+    /**
+     * Acquires exclusive access and initializes storage before reading data or preferences.
+     *
+     * @return true if initialization succeeds, or false if startup is blocked
+     */
+    boolean isStorageInitialized(Path prefsPath, Path dataPath) {
         try {
             Optional<AddressBookFileLock> acquired = AddressBookFileLock.tryAcquire(dataPath);
             if (acquired.isEmpty()) {

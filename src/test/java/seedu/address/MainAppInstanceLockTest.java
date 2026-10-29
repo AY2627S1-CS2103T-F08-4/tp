@@ -30,17 +30,17 @@ public class MainAppInstanceLockTest {
     public Path testFolder;
 
     @Test
-    public void initStorage_secondInstance_cannotOverwriteFirstInstance() throws Exception {
+    public void isStorageInitialized_secondInstance_cannotOverwriteFirstInstance() throws Exception {
         Path dataPath = testFolder.resolve("data/addressbook.json");
         Path prefsPath = testFolder.resolve("prefs.json");
         new JsonAddressBookStorage(dataPath).saveAddressBook(new AddressBook());
         MainApp first = new MainApp();
         MainApp second = new MainApp();
         try {
-            assertTrue(first.initStorage(prefsPath, dataPath));
+            assertTrue(first.isStorageInitialized(prefsPath, dataPath));
             first.logic.execute("add r/ALPHABASE n/Base Client");
             String prefsBefore = Files.readString(prefsPath);
-            assertFalse(second.initStorage(prefsPath, dataPath));
+            assertFalse(second.isStorageInitialized(prefsPath, dataPath));
             second.stop();
             assertEquals(prefsBefore, Files.readString(prefsPath));
             first.logic.execute("add r/ALPHAONE n/Alice Client");
@@ -51,7 +51,7 @@ public class MainAppInstanceLockTest {
 
         MainApp restarted = new MainApp();
         try {
-            assertTrue(restarted.initStorage(prefsPath, dataPath));
+            assertTrue(restarted.isStorageInitialized(prefsPath, dataPath));
             assertEquals(2, restarted.model.getAddressBook().getPersonList().size());
             restarted.logic.execute("add r/ALPHATWO n/Bob Client");
             assertEquals(3, new JsonAddressBookStorage(dataPath).readAddressBook()
@@ -62,7 +62,7 @@ public class MainAppInstanceLockTest {
     }
 
     @Test
-    public void initStorage_unwritableLockPath_blocksStartupWithoutChangingData() throws Exception {
+    public void isStorageInitialized_unwritableLockPath_blocksStartupWithoutChangingData() throws Exception {
         Path dataPath = testFolder.resolve("addressbook.json");
         new JsonAddressBookStorage(dataPath).saveAddressBook(new AddressBook());
         String original = Files.readString(dataPath);
@@ -70,7 +70,7 @@ public class MainAppInstanceLockTest {
         Path prefsPath = testFolder.resolve("prefs.json");
         MainApp app = new MainApp();
 
-        assertFalse(app.initStorage(prefsPath, dataPath));
+        assertFalse(app.isStorageInitialized(prefsPath, dataPath));
         app.stop();
 
         assertEquals(original, Files.readString(dataPath));
@@ -78,7 +78,7 @@ public class MainAppInstanceLockTest {
     }
 
     @Test
-    public void initStorage_initializationFails_releasesLock() throws Exception {
+    public void isStorageInitialized_initializationFails_releasesLock() throws Exception {
         Path dataPath = testFolder.resolve("addressbook.json");
         MainApp broken = new MainApp() {
             @Override
@@ -87,7 +87,7 @@ public class MainAppInstanceLockTest {
             }
         };
         Path prefsPath = testFolder.resolve("prefs.json");
-        assertThrows(IllegalStateException.class, () -> broken.initStorage(prefsPath, dataPath));
+        assertThrows(IllegalStateException.class, () -> broken.isStorageInitialized(prefsPath, dataPath));
         try (AddressBookFileLock lock = AddressBookFileLock.tryAcquire(dataPath).orElseThrow()) {
             assertTrue(Files.notExists(dataPath));
         }
