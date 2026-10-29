@@ -50,31 +50,6 @@ public class NoteCommandIntegrationTest {
     }
 
     @Test
-    public void execute_escapedPrefixes_persistsDecodedText() throws Exception {
-        for (String command : new String[] {"note r/C0001 s/", "edit 1 s/"}) {
-            logic.execute(command + "Discuss \\w/o guarantor; use \\p/ literally");
-
-            String expected = "Discuss w/o guarantor; use p/ literally";
-            assertEquals(expected, model.getAddressBook().getPersonList().getFirst()
-                    .getServiceNote().orElseThrow().value);
-            JsonNode saved = JsonUtil.fromJsonString(Files.readString(dataPath), JsonNode.class);
-            assertEquals(expected, saved.path("persons").get(0).path("serviceNote").textValue());
-            assertEquals(expected, loadedNote().value);
-        }
-    }
-
-    @Test
-    public void execute_escapedBackslash_persistsLiteralBackslash() throws Exception {
-        for (String command : new String[] {"note r/C0001 s/", "edit 1 s/"}) {
-            logic.execute(command + "Use \\\\ path");
-
-            JsonNode saved = JsonUtil.fromJsonString(Files.readString(dataPath), JsonNode.class);
-            assertEquals("Use \\ path", saved.path("persons").get(0).path("serviceNote").textValue());
-            assertEquals("Use \\ path", loadedNote().value);
-        }
-    }
-
-    @Test
     public void execute_setReplaceEditAndClear_persistsEachState() throws Exception {
         assertEquals("Added service note for C0001 Alex Yeoh.",
                 logic.execute("note r/c0001 s/Prefers mornings").getFeedbackToUser());

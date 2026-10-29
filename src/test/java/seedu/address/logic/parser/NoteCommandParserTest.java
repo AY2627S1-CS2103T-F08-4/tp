@@ -28,9 +28,6 @@ public class NoteCommandParserTest {
                 new ServiceNote("Discuss w/o guarantor")),
                 parser.parse(" r/C0001 s/Discuss \\w/o guarantor"));
         assertEquals(new NoteCommand(new ClientReference("C0001"),
-                new ServiceNote("Use p/ literally")),
-                parser.parse(" r/C0001 s/Use \\p/ literally"));
-        assertEquals(new NoteCommand(new ClientReference("C0001"),
                 new ServiceNote("Use \\ path")),
                 parser.parse(" r/C0001 s/Use \\\\ path"));
         assertFailure(" r/C0001 s/Discuss w/o guarantor", NoteCommand.MESSAGE_INVALID_FORMAT);

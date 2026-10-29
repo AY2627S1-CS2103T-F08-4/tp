@@ -254,11 +254,7 @@ class PersonDetailsPanelTest {
                 container.layout();
                 ScrollPane scrollPane = (ScrollPane) panel.getRoot();
                 FlowPane tags = (FlowPane) scrollPane.lookup("#tags");
-                Label label = tags.getChildren().stream()
-                        .filter(Label.class::isInstance)
-                        .map(Label.class::cast)
-                        .filter(tagLabel -> longTag.equals(tagLabel.getText()))
-                        .findFirst().orElseThrow(() -> new AssertionError("Long tag label is missing"));
+                Label label = (Label) tags.getChildren().getFirst();
                 Bounds viewport = scrollPane.lookup(".viewport").localToScene(
                         scrollPane.lookup(".viewport").getLayoutBounds());
                 Bounds renderedTag = label.localToScene(label.getLayoutBounds());
@@ -270,24 +266,10 @@ class PersonDetailsPanelTest {
                 Text text = (Text) label.lookup(".text");
                 Text singleLine = new Text(longTag);
                 singleLine.setFont(label.getFont());
-                String diagnostics = "requestedWidth=" + width
-                        + ", viewportWidth=" + viewport.getWidth()
-                        + ", labelWidth=" + label.getWidth()
-                        + ", labelHeight=" + label.getHeight()
-                        + ", preferredHeight=" + label.prefHeight(label.getWidth())
-                        + ", renderedText=[" + text.getText() + "]"
-                        + ", wrappingWidth=" + text.getWrappingWidth()
-                        + ", renderedTextHeight=" + text.getLayoutBounds().getHeight()
-                        + ", singleLineHeight=" + singleLine.getLayoutBounds().getHeight()
-                        + ", font=" + label.getFont()
-                        + ", os=" + System.getProperty("os.name")
-                        + ", architecture=" + System.getProperty("os.arch")
-                        + ", javafxVersion=" + System.getProperty("javafx.version")
-                        + ", javafxRuntimeVersion=" + System.getProperty("javafx.runtime.version");
                 assertTrue(text.getLayoutBounds().getHeight() > singleLine.getLayoutBounds().getHeight(),
-                        "Long tag should occupy multiple lines: " + diagnostics);
+                        "Long tag should occupy multiple lines");
                 assertTrue(label.getHeight() >= label.prefHeight(label.getWidth()) - 1,
-                        "All wrapped lines must have enough height: " + diagnostics);
+                        "All wrapped lines must have enough height");
             }
         });
     }

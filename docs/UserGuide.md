@@ -68,12 +68,6 @@ TellerFlow is a **desktop application for managing client profiles, optimized fo
 
 * Command words and prefixes are case-sensitive: use `add` and `n/`, not `ADD` or `N/`. Client reference values are case-insensitive.
 
-* In `add`, `edit`, and `find`, prefix-shaped text (a letter followed by letters or digits and `/`)
-  at the start of input or after whitespace must be a prefix supported by that command.
-  For example, `edit 1 a/10 Main Street ph/92345678` is rejected because `ph/` is unknown; use `p/`.
-  This also applies to text such as `and/or`. In service notes, existing escapes such as `\w/o`
-  preserve literal text (`w/o`); see [Maintaining a service note](#maintaining-a-service-note-note).
-
 * Each prefix may appear only once per command, except `t/`, which can be repeated in `add` and `edit` to supply multiple tags.
 
 * Commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, reject extra text.<br>

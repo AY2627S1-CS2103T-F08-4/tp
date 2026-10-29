@@ -1,6 +1,5 @@
 package seedu.address.logic.parser;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
@@ -36,12 +35,6 @@ public class AddCommandParserTest {
     private static final String FINANCIAL_ARGUMENTS = " " + String.join(" ", FIELDS.subList(5, FIELDS.size()));
     private static final String MINIMAL_ARGUMENTS = " r/C0001 n/Alex Yeoh";
     private final AddCommandParser parser = new AddCommandParser();
-
-    @Test
-    public void parse_unsupportedPrefix_failure() {
-        assertParseFailure(parser, MINIMAL_ARGUMENTS + " a/10 Main Street ph/92345678", "Unknown prefix: ph/");
-        assertParseFailure(parser, MINIMAL_ARGUMENTS + " s/Note", "Unknown prefix: s/");
-    }
 
     @Test
     public void parse_minimalClient_success() {
@@ -149,13 +142,15 @@ public class AddCommandParserTest {
     }
 
     @Test
-    public void parse_unknownPrefix_rejectedBeforeFieldValidation() {
+    public void parse_unknownPrefix_remainsPartOfValue() {
         for (String prefix : List.of("x/", "R/", "future/")) {
             assertParseFailure(parser, VALID_ARGUMENTS + " " + prefix + "value",
-                    "Unknown prefix: " + prefix);
+                    Debt.MESSAGE_CONSTRAINTS);
             String address = "Blk 30 Geylang Street 29, #06-40 " + prefix + "value";
-            assertParseFailure(parser, VALID_ARGUMENTS.replace(FIELDS.get(4), "a/" + address),
-                    "Unknown prefix: " + prefix);
+            Person expected = new PersonBuilder().withClientReference("C0001").withName("Alex Yeoh")
+                    .withPhone("87438807").withEmail("alex@example.com").withAddress(address).build();
+            assertParseSuccess(parser, VALID_ARGUMENTS.replace(FIELDS.get(4), "a/" + address),
+                    new AddCommand(expected));
         }
     }
 
@@ -167,8 +162,9 @@ public class AddCommandParserTest {
     }
 
     @Test
-    public void parse_prefixAtStart_matchesLeadingSpaceBehavior() throws Exception {
-        assertEquals(parser.parse(VALID_ARGUMENTS), parser.parse(VALID_ARGUMENTS.stripLeading()));
+    public void parse_prefixWithoutPrecedingSpace_reportsInvalidFormat() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, VALID_ARGUMENTS.stripLeading(), expectedMessage);
     }
 
     @Test

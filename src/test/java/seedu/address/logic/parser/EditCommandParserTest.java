@@ -84,7 +84,8 @@ public class EditCommandParserTest {
         // invalid arguments being parsed as preamble
         assertParseFailure(parser, "1 some random string", MESSAGE_INVALID_FORMAT);
 
-        assertParseFailure(parser, "1 i/ string", "Unknown prefix: i/");
+        // invalid prefix being parsed as preamble
+        assertParseFailure(parser, "1 i/ string", MESSAGE_INVALID_FORMAT);
     }
 
     @Test
@@ -133,15 +134,7 @@ public class EditCommandParserTest {
         assertParseSuccess(parser, "1 s/Discuss \\w/o guarantor",
                 new EditCommand(INDEX_FIRST_PERSON, descriptor));
         assertParseFailure(parser, "1 s/Discuss w/o guarantor",
-                "Unknown prefix: w/");
-        descriptor.setServiceNote(new ServiceNote("Use p/ literally"));
-        assertParseSuccess(parser, "1 s/Use \\p/ literally",
-                new EditCommand(INDEX_FIRST_PERSON, descriptor));
-    }
-
-    @Test
-    public void parse_unknownPrefixAfterAddress_failure() {
-        assertParseFailure(parser, "1 a/10 Main Street ph/92345678", "Unknown prefix: ph/");
+                "Prefix-shaped text in a service note must be escaped with \\.");
     }
 
     @Test
