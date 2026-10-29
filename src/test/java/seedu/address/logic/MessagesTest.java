@@ -21,7 +21,7 @@ public class MessagesTest {
         Person person = new Person(new ClientReference("C0001"), new Name("John Doe"),
                 null, null, null, null, null, null, Collections.emptySet());
 
-        assertEquals("John Doe; Tags: ", Messages.format(person));
+        assertEquals("John Doe", Messages.format(person));
     }
 
     @Test
@@ -33,9 +33,9 @@ public class MessagesTest {
         Person addressOnly = new PersonBuilder(minimal).withAddress("123 Main Street").build();
         Person phoneAndAddress = new PersonBuilder(phoneOnly).withAddress("123 Main Street").withTags("friend").build();
 
-        assertEquals("John Doe; Phone: 85355255; Tags: ", Messages.format(phoneOnly));
-        assertEquals("John Doe; Email: john@example.com; Tags: ", Messages.format(emailOnly));
-        assertEquals("John Doe; Address: 123 Main Street; Tags: ", Messages.format(addressOnly));
+        assertEquals("John Doe; Phone: 85355255", Messages.format(phoneOnly));
+        assertEquals("John Doe; Email: john@example.com", Messages.format(emailOnly));
+        assertEquals("John Doe; Address: 123 Main Street", Messages.format(addressOnly));
         assertEquals("John Doe; Phone: 85355255; Address: 123 Main Street; Tags: [friend]",
                 Messages.format(phoneAndAddress));
     }
@@ -54,6 +54,6 @@ public class MessagesTest {
                 new Email("legacy@example.com"), new Address("123 Legacy Street"), Collections.emptySet());
 
         assertEquals("Legacy Person; Phone: 85355255; Email: legacy@example.com; "
-                + "Address: 123 Legacy Street; Tags: ", Messages.format(person));
+                + "Address: 123 Legacy Street", Messages.format(person));
     }
 }
