@@ -3,6 +3,8 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -16,25 +18,26 @@
       <VBox fx:id="details" spacing="18">
         <VBox spacing="4" styleClass="details-header">
           <Label fx:id="name" wrapText="true" maxWidth="Infinity" styleClass="details-name" />
-          <Label fx:id="reference" wrapText="true" maxWidth="Infinity" styleClass="details-reference" />
+          <TextField fx:id="reference" editable="false" focusTraversable="false"
+                     maxWidth="Infinity" styleClass="details-reference" />
         </VBox>
 
         <VBox fx:id="contactSection" spacing="10" styleClass="details-section">
           <Label text="CONTACT" styleClass="details-section-title" />
           <HBox fx:id="phoneRow" spacing="12" alignment="TOP_LEFT">
             <Label text="Phone" minWidth="90" prefWidth="90" styleClass="details-caption" />
-            <Label fx:id="phone" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
-                   styleClass="details-value" />
+            <TextField fx:id="phone" editable="false" focusTraversable="false"
+                       maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="details-value" />
           </HBox>
           <HBox fx:id="emailRow" spacing="12" alignment="TOP_LEFT">
             <Label text="Email" minWidth="90" prefWidth="90" styleClass="details-caption" />
-            <Label fx:id="email" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
-                   styleClass="details-value" />
+            <TextField fx:id="email" editable="false" focusTraversable="false"
+                       maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="details-value" />
           </HBox>
           <HBox fx:id="addressRow" spacing="12" alignment="TOP_LEFT">
             <Label text="Address" minWidth="90" prefWidth="90" styleClass="details-caption" />
-            <Label fx:id="address" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
-                   styleClass="details-value" />
+            <TextField fx:id="address" editable="false" focusTraversable="false"
+                       maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="details-value" />
           </HBox>
         </VBox>
 
@@ -42,18 +45,18 @@
           <Label text="CARD &amp; FINANCES" styleClass="details-section-title" />
           <HBox fx:id="cardDetailsRow" spacing="12" alignment="TOP_LEFT">
             <Label text="Card" minWidth="90" prefWidth="90" styleClass="details-caption" />
-            <Label fx:id="cardDetails" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
-                   styleClass="details-value" />
+            <TextField fx:id="cardDetails" editable="false" focusTraversable="false"
+                       maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="details-value" />
           </HBox>
           <HBox fx:id="creditScoreRow" spacing="12" alignment="TOP_LEFT">
             <Label text="Credit score" minWidth="90" prefWidth="90" styleClass="details-caption" />
-            <Label fx:id="creditScore" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
-                   styleClass="details-value" />
+            <TextField fx:id="creditScore" editable="false" focusTraversable="false"
+                       maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="details-value" />
           </HBox>
           <HBox fx:id="debtRow" spacing="12" alignment="TOP_LEFT">
             <Label text="Debt" minWidth="90" prefWidth="90" styleClass="details-caption" />
-            <Label fx:id="debt" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
-                   styleClass="details-value" />
+            <TextField fx:id="debt" editable="false" focusTraversable="false"
+                       maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="details-value" />
           </HBox>
           <HBox fx:id="tagsRow" spacing="12" alignment="TOP_LEFT">
             <Label text="Tags" minWidth="90" prefWidth="90" styleClass="details-caption" />
@@ -65,13 +68,13 @@
           <Label text="PROFILE HISTORY" styleClass="details-section-title" />
           <HBox fx:id="createdAtRow" spacing="12" alignment="TOP_LEFT">
             <Label text="Created" minWidth="90" prefWidth="90" styleClass="details-caption" />
-            <Label fx:id="createdAt" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
-                   styleClass="details-value" />
+            <TextField fx:id="createdAt" editable="false" focusTraversable="false"
+                       maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="details-value" />
           </HBox>
           <HBox fx:id="lastModifiedAtRow" spacing="12" alignment="TOP_LEFT">
             <Label text="Last modified" minWidth="90" prefWidth="90" styleClass="details-caption" />
-            <Label fx:id="lastModifiedAt" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
-                   styleClass="details-value" />
+            <TextField fx:id="lastModifiedAt" editable="false" focusTraversable="false"
+                       maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="details-value" />
           </HBox>
           <Label fx:id="timestampUnavailable" wrapText="true" maxWidth="Infinity"
                  styleClass="details-muted" />
@@ -79,7 +82,9 @@
 
         <VBox spacing="8" styleClass="details-note-block">
           <Label text="SERVICE NOTE" styleClass="details-section-title" />
-          <Label fx:id="serviceNote" wrapText="true" maxWidth="Infinity" styleClass="details-note-text" />
+          <TextArea fx:id="serviceNote" editable="false" focusTraversable="false"
+                    wrapText="true" prefRowCount="2" maxWidth="Infinity"
+                    styleClass="details-note-text" />
         </VBox>
       </VBox>
     </VBox>
