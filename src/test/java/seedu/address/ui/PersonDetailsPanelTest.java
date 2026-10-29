@@ -138,6 +138,38 @@ class PersonDetailsPanelTest {
     }
 
     @Test
+    void formatTimestamp_rangeBoundaries_areConsistentAcrossTimeZones() {
+        Instant minimum = Instant.parse("0001-01-01T18:00:00Z");
+        Instant maximum = Instant.parse("9999-12-31T05:59:59.999999999Z");
+        for (String zone : List.of("UTC", "Asia/Singapore", "-18:00", "+18:00")) {
+            ZoneId displayZone = ZoneId.of(zone);
+            assertTrue(PersonDetailsPanel.formatTimestamp(minimum, displayZone).startsWith("0001-"));
+            assertTrue(PersonDetailsPanel.formatTimestamp(maximum, displayZone).startsWith("9999-"));
+            for (Instant unsupported : List.of(minimum.minusNanos(1), maximum.plusNanos(1),
+                    Instant.MIN, Instant.MAX)) {
+                assertEquals("Timestamp information is invalid for this profile.",
+                        PersonDetailsPanel.formatTimestamp(unsupported, displayZone));
+            }
+        }
+        assertEquals("0001-01-01 00:00", PersonDetailsPanel.formatTimestamp(minimum, ZoneId.of("-18:00")));
+        assertEquals("9999-12-31 23:59", PersonDetailsPanel.formatTimestamp(maximum, ZoneId.of("+18:00")));
+    }
+
+    @Test
+    void formatTimestamps_unsupportedValues_showFallbackForEachAffectedField() {
+        var person = new PersonBuilder().build();
+        String unavailable = "Timestamp information is invalid for this profile.";
+        assertEquals(new PersonDetailsPanel.TimestampDisplay(unavailable, "2026-10-12 14:18", ""),
+                PersonDetailsPanel.formatTimestamps(person.withTimestamps(Instant.MAX, MODIFIED), DISPLAY_ZONE));
+        assertEquals(new PersonDetailsPanel.TimestampDisplay("2026-03-15 09:42", unavailable, ""),
+                PersonDetailsPanel.formatTimestamps(person.withTimestamps(CREATED, Instant.MIN), DISPLAY_ZONE));
+        assertEquals(new PersonDetailsPanel.TimestampDisplay(unavailable, unavailable, ""),
+                PersonDetailsPanel.formatTimestamps(person.withTimestamps(Instant.MIN, Instant.MAX), DISPLAY_ZONE));
+        assertEquals(new PersonDetailsPanel.TimestampDisplay("", unavailable, ""),
+                PersonDetailsPanel.formatTimestamps(person.withTimestamps(null, Instant.MAX), DISPLAY_ZONE));
+    }
+
+    @Test
     void formatTimestamp_usesViewerTimeZone() {
         assertEquals("2026-03-15 09:42", PersonDetailsPanel.formatTimestamp(
                 CREATED, DISPLAY_ZONE));
