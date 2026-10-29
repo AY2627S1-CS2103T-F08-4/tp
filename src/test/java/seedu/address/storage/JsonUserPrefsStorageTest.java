@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -74,6 +75,14 @@ public class JsonUserPrefsStorageTest {
         UserPrefs userPrefs = new UserPrefs();
         userPrefs.setGuiSettings(new GuiSettings(1000, 500, 300, 100));
         return userPrefs;
+    }
+
+    @Test
+    public void readUserPrefs_nullGuiSettings_throwsDataLoadingException() throws IOException {
+        Path path = testFolder.resolve("null-gui-settings.json");
+        Files.writeString(path, "{\"guiSettings\":null}");
+
+        assertThrows(DataLoadingException.class, () -> new JsonUserPrefsStorage(path).readUserPrefs());
     }
 
     @Test
