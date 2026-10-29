@@ -21,9 +21,14 @@ import org.junit.jupiter.api.Test;
 import org.w3c.dom.NodeList;
 
 import javafx.application.Platform;
+import javafx.geometry.Bounds;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.text.Text;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.Email;
@@ -133,6 +138,38 @@ class PersonDetailsPanelTest {
     }
 
     @Test
+    void formatTimestamp_rangeBoundaries_areConsistentAcrossTimeZones() {
+        Instant minimum = Instant.parse("0001-01-01T18:00:00Z");
+        Instant maximum = Instant.parse("9999-12-31T05:59:59.999999999Z");
+        for (String zone : List.of("UTC", "Asia/Singapore", "-18:00", "+18:00")) {
+            ZoneId displayZone = ZoneId.of(zone);
+            assertTrue(PersonDetailsPanel.formatTimestamp(minimum, displayZone).startsWith("0001-"));
+            assertTrue(PersonDetailsPanel.formatTimestamp(maximum, displayZone).startsWith("9999-"));
+            for (Instant unsupported : List.of(minimum.minusNanos(1), maximum.plusNanos(1),
+                    Instant.MIN, Instant.MAX)) {
+                assertEquals("Timestamp information is invalid for this profile.",
+                        PersonDetailsPanel.formatTimestamp(unsupported, displayZone));
+            }
+        }
+        assertEquals("0001-01-01 00:00", PersonDetailsPanel.formatTimestamp(minimum, ZoneId.of("-18:00")));
+        assertEquals("9999-12-31 23:59", PersonDetailsPanel.formatTimestamp(maximum, ZoneId.of("+18:00")));
+    }
+
+    @Test
+    void formatTimestamps_unsupportedValues_showFallbackForEachAffectedField() {
+        var person = new PersonBuilder().build();
+        String unavailable = "Timestamp information is invalid for this profile.";
+        assertEquals(new PersonDetailsPanel.TimestampDisplay(unavailable, "2026-10-12 14:18", ""),
+                PersonDetailsPanel.formatTimestamps(person.withTimestamps(Instant.MAX, MODIFIED), DISPLAY_ZONE));
+        assertEquals(new PersonDetailsPanel.TimestampDisplay("2026-03-15 09:42", unavailable, ""),
+                PersonDetailsPanel.formatTimestamps(person.withTimestamps(CREATED, Instant.MIN), DISPLAY_ZONE));
+        assertEquals(new PersonDetailsPanel.TimestampDisplay(unavailable, unavailable, ""),
+                PersonDetailsPanel.formatTimestamps(person.withTimestamps(Instant.MIN, Instant.MAX), DISPLAY_ZONE));
+        assertEquals(new PersonDetailsPanel.TimestampDisplay("", unavailable, ""),
+                PersonDetailsPanel.formatTimestamps(person.withTimestamps(null, Instant.MAX), DISPLAY_ZONE));
+    }
+
+    @Test
     void formatTimestamp_usesViewerTimeZone() {
         assertEquals("2026-03-15 09:42", PersonDetailsPanel.formatTimestamp(
                 CREATED, DISPLAY_ZONE));
@@ -198,6 +235,61 @@ class PersonDetailsPanelTest {
         Region displayed = row == null ? label : row;
         assertEquals(!expectedText.isEmpty(), displayed.isVisible(), id + " visibility");
         assertEquals(!expectedText.isEmpty(), displayed.isManaged(), id + " layout space");
+    }
+
+    @Test
+    void showPerson_longTag_wrapsInsideViewportWhenResized() throws Exception {
+        runOnFxThread(() -> {
+            String longTag = "RequiresSupervisorApprovalBeforeProcessingInternationalWireTransfersAboveDailyLimit";
+            Person person = new PersonBuilder().withTags(longTag, "VIP").build();
+            PersonDetailsPanel panel = new PersonDetailsPanel();
+            panel.showPerson(person);
+            StackPane container = new StackPane(panel.getRoot());
+            Scene scene = new Scene(container);
+            scene.getStylesheets().add(PersonDetailsPanel.class.getResource("/view/DarkTheme.css").toExternalForm());
+
+            for (double width : new double[] {320, 480, 300}) {
+                container.resize(width, 600);
+                container.applyCss();
+                container.layout();
+                ScrollPane scrollPane = (ScrollPane) panel.getRoot();
+                FlowPane tags = (FlowPane) scrollPane.lookup("#tags");
+                Label label = tags.getChildren().stream()
+                        .filter(Label.class::isInstance)
+                        .map(Label.class::cast)
+                        .filter(tagLabel -> longTag.equals(tagLabel.getText()))
+                        .findFirst().orElseThrow(() -> new AssertionError("Long tag label is missing"));
+                Bounds viewport = scrollPane.lookup(".viewport").localToScene(
+                        scrollPane.lookup(".viewport").getLayoutBounds());
+                Bounds renderedTag = label.localToScene(label.getLayoutBounds());
+
+                assertEquals(longTag, label.getText());
+                assertTrue(renderedTag.getMinX() >= viewport.getMinX() - 1);
+                assertTrue(renderedTag.getMaxX() <= viewport.getMaxX() + 1,
+                        "Full tag must fit within viewport at width " + width);
+                Text text = (Text) label.lookup(".text");
+                Text singleLine = new Text(longTag);
+                singleLine.setFont(label.getFont());
+                String diagnostics = "requestedWidth=" + width
+                        + ", viewportWidth=" + viewport.getWidth()
+                        + ", labelWidth=" + label.getWidth()
+                        + ", labelHeight=" + label.getHeight()
+                        + ", preferredHeight=" + label.prefHeight(label.getWidth())
+                        + ", renderedText=[" + text.getText() + "]"
+                        + ", wrappingWidth=" + text.getWrappingWidth()
+                        + ", renderedTextHeight=" + text.getLayoutBounds().getHeight()
+                        + ", singleLineHeight=" + singleLine.getLayoutBounds().getHeight()
+                        + ", font=" + label.getFont()
+                        + ", os=" + System.getProperty("os.name")
+                        + ", architecture=" + System.getProperty("os.arch")
+                        + ", javafxVersion=" + System.getProperty("javafx.version")
+                        + ", javafxRuntimeVersion=" + System.getProperty("javafx.runtime.version");
+                assertTrue(text.getLayoutBounds().getHeight() > singleLine.getLayoutBounds().getHeight(),
+                        "Long tag should occupy multiple lines: " + diagnostics);
+                assertTrue(label.getHeight() >= label.prefHeight(label.getWidth()) - 1,
+                        "All wrapped lines must have enough height: " + diagnostics);
+            }
+        });
     }
 
     private static void runOnFxThread(Runnable action) throws Exception {

@@ -11,6 +11,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import seedu.address.commons.util.TimestampUtil;
 import seedu.address.model.person.Person;
 
 /** Displays the currently selected client's details. */
@@ -100,7 +101,13 @@ public class PersonDetailsPanel extends UiPart<Region> {
         setOptionalRow(debtRow, debt, person.getDebt().map(Object::toString).orElse(""));
         tags.getChildren().clear();
         person.getTags().stream().sorted(Comparator.comparing(tag -> tag.tagName))
-                .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+                .forEach(tag -> {
+                    Label label = new Label(tag.tagName);
+                    label.setWrapText(true);
+                    label.setMinWidth(0);
+                    label.maxWidthProperty().bind(tags.widthProperty());
+                    tags.getChildren().add(label);
+                });
         setShown(tagsRow, !tags.getChildren().isEmpty());
         setShown(financialSection, cardDetailsRow.isManaged() || creditScoreRow.isManaged()
                 || debtRow.isManaged() || tagsRow.isManaged());
@@ -135,8 +142,11 @@ public class PersonDetailsPanel extends UiPart<Region> {
         return new TimestampDisplay(createdText, modifiedText, "");
     }
 
-    /** Formats a known instant in the viewer's time zone. */
+    /** Formats a known instant, or reports unavailable information outside the supported display range. */
     static String formatTimestamp(Instant timestamp, ZoneId displayZone) {
+        if (!TimestampUtil.isDisplayable(timestamp)) {
+            return TimestampUtil.INVALID_TIMESTAMP_MESSAGE;
+        }
         return TIMESTAMP_FORMAT.format(timestamp.atZone(displayZone));
     }
 

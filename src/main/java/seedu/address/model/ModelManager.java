@@ -198,9 +198,8 @@ public class ModelManager implements Model {
         }
 
         String proposedEmail = proposedClient.getEmail().get().value;
-        String existingEmail = existingClient.getEmail().get().value;
 
-        if (proposedEmail.equals(existingEmail)) {
+        if (proposedClient.getEmail().get().isSameMailboxAs(existingClient.getEmail().get())) {
             clashes.add(new ClientClash(
                     ClientClash.Field.EMAIL,
                     proposedEmail,

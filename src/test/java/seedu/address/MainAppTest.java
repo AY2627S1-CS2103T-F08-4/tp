@@ -108,6 +108,27 @@ public class MainAppTest {
     }
 
     @Test
+    public void load_extremeTimestamps_loadsNormallyAndPreservesValuesOnSave() throws Exception {
+        Path dataPath = testFolder.resolve("extremeTimestamps.json");
+        String json = "{\"persons\":[{\"clientReference\":\"A1\",\"name\":\"Alice\","
+                + "\"createdAt\":\"+1000000000-12-31T23:59:59.999999999Z\","
+                + "\"lastModifiedAt\":\"-1000000000-01-01T00:00:00Z\"}]}";
+        Files.writeString(dataPath, json);
+
+        MainApp.InitialData initialData = load(dataPath);
+
+        assertFalse(initialData.protectedMode());
+        assertEquals("Loaded 1 client(s).", initialData.message());
+        assertEquals(json, Files.readString(dataPath));
+        Person person = initialData.model().getAddressBook().getPersonList().getFirst();
+        assertEquals(Instant.MAX, person.getCreatedAt().orElseThrow());
+        assertEquals(Instant.MIN, person.getLastModifiedAt().orElseThrow());
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(dataPath);
+        storage.saveAddressBook(initialData.model().getAddressBook());
+        assertEquals(initialData.model().getAddressBook(), storage.readAddressBook().orElseThrow());
+    }
+
+    @Test
     public void load_unreadablePath_startsProtectedWithoutChangingPath() throws Exception {
         Path dataPath = testFolder.resolve("directory.json");
         Files.createDirectory(dataPath);

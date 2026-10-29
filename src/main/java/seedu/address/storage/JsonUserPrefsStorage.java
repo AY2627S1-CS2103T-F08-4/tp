@@ -40,7 +40,11 @@ public class JsonUserPrefsStorage {
      * @throws DataLoadingException if the file format is not as expected.
      */
     public Optional<UserPrefs> readUserPrefs(Path prefsFilePath) throws DataLoadingException {
-        return JsonUtil.readJsonFile(prefsFilePath, UserPrefs.class);
+        Optional<UserPrefs> prefs = JsonUtil.readJsonFile(prefsFilePath, UserPrefs.class);
+        if (prefs.filter(userPrefs -> !userPrefs.isValid()).isPresent()) {
+            throw new DataLoadingException(new IOException("User preferences are invalid"));
+        }
+        return prefs;
     }
 
     /**

@@ -68,6 +68,12 @@ TellerFlow is a **desktop application for managing client profiles, optimized fo
 
 * Command words and prefixes are case-sensitive: use `add` and `n/`, not `ADD` or `N/`. Client reference values are case-insensitive.
 
+* In `add`, `edit`, and `find`, prefix-shaped text (a letter followed by letters or digits and `/`)
+  at the start of input or after whitespace must be a prefix supported by that command.
+  For example, `edit 1 a/10 Main Street ph/92345678` is rejected because `ph/` is unknown; use `p/`.
+  This also applies to text such as `and/or`. In service notes, existing escapes such as `\w/o`
+  preserve literal text (`w/o`); see [Maintaining a service note](#maintaining-a-service-note-note).
+
 * Each prefix may appear only once per command, except `t/`, which can be repeated in `add` and `edit` to supply multiple tags.
 
 * Commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, reject extra text.<br>
@@ -162,6 +168,13 @@ Last Modified:  2026-10-12 14:18
 For a newly added client, both times are the same. A successful `edit`, `note`, or `removecard` changes `Last Modified`, while `Created` stays the same. An `edit` or `note` also updates `Last Modified` when the entered values match the existing values. Viewing clients with `list` or `find`, or sorting them, does not change either time. Timestamps cannot be edited through commands.
 
 Older saved profiles may lack timestamps. If one time is available, the side panel shows only that time. If both are unavailable, it shows `Timestamp information is unavailable for this profile.` once. Editing an older profile adds a `Last Modified` time but does not invent a `Created` time.
+
+Saved timestamps use ISO instants and are written in UTC. The displayable range is
+`0001-01-01T18:00:00Z` through `9999-12-31T05:59:59.999999999Z`, inclusive, keeping local
+dates within years 0001–9999 across supported time-zone offsets (−18:00 to +18:00).
+A valid timestamp outside this range is preserved in saved data, but its associated `Created` or
+`Last Modified` field shows `Timestamp information is invalid for this profile.` Other valid timestamps display normally.
+Malformed timestamp strings still cause startup to enter protected mode.
 
 ### Editing a client: `edit`
 
@@ -297,6 +310,8 @@ Format: `exit`
 ### Saving the data
 
 TellerFlow automatically saves data after every successful `add`, `edit`, `delete`, `note`, `removecard`, or `clear` command. You do not need to save manually. If saving fails, it displays `Unable to save client data. No changes were made.` and keeps the list and saved file unchanged.
+
+Only one TellerFlow instance can open the same client data file at a time. If another instance is already using it, the second launch shows an error and closes without loading or changing data. Close the first instance before trying again. After an application crash, you can restart normally; no lock file needs to be deleted.
 
 On startup, saved clients appear in the main window with `Loaded [COUNT] client(s).`. If there is no data file, sample clients appear with `No saved client data found. Showing sample clients.` The sample clients are saved with the next successful data-changing command. A valid data file containing no clients (for example, after `clear`) starts with an empty list and `No saved client data found.` A blank or malformed file is a load failure, as described below.
 

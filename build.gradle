@@ -26,6 +26,9 @@ checkstyle {
 
 test {
     useJUnitPlatform()
+    testLogging {
+        exceptionFormat = 'FULL'
+    }
     finalizedBy jacocoTestReport
 }
 

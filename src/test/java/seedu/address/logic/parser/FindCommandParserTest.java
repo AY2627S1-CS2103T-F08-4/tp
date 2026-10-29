@@ -122,11 +122,11 @@ public class FindCommandParserTest {
 
     @Test
     public void parse_unsupportedPrefix_throwsParseException() {
-        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
-        assertParseFailure(parser, "e/alice@example.com", expectedMessage);
-        assertParseFailure(parser, "n/Alice t/friends", expectedMessage);
-        assertParseFailure(parser, "p/91234567 e/alice@example.com", expectedMessage);
-        assertParseFailure(parser, "n/Alice p/91234567 t/friends", expectedMessage);
+        assertParseFailure(parser, "e/alice@example.com", "Unknown prefix: e/");
+        assertParseFailure(parser, "n/Alice t/friends", "Unknown prefix: t/");
+        assertParseFailure(parser, "p/91234567 e/alice@example.com", "Unknown prefix: e/");
+        assertParseFailure(parser, "n/Alice p/91234567 t/friends", "Unknown prefix: t/");
+        assertParseFailure(parser, "n/Alice ph/92345678", "Unknown prefix: ph/");
     }
 
     @Test
