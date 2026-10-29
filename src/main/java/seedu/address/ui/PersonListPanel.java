@@ -2,14 +2,12 @@ package seedu.address.ui;
 
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
-import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.Person;
@@ -19,7 +17,6 @@ import seedu.address.model.person.Person;
  */
 public class PersonListPanel extends UiPart<Region> {
     private static final String FXML = "PersonListPanel.fxml";
-    private final Logger logger = LogsCenter.getLogger(PersonListPanel.class);
 
     @FXML
     private ListView<Person> personListView;
@@ -79,7 +76,7 @@ public class PersonListPanel extends UiPart<Region> {
                 ? result.getSelectedClientReference().orElseThrow() : null;
         for (int i = 0; i < displayed.size(); i++) {
             Person candidate = displayed.get(i);
-            if (reference != null && reference.equals(candidate.getClientReference())
+            if (reference != null && candidate.getClientReference().filter(reference::equals).isPresent()
                     || reference == null && desired != null && desired.isSamePerson(candidate)) {
                 return i;
             }

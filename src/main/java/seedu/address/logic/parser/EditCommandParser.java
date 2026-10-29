@@ -25,7 +25,6 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.person.ServiceNote;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -40,6 +39,11 @@ public class EditCommandParser implements Parser<EditCommand> {
      */
     public EditCommand parse(String args) throws ParseException {
         requireNonNull(args);
+        boolean clashConfirmed = args.endsWith(CliSyntax.CONFIRM_CLASH_FLAG);
+        if (clashConfirmed) {
+            args = args.substring(0, args.length() - CliSyntax.CONFIRM_CLASH_FLAG.length())
+                    .stripTrailing();
+        }
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_REFERENCE, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
                         PREFIX_ADDRESS, PREFIX_CARD_NUMBER, PREFIX_CVV, PREFIX_EXPIRY_DATE, PREFIX_PROVIDER,
@@ -99,14 +103,7 @@ public class EditCommandParser implements Parser<EditCommand> {
             editPersonDescriptor.setDebt(ParserUtil.parseDebt(argMultimap.getValue(PREFIX_DEBT).get()));
         }
         if (argMultimap.getValue(PREFIX_SERVICE_NOTE).isPresent()) {
-            String note = argMultimap.getValue(PREFIX_SERVICE_NOTE).get().trim();
-            if (note.isEmpty()) {
-                editPersonDescriptor.setServiceNote(null);
-            } else if (!ServiceNote.isValidServiceNote(note)) {
-                throw new ParseException(ServiceNote.MESSAGE_CONSTRAINTS);
-            } else {
-                editPersonDescriptor.setServiceNote(new ServiceNote(note));
-            }
+            editPersonDescriptor.setServiceNote(NoteTextParser.parse(argMultimap.getValue(PREFIX_SERVICE_NOTE).get()));
         }
         parseTagsForEdit(argMultimap.getAllValues(PREFIX_TAG)).ifPresent(editPersonDescriptor::setTags);
 
@@ -114,7 +111,7 @@ public class EditCommandParser implements Parser<EditCommand> {
             throw new ParseException(EditCommand.MESSAGE_NOT_EDITED);
         }
 
-        return new EditCommand(index, editPersonDescriptor);
+        return new EditCommand(index, editPersonDescriptor, clashConfirmed);
     }
 
     /**
@@ -123,7 +120,7 @@ public class EditCommandParser implements Parser<EditCommand> {
      * {@code Set<Tag>} containing zero tags.
      */
     private Optional<Set<Tag>> parseTagsForEdit(Collection<String> tags) throws ParseException {
-        assert tags != null;
+        assert tags != null : "The tokenizer must supply a tag collection";
 
         if (tags.isEmpty()) {
             return Optional.empty();

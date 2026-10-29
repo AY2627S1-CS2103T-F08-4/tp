@@ -72,6 +72,34 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_doesNotLogCommandArguments() throws Exception {
+        String marker = "SYNTHETIC_CARD_MARKER";
+        List<String> messages = new ArrayList<>();
+        Logger logRoot = Logger.getLogger("ab3");
+        Handler handler = new Handler() {
+            @Override
+            public void publish(LogRecord record) {
+                messages.add(record.getMessage());
+            }
+
+            @Override
+            public void flush() { }
+
+            @Override
+            public void close() { }
+        };
+        logRoot.addHandler(handler);
+        try {
+            logic.execute("find cn/" + marker);
+            assertThrows(ParseException.class, () -> logic.execute("unknown " + marker));
+            assertThrows(ParseException.class, () -> logic.execute(marker));
+            assertTrue(messages.stream().noneMatch(message -> message.contains(marker)));
+        } finally {
+            logRoot.removeHandler(handler);
+        }
+    }
+
+    @Test
     public void execute_commandExecutionError_throwsCommandException() {
         String deleteCommand = "delete 9";
         assertCommandException(deleteCommand, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
@@ -89,7 +117,8 @@ public class LogicManagerTest {
                 + " e/alex@example.com a/10 Main Street cn/4111111111111111 cvv/123 exp/12/28"
                 + " provider/Visa cs/700 d/1250.50");
         assertEquals("Added client: C0001 Alex Yeoh", result.getFeedbackToUser());
-        assertEquals("C0001", model.getAddressBook().getPersonList().getFirst().getClientReference().value);
+        assertEquals("C0001", model.getAddressBook().getPersonList().getFirst()
+                .getClientReference().orElseThrow().value);
         Path dataPath = temporaryFolder.resolve("addressBook.json");
         assertTrue(Files.exists(dataPath));
         ReadOnlyAddressBook loaded = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow();
@@ -106,8 +135,8 @@ public class LogicManagerTest {
                 + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
 
         var added = model.getAddressBook().getPersonList().getFirst();
-        assertEquals(CREATED, added.getCreatedAt());
-        assertEquals(CREATED, added.getLastModifiedAt());
+        assertEquals(CREATED, added.getCreatedAt().orElse(null));
+        assertEquals(CREATED, added.getLastModifiedAt().orElse(null));
         logic.execute("list");
         logic.execute("find n/Alex");
         logic.execute("find cn/4111111111111111");
@@ -116,8 +145,8 @@ public class LogicManagerTest {
         logic = new LogicManager(model, storage, "", false, Clock.fixed(MODIFIED, ZoneOffset.UTC));
         logic.execute("edit 1 p/87438807");
         var edited = model.getAddressBook().getPersonList().getFirst();
-        assertEquals(CREATED, edited.getCreatedAt());
-        assertEquals(MODIFIED, edited.getLastModifiedAt());
+        assertEquals(CREATED, edited.getCreatedAt().orElse(null));
+        assertEquals(MODIFIED, edited.getLastModifiedAt().orElse(null));
         assertEquals(model.getAddressBook(), new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow());
     }
 
@@ -133,8 +162,7 @@ public class LogicManagerTest {
             logic = new LogicManager(model, storage, "", false, Clock.fixed(CREATED, ZoneOffset.UTC));
             logic.execute("add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street"
                     + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
-            assertEquals(List.of("Timestamp ADD for C0001: createdAt=" + CREATED
-                    + ", lastModifiedAt=" + CREATED), handler.messages);
+            assertEquals(List.of("Timestamp ADD recorded"), handler.messages);
 
             logic.execute("list");
             logic.execute("find n/Alex");
@@ -143,9 +171,7 @@ public class LogicManagerTest {
 
             logic = new LogicManager(model, storage, "", false, Clock.fixed(MODIFIED, ZoneOffset.UTC));
             logic.execute("edit 1 p/87438807");
-            assertEquals(List.of("Timestamp ADD for C0001: createdAt=" + CREATED
-                            + ", lastModifiedAt=" + CREATED,
-                    "Timestamp EDIT for C0001: createdAt=" + CREATED + ", lastModifiedAt=" + MODIFIED),
+            assertEquals(List.of("Timestamp ADD recorded", "Timestamp EDIT recorded"),
                     handler.messages);
             logic.execute("delete 1");
             logic.execute("clear");
@@ -169,8 +195,7 @@ public class LogicManagerTest {
         logRoot.addHandler(handler);
         try {
             logic.execute("edit 1 p/91234567");
-            assertEquals(List.of("Timestamp EDIT for unreferenced profile: createdAt=null, lastModifiedAt="
-                    + MODIFIED), handler.messages);
+            assertEquals(List.of("Timestamp EDIT recorded"), handler.messages);
         } finally {
             logRoot.removeHandler(handler);
         }
@@ -214,8 +239,8 @@ public class LogicManagerTest {
                         .withCardDetails("4111111111111111", "123", "12/28", "Visa").build(),
                 new PersonBuilder(minimal).withClientReference("C0006").withCreditScore("0").build(),
                 new PersonBuilder(minimal).withClientReference("C0007").withDebt("0.00").build(),
-                new PersonBuilder(minimal).withClientReference("C0008").withPhone("91234567")
-                        .withEmail("john@example.com").withCreditScore("0").withDebt("25.50")
+                new PersonBuilder(minimal).withClientReference("C0008").withPhone("91234568")
+                        .withEmail("john8@example.com").withCreditScore("0").withDebt("25.50")
                         .withTags("friend").build());
         Path dataPath = temporaryFolder.resolve("addressBook.json");
 
@@ -254,13 +279,13 @@ public class LogicManagerTest {
         logic.execute("add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street"
                 + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
         logic.execute("add r/C0002 n/Bernice Yu p/87438808 e/bernice@example.com a/20 Main Street"
-                + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
+                + " cn/5555555555554444 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
         String savedJson = Files.readString(dataPath);
 
         CommandResult result = logic.execute("find p/87438808");
         assertEquals(String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, 1), result.getFeedbackToUser());
         assertEquals(1, logic.getFilteredPersonList().size());
-        assertEquals("C0002", logic.getFilteredPersonList().getFirst().getClientReference().value);
+        assertEquals("C0002", logic.getFilteredPersonList().getFirst().getClientReference().orElseThrow().value);
         assertEquals(savedJson, Files.readString(dataPath));
     }
 
@@ -276,7 +301,7 @@ public class LogicManagerTest {
         CommandResult result = logic.execute("find cn/0012  3456");
         assertEquals(String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, 1), result.getFeedbackToUser());
         assertEquals(1, logic.getFilteredPersonList().size());
-        assertEquals("C0001", logic.getFilteredPersonList().getFirst().getClientReference().value);
+        assertEquals("C0001", logic.getFilteredPersonList().getFirst().getClientReference().orElseThrow().value);
         assertEquals(savedJson, Files.readString(dataPath));
     }
 
@@ -298,14 +323,14 @@ public class LogicManagerTest {
         logic.execute("add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street"
                 + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
         logic.execute("add r/C0002 n/Bernice Yu p/87438808 e/bernice@example.com a/20 Main Street"
-                + " cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
+                + " cn/5555555555554444 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50");
         logic.execute("find n/Bernice");
         logic.execute("delete 1");
 
         ReadOnlyAddressBook loaded = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
                 .readAddressBook().orElseThrow();
         assertEquals(1, loaded.getPersonList().size());
-        assertEquals("C0001", loaded.getPersonList().getFirst().getClientReference().value);
+        assertEquals("C0001", loaded.getPersonList().getFirst().getClientReference().orElseThrow().value);
     }
 
     @Test
@@ -316,7 +341,7 @@ public class LogicManagerTest {
         logic.execute("edit 1 p/91234567");
         ReadOnlyAddressBook edited = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow();
         assertEquals("91234567", edited.getPersonList().getFirst().getPhone().orElseThrow().value);
-        assertEquals("C0001", edited.getPersonList().getFirst().getClientReference().value);
+        assertEquals("C0001", edited.getPersonList().getFirst().getClientReference().orElseThrow().value);
 
         logic.execute("clear");
         ReadOnlyAddressBook cleared = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow();

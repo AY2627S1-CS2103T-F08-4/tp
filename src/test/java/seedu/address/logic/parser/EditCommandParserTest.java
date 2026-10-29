@@ -48,6 +48,7 @@ import seedu.address.model.person.Debt;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.ServiceNote;
 import seedu.address.model.tag.Tag;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 
@@ -124,6 +125,16 @@ public class EditCommandParserTest {
         EditCommand expectedCommand = new EditCommand(targetIndex, descriptor);
 
         assertParseSuccess(parser, userInput, expectedCommand);
+    }
+
+    @Test
+    public void parse_escapedPrefixInNote_usesSharedRule() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptor();
+        descriptor.setServiceNote(new ServiceNote("Discuss w/o guarantor"));
+        assertParseSuccess(parser, "1 s/Discuss \\w/o guarantor",
+                new EditCommand(INDEX_FIRST_PERSON, descriptor));
+        assertParseFailure(parser, "1 s/Discuss w/o guarantor",
+                "Prefix-shaped text in a service note must be escaped with \\.");
     }
 
     @Test

@@ -12,7 +12,7 @@ public enum SortOrder {
     DESC;
 
     /** Returns null for the original order, as required by JavaFX's SortedList. */
-    public Comparator<Person> comparator() {
+    public Comparator<Person> getComparator() {
         if (this == ORIGINAL) {
             return null;
         }
@@ -21,10 +21,12 @@ public enum SortOrder {
             if (nameComparison != 0) {
                 return this == ASC ? nameComparison : -nameComparison;
             }
-            return compareReferences(first.getClientReference(), second.getClientReference());
+            return compareReferences(first.getClientReference().orElse(null),
+                    second.getClientReference().orElse(null));
         };
     }
 
+    /** Compares names case-insensitively by Unicode code point. */
     private static int compareNames(String first, String second) {
         int firstOffset = 0;
         int secondOffset = 0;

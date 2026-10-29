@@ -31,6 +31,7 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.CardDetails;
+import seedu.address.model.person.ClientClash;
 import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.CreditScore;
 import seedu.address.model.person.Debt;
@@ -77,17 +78,24 @@ public class EditCommand extends Command {
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
+    private final boolean clashConfirmed;
 
     /**
      * @param index of the person in the filtered person list to edit
      * @param editPersonDescriptor details to edit the person with
      */
     public EditCommand(Index index, EditPersonDescriptor editPersonDescriptor) {
+        this(index, editPersonDescriptor, false);
+    }
+
+    /** Creates an edit command, optionally bypassing a previously displayed clash warning. */
+    public EditCommand(Index index, EditPersonDescriptor editPersonDescriptor, boolean clashConfirmed) {
         requireNonNull(index);
         requireNonNull(editPersonDescriptor);
 
         this.index = index;
         this.editPersonDescriptor = new EditPersonDescriptor(editPersonDescriptor);
+        this.clashConfirmed = clashConfirmed;
     }
 
     @Override
@@ -106,9 +114,15 @@ public class EditCommand extends Command {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 
+        List<ClientClash> clashes = model.findClientClashes(editedPerson, personToEdit);
+        if (!clashConfirmed && !clashes.isEmpty()) {
+            return CommandResult.requestClashConfirmation(clashes, "");
+        }
+
         model.setPerson(personToEdit, editedPerson);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
+        return CommandResult.selectPerson(String.format(MESSAGE_EDIT_PERSON_SUCCESS,
+                Messages.format(editedPerson)), editedPerson);
     }
 
     /**
@@ -117,13 +131,15 @@ public class EditCommand extends Command {
      */
     private static Person createEditedPerson(Person personToEdit, EditPersonDescriptor editPersonDescriptor)
             throws CommandException {
-        assert personToEdit != null;
+        assert personToEdit != null : "An edit target must exist before reconstruction";
 
         ClientReference updatedReference;
         if (editPersonDescriptor.getClientReference().isPresent()) {
             updatedReference = editPersonDescriptor.getClientReference().get();
+        } else if (personToEdit.getClientReference().isPresent()) {
+            updatedReference = personToEdit.getClientReference().get();
         } else {
-            updatedReference = personToEdit.getClientReference();
+            updatedReference = null;
         }
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
@@ -205,22 +221,11 @@ public class EditCommand extends Command {
                 updatedServiceNote = null;
             }
         } else {
-            updatedServiceNote = personToEdit.getServiceNote();
+            updatedServiceNote = personToEdit.getServiceNote().orElse(null);
         }
 
-        if (updatedReference != null) {
-            return new Person(updatedReference, updatedName, updatedPhone, updatedEmail,
-                    updatedAddress, updatedCardDetails, updatedCreditScore,
-                    updatedDebt, updatedTags, updatedServiceNote);
-        }
-
-        if (updatedCardDetails == null) {
-            return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress,
-                    updatedCardDetails, updatedCreditScore, updatedDebt,
-                    updatedTags, updatedServiceNote);
-        }
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedCardDetails,
-                updatedCreditScore, updatedDebt, updatedTags, updatedServiceNote);
+        return personToEdit.withDetails(updatedReference, updatedName, updatedPhone, updatedEmail,
+                updatedAddress, updatedCardDetails, updatedCreditScore, updatedDebt, updatedTags, updatedServiceNote);
     }
 
     @Override
@@ -240,7 +245,13 @@ public class EditCommand extends Command {
         }
 
         return index.equals(otherEditCommand.index)
-                && editPersonDescriptor.equals(otherEditCommand.editPersonDescriptor);
+                && editPersonDescriptor.equals(otherEditCommand.editPersonDescriptor)
+                && clashConfirmed == otherEditCommand.clashConfirmed;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(index, editPersonDescriptor);
     }
 
     @Override
@@ -248,6 +259,7 @@ public class EditCommand extends Command {
         return new ToStringBuilder(this)
                 .add("index", index)
                 .add("editPersonDescriptor", editPersonDescriptor)
+                .add("clashConfirmed", clashConfirmed)
                 .toString();
     }
 
@@ -446,6 +458,12 @@ public class EditCommand extends Command {
                     && Objects.equals(tags, otherEditPersonDescriptor.tags)
                     && Objects.equals(serviceNote, otherEditPersonDescriptor.serviceNote)
                     && serviceNoteEdited == otherEditPersonDescriptor.serviceNoteEdited;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, phone, email, address, clientReference, cardNumber, cvv,
+                    expiryDate, provider, creditScore, debt, tags, serviceNote, serviceNoteEdited);
         }
 
         @Override

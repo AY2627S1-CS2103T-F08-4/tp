@@ -2,10 +2,13 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.person.ClientClash;
 import seedu.address.model.person.ClientReference;
 import seedu.address.model.person.Person;
 
@@ -29,22 +32,31 @@ public class CommandResult {
     private final ClientReference selectedClientReference;
     private final SelectionRequest selectionRequest;
     private final Person personToSelect;
+    private final List<ClientClash> clientClashes;
+    private final String commandToConfirm;
 
     /**
      * Constructs a {@code CommandResult} with the specified fields.
      */
     public CommandResult(String feedbackToUser, boolean showHelp, boolean exit) {
-        this(feedbackToUser, showHelp, exit, SelectionRequest.PRESERVE_OR_FIRST, null, null);
+        this(feedbackToUser, showHelp, exit, SelectionRequest.PRESERVE_OR_FIRST,
+                null, null, List.of(), null);
     }
 
     private CommandResult(String feedbackToUser, boolean showHelp, boolean exit,
-            SelectionRequest selectionRequest, Person personToSelect, ClientReference selectedClientReference) {
+            SelectionRequest selectionRequest,
+            Person personToSelect,
+            ClientReference selectedClientReference,
+            List<ClientClash> clientClashes,
+            String commandToConfirm) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
         this.selectedClientReference = selectedClientReference;
         this.selectionRequest = requireNonNull(selectionRequest);
         this.personToSelect = personToSelect;
+        this.clientClashes = List.copyOf(clientClashes);
+        this.commandToConfirm = commandToConfirm;
     }
 
     /**
@@ -58,7 +70,7 @@ public class CommandResult {
     /** Requests that the UI select a client after this command succeeds. */
     public CommandResult(String feedbackToUser, ClientReference selectedClientReference) {
         this(feedbackToUser, false, false, SelectionRequest.SELECT_REFERENCE,
-                null, requireNonNull(selectedClientReference));
+                null, requireNonNull(selectedClientReference), List.of(), null);
     }
 
     /** Returns a result that keeps the selected client, or selects the first displayed client. */
@@ -69,7 +81,34 @@ public class CommandResult {
     /** Returns a result that selects a specific client after the list refreshes. */
     public static CommandResult selectPerson(String feedbackToUser, Person person) {
         return new CommandResult(feedbackToUser, false, false, SelectionRequest.SELECT_PERSON,
-                requireNonNull(person), null);
+                requireNonNull(person), null, List.of(), null);
+    }
+
+    /**
+     * Creates a result that asks the UI to obtain confirmation before the
+     * original command is executed again.
+     */
+    public static CommandResult requestClashConfirmation(
+            List<ClientClash> clashes,
+            String commandToConfirm) {
+
+        requireNonNull(clashes);
+        requireNonNull(commandToConfirm);
+
+        String clashMessage = clashes.stream()
+                .map(ClientClash::formatMessage)
+                .collect(Collectors.joining(System.lineSeparator()));
+
+        return new CommandResult(
+                clashMessage + System.lineSeparator()
+                        + "Proceed with this operation? Choose Yes or No.",
+                false,
+                false,
+                SelectionRequest.PRESERVE_OR_FIRST,
+                null,
+                null,
+                clashes,
+                commandToConfirm);
     }
 
     public String getFeedbackToUser() {
@@ -96,6 +135,39 @@ public class CommandResult {
         return personToSelect;
     }
 
+    /** Returns true when the UI must ask the user before proceeding. */
+    public boolean requiresClashConfirmation() {
+        return !clientClashes.isEmpty();
+    }
+
+    /** Returns the clashes that caused this confirmation request. */
+    public List<ClientClash> getClientClashes() {
+        return clientClashes;
+    }
+
+    /** Returns the original command that should be retried after confirmation. */
+    public String getCommandToConfirm() {
+        return commandToConfirm;
+    }
+
+    /**
+     * Returns a copy of this result associated with the original command that
+     * requires confirmation.
+     */
+    public CommandResult withCommandToConfirm(String commandText) {
+        requireNonNull(commandText);
+
+        return new CommandResult(
+                feedbackToUser,
+                showHelp,
+                exit,
+                selectionRequest,
+                personToSelect,
+                selectedClientReference,
+                clientClashes,
+                commandText);
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -112,12 +184,15 @@ public class CommandResult {
                 && exit == otherCommandResult.exit
                 && selectionRequest == otherCommandResult.selectionRequest
                 && Objects.equals(personToSelect, otherCommandResult.personToSelect)
-                && Objects.equals(selectedClientReference, otherCommandResult.selectedClientReference);
+                && Objects.equals(selectedClientReference, otherCommandResult.selectedClientReference)
+                && Objects.equals(clientClashes, otherCommandResult.clientClashes)
+                && Objects.equals(commandToConfirm, otherCommandResult.commandToConfirm);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit, selectedClientReference, selectionRequest, personToSelect);
+        return Objects.hash(feedbackToUser, showHelp, exit, selectedClientReference,
+                selectionRequest, personToSelect, clientClashes, commandToConfirm);
     }
 
     @Override
@@ -127,7 +202,9 @@ public class CommandResult {
                 .add("showHelp", showHelp)
                 .add("exit", exit)
                 .add("selectionRequest", selectionRequest)
-                .add("personToSelect", personToSelect);
+                .add("personToSelect", personToSelect)
+                .add("clientClashes", clientClashes)
+                .add("commandToConfirm", commandToConfirm);
         if (selectedClientReference != null) {
             builder.add("selectedClientReference", selectedClientReference);
         }

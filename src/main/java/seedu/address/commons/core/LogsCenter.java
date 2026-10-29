@@ -23,14 +23,11 @@ public class LogsCenter {
 
     private static final int MAX_FILE_COUNT = 5;
     private static final int MAX_FILE_SIZE_IN_BYTES = (int) (Math.pow(2, 20) * 5); // 5MB
-    private static final String LOG_FILE = "addressbook.log";
-    private static final Logger logger; // logger for this class
     private static Logger baseLogger; // to be used as the parent of all other loggers created by this class.
 
     // This static block ensures essential loggers are created early
     static {
         setBaseLogger();
-        logger = LogsCenter.getLogger(LogsCenter.class);
     }
 
     /**
@@ -86,12 +83,14 @@ public class LogsCenter {
 
         // add a FileHandler to log to a file
         try {
-            FileHandler fileHandler = new FileHandler(LOG_FILE, MAX_FILE_SIZE_IN_BYTES, MAX_FILE_COUNT, true);
+            String logPattern = AppPaths.resolve("addressbook.log").toString().replace("%", "%%");
+            FileHandler fileHandler = new FileHandler(logPattern,
+                    MAX_FILE_SIZE_IN_BYTES, MAX_FILE_COUNT, true);
             fileHandler.setFormatter(new SimpleFormatter());
             fileHandler.setLevel(Level.ALL);
             baseLogger.addHandler(fileHandler);
         } catch (IOException e) {
-            logger.warning("Error adding file handler for logger.");
+            baseLogger.log(Level.WARNING, "Error adding file handler for logger; console logging remains active.", e);
         }
     }
 

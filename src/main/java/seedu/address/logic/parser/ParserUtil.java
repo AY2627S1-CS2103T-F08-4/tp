@@ -32,7 +32,7 @@ public class ParserUtil {
      * @throws ParseException if the specified index is invalid (not a non-zero unsigned integer).
      */
     public static Index parseIndex(String oneBasedIndex) throws ParseException {
-        String trimmedIndex = oneBasedIndex.trim();
+        String trimmedIndex = oneBasedIndex.strip();
         if (!StringUtil.isNonZeroUnsignedInteger(trimmedIndex)) {
             throw new ParseException(MESSAGE_INVALID_INDEX);
         }
@@ -47,7 +47,7 @@ public class ParserUtil {
      */
     public static Name parseName(String name) throws ParseException {
         requireNonNull(name);
-        String trimmedName = name.trim().replaceAll(" +", " ");
+        String trimmedName = name.strip().replaceAll(" +", " ");
         if (!Name.isValidName(trimmedName)) {
             throw new ParseException(Name.MESSAGE_CONSTRAINTS);
         }
@@ -62,7 +62,7 @@ public class ParserUtil {
      */
     public static Phone parsePhone(String phone) throws ParseException {
         requireNonNull(phone);
-        String trimmedPhone = phone.trim();
+        String trimmedPhone = phone.strip();
         if (!Phone.isValidPhone(trimmedPhone)) {
             throw new ParseException(Phone.MESSAGE_CONSTRAINTS);
         }
@@ -77,7 +77,7 @@ public class ParserUtil {
      */
     public static Address parseAddress(String address) throws ParseException {
         requireNonNull(address);
-        String trimmedAddress = address.trim();
+        String trimmedAddress = address.strip();
         if (!Address.isValidAddress(trimmedAddress)) {
             throw new ParseException(Address.MESSAGE_CONSTRAINTS);
         }
@@ -92,7 +92,7 @@ public class ParserUtil {
      */
     public static Email parseEmail(String email) throws ParseException {
         requireNonNull(email);
-        String trimmedEmail = email.trim();
+        String trimmedEmail = email.strip();
         if (!Email.isValidEmail(trimmedEmail)) {
             throw new ParseException(Email.MESSAGE_CONSTRAINTS);
         }
@@ -104,7 +104,7 @@ public class ParserUtil {
      */
     public static ClientReference parseClientReference(String reference) throws ParseException {
         requireNonNull(reference);
-        String trimmed = reference.trim();
+        String trimmed = reference.strip();
         if (!ClientReference.isValidClientReference(trimmed)) {
             throw new ParseException(ClientReference.MESSAGE_CONSTRAINTS);
         }
@@ -114,7 +114,7 @@ public class ParserUtil {
     /** Parses a nonnegative whole-number credit score. */
     public static CreditScore parseCreditScore(String creditScore) throws ParseException {
         requireNonNull(creditScore);
-        String trimmed = creditScore.trim();
+        String trimmed = creditScore.strip();
         if (!CreditScore.isValidCreditScore(trimmed)) {
             throw new ParseException(CreditScore.MESSAGE_CONSTRAINTS);
         }
@@ -124,7 +124,7 @@ public class ParserUtil {
     /** Parses a nonnegative debt amount with at most two decimal places. */
     public static Debt parseDebt(String debt) throws ParseException {
         requireNonNull(debt);
-        String trimmed = debt.trim();
+        String trimmed = debt.strip();
         if (!Debt.isValidDebt(trimmed)) {
             throw new ParseException(Debt.MESSAGE_CONSTRAINTS);
         }
@@ -144,7 +144,7 @@ public class ParserUtil {
     /** Parses an expiry date in MM/YY format with a valid month. */
     public static String parseExpiryDate(String expiryDate) throws ParseException {
         requireNonNull(expiryDate);
-        String trimmed = expiryDate.trim();
+        String trimmed = expiryDate.strip();
         if (!CardDetails.isValidExpiryDate(trimmed)) {
             throw new ParseException(CardDetails.EXPIRY_DATE_MESSAGE_CONSTRAINTS);
         }
@@ -158,7 +158,7 @@ public class ParserUtil {
 
     private static String parseRequiredCardField(String value, String message) throws ParseException {
         requireNonNull(value);
-        String trimmed = value.trim();
+        String trimmed = value.strip();
         if (trimmed.isBlank()) {
             throw new ParseException(message);
         }
@@ -173,7 +173,7 @@ public class ParserUtil {
      */
     public static Tag parseTag(String tag) throws ParseException {
         requireNonNull(tag);
-        String trimmedTag = tag.trim();
+        String trimmedTag = tag.strip();
         if (!Tag.isValidTagName(trimmedTag)) {
             throw new ParseException(Tag.MESSAGE_CONSTRAINTS);
         }

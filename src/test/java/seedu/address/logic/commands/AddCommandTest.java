@@ -38,7 +38,8 @@ public class AddCommandTest {
 
         CommandResult commandResult = new AddCommand(validPerson).execute(modelStub);
 
-        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, validPerson.getClientReference(), validPerson.getName()),
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS,
+                validPerson.getClientReference().orElse(null), validPerson.getName()),
                 commandResult.getFeedbackToUser());
         assertEquals(List.of(validPerson), modelStub.personsAdded);
     }
@@ -50,7 +51,7 @@ public class AddCommandTest {
         ModelStub modelStub = new ModelStubWithPerson(validPerson);
 
         assertThrows(CommandException.class,
-                String.format(AddCommand.MESSAGE_DUPLICATE_PERSON, validPerson.getClientReference()), ()
+                String.format(AddCommand.MESSAGE_DUPLICATE_PERSON, validPerson.getClientReference().orElse(null)), ()
                     -> addCommand.execute(modelStub));
     }
 
@@ -67,6 +68,7 @@ public class AddCommandTest {
         // same values -> returns true
         AddCommand addAliceCommandCopy = new AddCommand(alice);
         assertTrue(addAliceCommand.equals(addAliceCommandCopy));
+        assertEquals(addAliceCommand.hashCode(), addAliceCommandCopy.hashCode());
 
         // different types -> returns false
         assertFalse(addAliceCommand.equals(1));
@@ -82,7 +84,8 @@ public class AddCommandTest {
     public void toStringMethod() {
         Person alice = new PersonBuilder(ALICE).withClientReference("C0001").build();
         AddCommand addCommand = new AddCommand(alice);
-        String expected = AddCommand.class.getCanonicalName() + "{toAdd=" + alice + "}";
+        String expected = AddCommand.class.getCanonicalName() + "{toAdd=" + alice
+                + ", clashConfirmed=false}";
         assertEquals(expected, addCommand.toString());
     }
 

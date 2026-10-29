@@ -12,12 +12,12 @@ public class RemoveCardCommandParser implements Parser<RemoveCardCommand> {
 
     @Override
     public RemoveCardCommand parse(String args) throws ParseException {
-        String trimmed = args.trim();
+        String trimmed = args.strip();
         if (trimmed.isEmpty() || trimmed.equals(CliSyntax.PREFIX_REFERENCE.getPrefix())) {
             throw new ParseException(MESSAGE_MISSING_REFERENCE);
         }
 
-        String[] parameters = trimmed.split("\\s+");
+        String[] parameters = trimmed.split("\\p{javaWhitespace}+");
         int referenceCount = 0;
         for (String parameter : parameters) {
             if (parameter.startsWith(CliSyntax.PREFIX_REFERENCE.getPrefix())) {

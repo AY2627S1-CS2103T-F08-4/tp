@@ -59,7 +59,7 @@ public class AddCommandIntegrationTest {
         assertEquals("Added client: C0001 Alex Yeoh", result.getFeedbackToUser());
         assertEquals(1, model.getAddressBook().getPersonList().size());
         Person client = model.getAddressBook().getPersonList().getFirst();
-        assertEquals("C0001", client.getClientReference().value);
+        assertEquals("C0001", client.getClientReference().orElseThrow().value);
         assertEquals("Alex Yeoh", client.getName().fullName);
         assertEquals("87438807", client.getPhone().orElseThrow().value);
         assertEquals("alex@example.com", client.getEmail().orElseThrow().value);
@@ -78,7 +78,10 @@ public class AddCommandIntegrationTest {
     @Test
     public void execute_sharedNameAndContactDetails_distinctReferencesAccepted() throws Exception {
         parser.parseCommand(ADD_CLIENT).execute(model);
-        parser.parseCommand(ADD_CLIENT.replace("C0001", "C0002")).execute(model);
+        parser.parseCommand(ADD_CLIENT.replace("C0001", "C0002")
+                .replace("87438807", "87438808")
+                .replace("alex@example.com", "alex2@example.com")
+                .replace("4111111111111111", "5555555555554444")).execute(model);
         assertEquals(2, model.getAddressBook().getPersonList().size());
         Person first = model.getAddressBook().getPersonList().get(0);
         Person second = model.getAddressBook().getPersonList().get(1);
@@ -104,7 +107,7 @@ public class AddCommandIntegrationTest {
         Person before = model.getAddressBook().getPersonList().getFirst();
         parser.parseCommand("edit 1 p/91234567").execute(model);
         Person after = model.getAddressBook().getPersonList().getFirst();
-        assertEquals(before.getClientReference(), after.getClientReference());
+        assertEquals(before.getClientReference().orElse(null), after.getClientReference().orElse(null));
         assertEquals(before.getCardDetails(), after.getCardDetails());
         assertEquals(before.getCreditScore(), after.getCreditScore());
         assertEquals(before.getDebt(), after.getDebt());

@@ -49,7 +49,7 @@ class JsonAdaptedCardDetails {
         try {
             return new CardDetails(cardNumber, cvv, expiryDate, provider);
         } catch (IllegalArgumentException e) {
-            throw new IllegalValueException(e.getMessage());
+            throw new IllegalValueException(e.getMessage(), e);
         }
     }
 }
