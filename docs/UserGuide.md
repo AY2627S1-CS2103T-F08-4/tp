@@ -298,6 +298,8 @@ Format: `exit`
 
 TellerFlow automatically saves data after every successful `add`, `edit`, `delete`, `note`, `removecard`, or `clear` command. You do not need to save manually. If saving fails, it displays `Unable to save client data. No changes were made.` and keeps the list and saved file unchanged.
 
+Only one TellerFlow instance can open the same client data file at a time. If another instance is already using it, the second launch shows an error and closes without loading or changing data. Close the first instance before trying again. After an application crash, you can restart normally; no lock file needs to be deleted.
+
 On startup, saved clients appear in the main window with `Loaded [COUNT] client(s).`. If there is no data file, sample clients appear with `No saved client data found. Showing sample clients.` The sample clients are saved with the next successful data-changing command. A valid data file containing no clients (for example, after `clear`) starts with an empty list and `No saved client data found.` A blank or malformed file is a load failure, as described below.
 
 ### Editing the data file

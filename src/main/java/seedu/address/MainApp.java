@@ -6,6 +6,9 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 import seedu.address.commons.core.AppPaths;
 import seedu.address.commons.core.LogsCenter;
@@ -20,6 +23,7 @@ import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.util.SampleDataUtil;
+import seedu.address.storage.AddressBookFileLock;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.Storage;
@@ -43,14 +47,51 @@ public class MainApp extends Application {
     protected Storage storage;
     protected Model model;
 
+    private AddressBookFileLock addressBookLock;
+    private String startupError;
+
     @Override
     public void init() throws Exception {
         logger.info("=============================[ Initializing AddressBook ]===========================");
         super.init();
 
-        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
+        isStorageInitialized(USER_PREFS_FILE_PATH, ADDRESS_BOOK_FILE_PATH);
+    }
+
+    /**
+     * Acquires exclusive access and initializes storage before reading data or preferences.
+     *
+     * @return true if initialization succeeds, or false if startup is blocked
+     */
+    boolean isStorageInitialized(Path prefsPath, Path dataPath) {
+        try {
+            Optional<AddressBookFileLock> acquired = AddressBookFileLock.tryAcquire(dataPath);
+            if (acquired.isEmpty()) {
+                startupError = "The client data is already open in another TellerFlow instance. "
+                        + "Close that instance and try again.";
+                return false;
+            }
+            addressBookLock = acquired.get();
+        } catch (IOException e) {
+            logger.warning("Could not obtain exclusive access to client data.");
+            startupError = "TellerFlow could not secure access to the client data. "
+                    + "Check that its data folder is writable and try again.";
+            return false;
+        }
+
+        try {
+            initializeApplication(prefsPath, dataPath);
+            return true;
+        } catch (RuntimeException e) {
+            releaseAddressBookLock();
+            throw e;
+        }
+    }
+
+    private void initializeApplication(Path prefsPath, Path dataPath) {
+        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(prefsPath);
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(ADDRESS_BOOK_FILE_PATH);
+        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(dataPath);
         storage = new StorageManager(addressBookStorage, userPrefsStorage);
 
         InitialData initialData = initModelManager(storage, userPrefs);
@@ -125,6 +166,16 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        if (startupError != null) {
+            // Startup can fail before the primary stage has a scene, so use an unowned dialog.
+            Alert alert = new Alert(Alert.AlertType.NONE, startupError, ButtonType.OK);
+            alert.setTitle("TellerFlow");
+            alert.setHeaderText(null);
+            alert.setGraphic(null);
+            alert.showAndWait();
+            Platform.exit();
+            return;
+        }
         logger.info("Starting AddressBook " + MainApp.VERSION);
         ui.start(primaryStage);
     }
@@ -133,9 +184,24 @@ public class MainApp extends Application {
     public void stop() {
         logger.info("============================ [ Stopping AddressBook ] =============================");
         try {
-            storage.saveUserPrefs(model.getUserPrefs());
+            if (storage != null && model != null) {
+                storage.saveUserPrefs(model.getUserPrefs());
+            }
         } catch (IOException e) {
             logger.severe("Failed to save preferences " + StringUtil.getDetails(e));
+        } finally {
+            releaseAddressBookLock();
+        }
+    }
+
+    private void releaseAddressBookLock() {
+        if (addressBookLock != null) {
+            try {
+                addressBookLock.close();
+            } catch (IOException e) {
+                logger.warning("Could not release the client data lock.");
+            }
+            addressBookLock = null;
         }
     }
 }
