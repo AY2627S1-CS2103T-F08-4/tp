@@ -220,7 +220,7 @@ public class LogicManagerTest {
         Logic freshLogic = new LogicManager(freshModel, freshStorage, "", false, Clock.fixed(MODIFIED, ZoneOffset.UTC));
         CommandResult edited = freshLogic.execute("edit 1 p/91234567");
 
-        assertEquals("Edited person: John Doe; Phone: 91234567; Tags: ", edited.getFeedbackToUser());
+        assertEquals("Edited person: John Doe; Phone: 91234567", edited.getFeedbackToUser());
         Person expected = new PersonBuilder(minimal).withPhone("91234567").build().withTimestamps(CREATED, MODIFIED);
         ReadOnlyAddressBook reloaded = new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow();
         assertEquals(expected, reloaded.getPersonList().getFirst());
