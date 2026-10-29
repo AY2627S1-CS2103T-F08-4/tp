@@ -121,7 +121,7 @@ public class RemoveCardCommandIntegrationTest {
     @Test
     public void execute_matchingCardNumberOnAnotherClient_removesOnlyTargetCard() throws Exception {
         logic.execute(ADD_CLIENT);
-        logic.execute(ADD_CLIENT.replace("C0001", "C0002") + " --confirm-clash");
+        logic.execute(ADD_CLIENT.replace("C0001", "C0002") + " confirm/y");
 
         logic.execute("removecard r/C0001");
 

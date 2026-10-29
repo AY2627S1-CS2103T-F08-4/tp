@@ -5,8 +5,8 @@ package seedu.address.logic.parser;
  */
 public class CliSyntax {
 
-    /** Flag used to confirm a previously reported client-field clash. */
-    public static final String CONFIRM_CLASH_FLAG = "--confirm-clash";
+    /** Prefix used to confirm a previously reported client-field clash. */
+    public static final Prefix PREFIX_CONFIRM = new Prefix("confirm/");
 
     /* Prefix definitions */
     public static final Prefix PREFIX_REFERENCE = new Prefix("r/");
