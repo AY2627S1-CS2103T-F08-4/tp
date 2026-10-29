@@ -135,11 +135,11 @@ The `Model` component,
 
 #### Client profile fields
 
-`Person` is an immutable client profile. The diagram shows its stored fields, including the types used for client references, contact details, card and financial information, service notes, tags, and timestamps. All value types, including `CardDetails`, are shown consistently as attribute types; their internal fields are omitted.
+`Person` is an immutable client profile. The diagram shows its custom value types as classes connected by named associations. Each value class shows its stored fields; `CardDetails` groups four required strings. These references are represented only by associations, while the two `Instant` timestamps remain attributes of `Person`.
 
-<puml src="diagrams/PersonClassDiagram.puml" width="450" alt="Person attributes showing required name, optional client details and timestamps, and a set of tags" />
+<puml src="diagrams/PersonClassDiagram.puml" width="1000" alt="Person associations to client value classes, with each value class showing its stored fields" />
 
-An attribute multiplicity of `0..1` means the stored field may be `null`; `name` is required. `tags` is a non-null set that can be empty. All getters for nullable fields return `Optional` values.
+An association or attribute multiplicity of `0..1` means the stored field may be `null`; `name` is required. The `tags` association has multiplicity `0..*` and is unique because tags are stored in a non-null set that can be empty. All getters for nullable fields return `Optional` values. Ordinary associations allow immutable value objects to be shared when a profile is copied; the diagram does not assert exclusive ownership through composition.
 
 New clients created through `add` require a `ClientReference`. Unreferenced legacy profiles remain supported. References determine client identity when present; profiles without references retain name-based identity. Contact, card, credit score, and debt fields may be absent independently. If a card is present, its `cardNumber`, `cvv`, `expiryDate`, and `provider` fields are required strings.
 

@@ -2,25 +2,73 @@
 !include style.puml
 skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
+skinparam nodesep 100
+skinparam ranksep 60
 skinparam classBackgroundColor MODEL_COLOR
 skinparam classAttributeFontColor #FFFFFF
 skinparam classAttributeIconSize 0
 skinparam dpi 150
 
 class Person {
-  - clientReference : ClientReference [0..1]
-  - name : Name [1]
-  - phone : Phone [0..1]
-  - email : Email [0..1]
-  - address : Address [0..1]
-  - cardDetails : CardDetails [0..1]
-  - creditScore : CreditScore [0..1]
-  - debt : Debt [0..1]
-  - serviceNote : ServiceNote [0..1]
-  - tags : Set<Tag>
   - createdAt : Instant [0..1]
   - lastModifiedAt : Instant [0..1]
 }
 
-show Person fields
+class ClientReference {
+  + value : String
+}
+class Name {
+  + fullName : String
+}
+class Phone {
+  + value : String
+}
+class Email {
+  + value : String
+}
+class Address {
+  + value : String
+}
+class CardDetails {
+  - cardNumber : String
+  - cvv : String
+  - expiryDate : String
+  - provider : String
+}
+class CreditScore {
+  - value : BigInteger
+}
+class Debt {
+  - amount : BigDecimal
+}
+class ServiceNote {
+  + value : String
+}
+class Tag {
+  + tagName : String
+}
+
+show fields
+
+Person -[norank]left-> "0..1" ClientReference : clientReference
+Person -[norank]left-> "1" Name : name
+Person -[norank]left-> "0..1" Phone : phone
+Person -[norank]left-> "0..1" Email : email
+Person -[norank]left-> "0..1" Address : address
+Person -[norank]right-> "0..1" CardDetails : cardDetails
+Person -[norank]right-> "0..1" CreditScore : creditScore
+Person -[norank]right-> "0..1" Debt : debt
+Person -[norank]right-> "0..1" ServiceNote : serviceNote
+Person -[norank]right-> "0..*" Tag : tags {unique}
+
+ClientReference -[hidden]down-> Name
+Name -[hidden]down-> Phone
+Phone -[hidden]down-> Email
+Email -[hidden]down-> Address
+CardDetails -[hidden]down-> CreditScore
+CreditScore -[hidden]down-> Debt
+Debt -[hidden]down-> ServiceNote
+ServiceNote -[hidden]down-> Tag
+Phone -[hidden]right-> Person
+Person -[hidden]right-> Debt
 @enduml
