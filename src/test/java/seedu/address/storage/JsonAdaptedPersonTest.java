@@ -68,6 +68,20 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_offsetTimestamps_preserveFractionalPrecision() throws Exception {
+        var adapted = new JsonAdaptedPerson(null, VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
+                VALID_CARD_DETAILS, VALID_CREDIT_SCORE, VALID_DEBT, VALID_TAGS,
+                "2026-03-15T09:42:00.123456789+08:00", "2026-03-15T09:42:00.123456789+08:00");
+
+        Person person = adapted.toModelType();
+
+        Instant expected = Instant.parse("2026-03-15T01:42:00.123456789Z");
+        assertEquals(expected, person.getCreatedAt().orElseThrow());
+        assertEquals(expected, person.getLastModifiedAt().orElseThrow());
+        assertEquals(person, new JsonAdaptedPerson(person).toModelType());
+    }
+
+    @Test
     public void toModelType_oldFormat_keepsTimestampsUnknown() throws Exception {
         var adapted = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
                 VALID_CARD_DETAILS, VALID_CREDIT_SCORE, VALID_DEBT, VALID_TAGS);

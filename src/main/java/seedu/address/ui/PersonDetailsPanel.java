@@ -11,6 +11,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import seedu.address.commons.util.TimestampUtil;
 import seedu.address.model.person.Person;
 
 /** Displays the currently selected client's details. */
@@ -141,8 +142,11 @@ public class PersonDetailsPanel extends UiPart<Region> {
         return new TimestampDisplay(createdText, modifiedText, "");
     }
 
-    /** Formats a known instant in the viewer's time zone. */
+    /** Formats a known instant, or reports unavailable information outside the supported display range. */
     static String formatTimestamp(Instant timestamp, ZoneId displayZone) {
+        if (!TimestampUtil.isDisplayable(timestamp)) {
+            return TimestampUtil.INVALID_TIMESTAMP_MESSAGE;
+        }
         return TIMESTAMP_FORMAT.format(timestamp.atZone(displayZone));
     }
 

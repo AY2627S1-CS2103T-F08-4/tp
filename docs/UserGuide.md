@@ -163,6 +163,13 @@ For a newly added client, both times are the same. A successful `edit`, `note`, 
 
 Older saved profiles may lack timestamps. If one time is available, the side panel shows only that time. If both are unavailable, it shows `Timestamp information is unavailable for this profile.` once. Editing an older profile adds a `Last Modified` time but does not invent a `Created` time.
 
+Saved timestamps use ISO instants and are written in UTC. The displayable range is
+`0001-01-01T18:00:00Z` through `9999-12-31T05:59:59.999999999Z`, inclusive, keeping local
+dates within years 0001–9999 across supported time-zone offsets (−18:00 to +18:00).
+A valid timestamp outside this range is preserved in saved data, but its associated `Created` or
+`Last Modified` field shows `Timestamp information is invalid for this profile.` Other valid timestamps display normally.
+Malformed timestamp strings still cause startup to enter protected mode.
+
 ### Editing a client: `edit`
 
 Edits an existing client in TellerFlow.
