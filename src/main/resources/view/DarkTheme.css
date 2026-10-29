@@ -370,9 +370,24 @@
     -fx-text-fill: #aebcc2;
 }
 
+.client-details .details-reference,
 .client-details .details-value,
 .client-details .details-note-text {
-    -fx-text-fill: #e8eef1;
+    -fx-background-color: #414b50;
+    -fx-background-insets: 0;
+    -fx-background-radius: 3;
+    -fx-border-color: transparent;
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+    -fx-padding: 2 5 2 5;
+}
+
+.client-details .details-reference .text,
+.client-details .details-value .text,
+.client-details .details-note-text .content,
+.client-details .details-note-text .text {
+    -fx-fill: #ffffff;
 }
 
 .client-details .details-note-block {
@@ -384,7 +399,7 @@
 }
 
 .client-details .details-note-text {
-    -fx-font-size: 14px;
+    -fx-font-size: 13px;
 }
 
 .client-details #tags .label {

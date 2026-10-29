@@ -7,6 +7,8 @@ import java.util.Comparator;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -35,23 +37,23 @@ public class PersonDetailsPanel extends UiPart<Region> {
     @FXML
     private HBox addressRow;
     @FXML
-    private Label reference;
+    private TextField reference;
     @FXML
     private Label name;
     @FXML
-    private Label phone;
+    private TextField phone;
     @FXML
-    private Label email;
+    private TextField email;
     @FXML
-    private Label address;
+    private TextField address;
     @FXML
-    private Label serviceNote;
+    private TextArea serviceNote;
     @FXML
-    private Label cardDetails;
+    private TextField cardDetails;
     @FXML
-    private Label creditScore;
+    private TextField creditScore;
     @FXML
-    private Label debt;
+    private TextField debt;
     @FXML
     private FlowPane tags;
     @FXML
@@ -67,9 +69,9 @@ public class PersonDetailsPanel extends UiPart<Region> {
     @FXML
     private HBox lastModifiedAtRow;
     @FXML
-    private Label createdAt;
+    private TextField createdAt;
     @FXML
-    private Label lastModifiedAt;
+    private TextField lastModifiedAt;
     @FXML
     private Label timestampUnavailable;
 
@@ -152,7 +154,7 @@ public class PersonDetailsPanel extends UiPart<Region> {
 
     record TimestampDisplay(String created, String lastModified, String unavailable) { }
 
-    private static void setOptionalRow(Region row, Label value, String text) {
+    private static void setOptionalRow(Region row, TextField value, String text) {
         value.setText(text);
         setShown(row, text != null && !text.isBlank());
     }
