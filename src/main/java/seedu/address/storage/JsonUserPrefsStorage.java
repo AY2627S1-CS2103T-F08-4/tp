@@ -41,8 +41,8 @@ public class JsonUserPrefsStorage {
      */
     public Optional<UserPrefs> readUserPrefs(Path prefsFilePath) throws DataLoadingException {
         Optional<UserPrefs> prefs = JsonUtil.readJsonFile(prefsFilePath, UserPrefs.class);
-        if (prefs.isPresent() && prefs.get().getGuiSettings() == null) {
-            throw new DataLoadingException(new IOException("GUI settings must not be null"));
+        if (prefs.filter(userPrefs -> !userPrefs.isValid()).isPresent()) {
+            throw new DataLoadingException(new IOException("User preferences are invalid"));
         }
         return prefs;
     }
