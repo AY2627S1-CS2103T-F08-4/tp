@@ -135,72 +135,122 @@ class JsonAdaptedPerson {
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
     public Person toModelType() throws IllegalValueException {
-        final ServiceNote modelNote;
+        ServiceNote modelNote = parseServiceNote();
+        Instant modelCreatedAt = parseTimestamp(createdAt);
+        Instant modelLastModifiedAt = parseTimestamp(lastModifiedAt);
+        return createModelPerson(parseClientReference(), parseName(), parsePhone(), parseEmail(), parseAddress(),
+                parseCardDetails(), parseCreditScore(), parseDebt(), parseTags(), modelNote,
+                modelCreatedAt, modelLastModifiedAt);
+    }
+
+    private ServiceNote parseServiceNote() throws IllegalValueException {
         // Jackson also supplies NullNode when an optional creator property is absent.
         // JsonAddressBookStorage rejects explicit JSON null before reaching this adapter.
         if (serviceNote == null || serviceNote.isNull()) {
-            modelNote = null;
-        } else if (!serviceNote.isTextual()
-                || !ServiceNote.isValidServiceNote(serviceNote.textValue())) {
+            return null;
+        }
+        if (!serviceNote.isTextual() || !ServiceNote.isValidServiceNote(serviceNote.textValue())) {
             throw new IllegalValueException(ServiceNote.MESSAGE_CONSTRAINTS);
-        } else {
-            modelNote = new ServiceNote(serviceNote.textValue());
         }
-        final Instant modelCreatedAt = parseTimestamp(createdAt);
-        final Instant modelLastModifiedAt = parseTimestamp(lastModifiedAt);
-        final ClientReference modelReference;
-        if (clientReference == null) {
-            modelReference = null;
-        } else if (!ClientReference.isValidClientReference(clientReference)) {
-            throw new IllegalValueException(ClientReference.MESSAGE_CONSTRAINTS);
-        } else {
-            modelReference = new ClientReference(clientReference);
-        }
+        return new ServiceNote(serviceNote.textValue());
+    }
 
-        final List<Tag> personTags = new ArrayList<>();
+    private ClientReference parseClientReference() throws IllegalValueException {
+        if (clientReference == null) {
+            return null;
+        }
+        if (!ClientReference.isValidClientReference(clientReference)) {
+            throw new IllegalValueException(ClientReference.MESSAGE_CONSTRAINTS);
+        }
+        return new ClientReference(clientReference);
+    }
+
+    private Set<Tag> parseTags() throws IllegalValueException {
+        List<Tag> modelTags = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
             if (tag == null) {
                 throw new IllegalValueException("Tags list contains a null tag.");
             }
-            personTags.add(tag.toModelType());
+            modelTags.add(tag.toModelType());
         }
+        return new HashSet<>(modelTags);
+    }
 
+    private Name parseName() throws IllegalValueException {
         if (name == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Name.class.getSimpleName()));
         }
         if (!Name.isValidName(name)) {
             throw new IllegalValueException(Name.MESSAGE_CONSTRAINTS);
         }
-        final Name modelName = new Name(name);
+        return new Name(name);
+    }
 
+    private Phone parsePhone() throws IllegalValueException {
         if (phone != null && !Phone.isValidPhone(phone)) {
             throw new IllegalValueException(Phone.MESSAGE_CONSTRAINTS);
         }
-        final Phone modelPhone = phone == null ? null : new Phone(phone);
+        return phone == null ? null : new Phone(phone);
+    }
 
+    private Email parseEmail() throws IllegalValueException {
         if (email != null && !Email.isValidEmail(email)) {
             throw new IllegalValueException(Email.MESSAGE_CONSTRAINTS);
         }
-        final Email modelEmail = email == null ? null : new Email(email);
+        return email == null ? null : new Email(email);
+    }
 
+    private Address parseAddress() throws IllegalValueException {
         if (address != null && !Address.isValidAddress(address)) {
             throw new IllegalValueException(Address.MESSAGE_CONSTRAINTS);
         }
-        final Address modelAddress = address == null ? null : new Address(address);
+        return address == null ? null : new Address(address);
+    }
 
-        final Set<Tag> modelTags = new HashSet<>(personTags);
+    private CardDetails parseCardDetails() throws IllegalValueException {
+        if (cardDetails == null) {
+            return null;
+        }
         try {
-            final CardDetails modelCardDetails = cardDetails == null ? null : cardDetails.toModelType();
-            final CreditScore modelCreditScore = creditScore == null ? null : new CreditScore(creditScore);
-            final Debt modelDebt = debt == null ? null : new Debt(debt);
-            if (modelReference != null) {
-                return new Person(modelReference, modelName, modelPhone, modelEmail, modelAddress,
-                        modelCardDetails, modelCreditScore, modelDebt, modelTags, modelNote)
-                        .withTimestamps(modelCreatedAt, modelLastModifiedAt);
-            }
-            return new Person(modelName, modelPhone, modelEmail, modelAddress, modelCardDetails,
-                    modelCreditScore, modelDebt, modelTags, modelNote)
-                    .withTimestamps(modelCreatedAt, modelLastModifiedAt);
+            return cardDetails.toModelType();
+        } catch (IllegalArgumentException e) {
+            throw new IllegalValueException(e.getMessage(), e);
+        }
+    }
+
+    private CreditScore parseCreditScore() throws IllegalValueException {
+        if (creditScore == null) {
+            return null;
+        }
+        try {
+            return new CreditScore(creditScore);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalValueException(e.getMessage(), e);
+        }
+    }
+
+    private Debt parseDebt() throws IllegalValueException {
+        if (debt == null) {
+            return null;
+        }
+        try {
+            return new Debt(debt);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalValueException(e.getMessage(), e);
+        }
+    }
+
+    private static Person createModelPerson(ClientReference reference, Name modelName, Phone modelPhone,
+            Email modelEmail, Address modelAddress, CardDetails modelCardDetails, CreditScore modelCreditScore,
+            Debt modelDebt, Set<Tag> modelTags, ServiceNote modelNote, Instant modelCreatedAt,
+            Instant modelLastModifiedAt) throws IllegalValueException {
+        try {
+            Person person = reference != null
+                    ? new Person(reference, modelName, modelPhone, modelEmail, modelAddress,
+                            modelCardDetails, modelCreditScore, modelDebt, modelTags, modelNote)
+                    : new Person(modelName, modelPhone, modelEmail, modelAddress, modelCardDetails,
+                            modelCreditScore, modelDebt, modelTags, modelNote);
+            return person.withTimestamps(modelCreatedAt, modelLastModifiedAt);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage(), e);
         }
