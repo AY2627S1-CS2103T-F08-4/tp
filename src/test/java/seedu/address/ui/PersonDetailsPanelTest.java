@@ -22,9 +22,11 @@ import org.w3c.dom.NodeList;
 
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -206,15 +208,16 @@ class PersonDetailsPanelTest {
     void timestampLabels_existBeforeServiceNoteInDetailsFxml() throws Exception {
         List<String> ids = new ArrayList<>();
         try (InputStream stream = PersonDetailsPanel.class.getResourceAsStream("/view/PersonDetailsPanel.fxml")) {
-            NodeList labels = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(stream)
-                    .getElementsByTagName("Label");
-            for (int i = 0; i < labels.getLength(); i++) {
-                ids.add(labels.item(i).getAttributes().getNamedItem("fx:id") == null ? ""
-                        : labels.item(i).getAttributes().getNamedItem("fx:id").getNodeValue());
+            NodeList elements = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(stream)
+                    .getElementsByTagName("*");
+            for (int i = 0; i < elements.getLength(); i++) {
+                ids.add(elements.item(i).getAttributes().getNamedItem("fx:id") == null ? ""
+                        : elements.item(i).getAttributes().getNamedItem("fx:id").getNodeValue());
             }
         }
         assertTrue(ids.containsAll(Set.of("createdAt", "lastModifiedAt", "timestampUnavailable")));
-        assertEquals("serviceNote", ids.getLast());
+        assertTrue(ids.indexOf("createdAt") < ids.indexOf("serviceNote"));
+        assertTrue(ids.indexOf("lastModifiedAt") < ids.indexOf("serviceNote"));
     }
 
     @Test
@@ -229,10 +232,13 @@ class PersonDetailsPanelTest {
     }
 
     private static void assertLabel(Region root, String id, String expectedText) {
-        Label label = (Label) root.lookup("#" + id);
-        assertEquals(expectedText, label.getText(), id);
+        Node node = root.lookup("#" + id);
+        String actualText = node instanceof TextInputControl
+                ? ((TextInputControl) node).getText()
+                : ((Label) node).getText();
+        assertEquals(expectedText, actualText, id);
         Region row = (Region) root.lookup("#" + id + "Row");
-        Region displayed = row == null ? label : row;
+        Region displayed = row == null ? (Region) node : row;
         assertEquals(!expectedText.isEmpty(), displayed.isVisible(), id + " visibility");
         assertEquals(!expectedText.isEmpty(), displayed.isManaged(), id + " layout space");
     }
