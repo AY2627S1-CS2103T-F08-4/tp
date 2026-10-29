@@ -60,7 +60,7 @@
           </HBox>
           <HBox fx:id="tagsRow" spacing="12" alignment="TOP_LEFT">
             <Label text="Tags" minWidth="90" prefWidth="90" styleClass="details-caption" />
-            <FlowPane fx:id="tags" hgap="7" vgap="3" HBox.hgrow="ALWAYS" />
+            <FlowPane fx:id="tags" hgap="7" vgap="3" minWidth="0" prefWrapLength="0" HBox.hgrow="ALWAYS" />
           </HBox>
         </VBox>
 

@@ -35,6 +35,13 @@ public class UserPrefs implements ReadOnlyUserPrefs {
         this.guiSettings = guiSettings;
     }
 
+    /**
+     * Returns whether these preferences contain the settings required by the application.
+     */
+    public boolean isValid() {
+        return guiSettings != null;
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {

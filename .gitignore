@@ -2,12 +2,15 @@
 /.gradle/
 /build/
 src/main/resources/docs/
+/alpha_test/
+.gitignore
 
 # IDEA files
 src/.idea/
 /.idea/
 /out/
 /*.iml
+/alpha_test/
 
 # Storage/log files
 /data/

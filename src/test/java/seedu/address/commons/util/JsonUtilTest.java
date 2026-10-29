@@ -1,6 +1,7 @@
 package seedu.address.commons.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -40,6 +41,21 @@ public class JsonUtilTest {
     }
 
     //TODO: @Test jsonUtil_readJsonStringToObjectInstance_correctObject()
+
+    @Test
+    public void fromJsonString_trailingContent_throwsIoException() {
+        for (String tail : new String[] {" THIS IS NOT JSON", " {}", " []", " null", " 1", " true"}) {
+            assertThrows(IOException.class, () -> JsonUtil.fromJsonString("{}" + tail,
+                    SerializableTestClass.class), tail);
+        }
+    }
+
+    @Test
+    public void fromJsonString_trailingWhitespace_isAccepted() throws IOException {
+        SerializableTestClass actual = JsonUtil.fromJsonString(
+                SerializableTestClass.JSON_STRING_REPRESENTATION + " \r\n\t", SerializableTestClass.class);
+        assertEquals(SerializableTestClass.getNameTestValue(), actual.getName());
+    }
 
     //TODO: @Test jsonUtil_writeThenReadObjectToJson_correctObject()
 }
