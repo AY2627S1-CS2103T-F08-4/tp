@@ -10,6 +10,7 @@ src/.idea/
 /.idea/
 /out/
 /*.iml
+/alpha_test/
 
 # Storage/log files
 /data/

@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.commons.util.TimestampUtil;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.CardDetails;
 import seedu.address.model.person.ClientReference;
@@ -33,7 +34,7 @@ import seedu.address.model.tag.Tag;
 class JsonAdaptedPerson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
-    public static final String INVALID_TIMESTAMP_MESSAGE = "Timestamp information is invalid for this profile.";
+    public static final String INVALID_TIMESTAMP_MESSAGE = TimestampUtil.INVALID_TIMESTAMP_MESSAGE;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private final String clientReference;
