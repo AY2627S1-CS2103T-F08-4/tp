@@ -117,9 +117,7 @@ public class PersonDetailsPanel extends UiPart<Region> {
         tags.getChildren().clear();
         person.getTags().stream().sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> {
-                    Label label = new Label(tag.tagName);
-                    label.setWrapText(true);
-                    label.setMinWidth(0);
+                    Label label = new TagLabel(tag.tagName);
                     label.maxWidthProperty().bind(tags.widthProperty());
                     tags.getChildren().add(label);
                 });
@@ -168,6 +166,23 @@ public class PersonDetailsPanel extends UiPart<Region> {
     }
 
     record TimestampDisplay(String created, String lastModified, String unavailable) { }
+
+    /** Measures wrapped text at the same width that the flow pane assigns during layout. */
+    private static class TagLabel extends Label {
+        TagLabel(String text) {
+            super(text);
+            setWrapText(true);
+            setMinWidth(0);
+            setMinHeight(Region.USE_PREF_SIZE);
+        }
+
+        @Override
+        protected double computePrefHeight(double width) {
+            // FlowPane also requests height without a width constraint when measuring its rows.
+            double textWidth = width < 0 ? prefWidth(-1) : width;
+            return super.computePrefHeight(Math.min(textWidth, getMaxWidth()));
+        }
+    }
 
     private static void setOptionalRow(Region row, TextField value, String text) {
         value.setText(text);

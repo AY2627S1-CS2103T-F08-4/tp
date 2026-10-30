@@ -294,6 +294,58 @@ class PersonDetailsPanelTest {
                         "Long tag should occupy multiple lines: " + diagnostics);
                 assertTrue(label.getHeight() >= label.prefHeight(label.getWidth()) - 1,
                         "All wrapped lines must have enough height: " + diagnostics);
+                assertTrue(label.prefHeight(-1) >= label.prefHeight(label.getWidth()) - 1,
+                        "Row measurement must account for the constrained tag width: " + diagnostics);
+                assertEquals(longTag, text.getText(), "Rendered tag must not be truncated: " + diagnostics);
+            }
+        });
+    }
+
+    @Test
+    void showPerson_multipleTags_remainVisibleWhenResizedAndProfilesChange() throws Exception {
+        runOnFxThread(() -> {
+            String longTag = "RequiresSupervisorApprovalBeforeProcessingInternationalWireTransfersAboveDailyLimit";
+            Person taggedPerson = new PersonBuilder().withTags(longTag, longTag + "Again", "VIP", "New").build();
+            Person untaggedPerson = new PersonBuilder().withTags().build();
+            PersonDetailsPanel panel = new PersonDetailsPanel();
+            StackPane container = new StackPane(panel.getRoot());
+            Scene scene = new Scene(container);
+            scene.getStylesheets().add(PersonDetailsPanel.class.getResource("/view/DarkTheme.css").toExternalForm());
+
+            for (Person person : List.of(taggedPerson, untaggedPerson, taggedPerson)) {
+                panel.showPerson(person);
+                for (double width : new double[] {320, 480, 300}) {
+                    container.resize(width, 600);
+                    container.applyCss();
+                    container.layout();
+                    ScrollPane scrollPane = (ScrollPane) panel.getRoot();
+                    FlowPane tags = (FlowPane) scrollPane.lookup("#tags");
+                    Region tagsRow = (Region) scrollPane.lookup("#tagsRow");
+                    assertEquals(person.getTags().size(), tags.getChildren().size());
+                    assertEquals(!person.getTags().isEmpty(), tagsRow.isManaged());
+                    assertEquals(!person.getTags().isEmpty(), tagsRow.isVisible());
+                    Bounds viewport = scrollPane.lookup(".viewport").localToScene(
+                            scrollPane.lookup(".viewport").getLayoutBounds());
+                    List<Bounds> tagBounds = new ArrayList<>();
+                    for (Node child : tags.getChildren()) {
+                        Label label = (Label) child;
+                        Text text = (Text) label.lookup(".text");
+                        Bounds bounds = label.localToScene(label.getLayoutBounds());
+                        String context = label.getText() + " at width " + width;
+                        assertEquals(label.getText(), text.getText(), context);
+                        assertTrue(bounds.getMinX() >= viewport.getMinX() - 1, context);
+                        assertTrue(bounds.getMaxX() <= viewport.getMaxX() + 1, context);
+                        assertTrue(label.getHeight() >= label.prefHeight(label.getWidth()) - 1, context);
+                        for (Bounds previous : tagBounds) {
+                            assertTrue(!bounds.intersects(previous), "Tags must not overlap: " + context);
+                        }
+                        tagBounds.add(bounds);
+                        if (label.getText().equals("VIP") || label.getText().equals("New")) {
+                            assertEquals(label.prefWidth(-1), label.getWidth(), 1, context);
+                            assertEquals(label.prefHeight(label.getWidth()), label.getHeight(), 1, context);
+                        }
+                    }
+                }
             }
         });
     }
