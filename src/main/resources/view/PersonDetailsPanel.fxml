@@ -5,9 +5,9 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import seedu.address.ui.TagFlowPane?>
 
 <ScrollPane fx:id="detailsScrollPane" fitToWidth="true" hbarPolicy="NEVER" styleClass="client-details"
             xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
@@ -60,7 +60,7 @@
           </HBox>
           <HBox fx:id="tagsRow" spacing="12" alignment="TOP_LEFT">
             <Label text="Tags" minWidth="90" prefWidth="90" styleClass="details-caption" />
-            <FlowPane fx:id="tags" hgap="7" vgap="3" minWidth="0" prefWrapLength="0" HBox.hgrow="ALWAYS" />
+            <TagFlowPane fx:id="tags" hgap="7" vgap="3" minWidth="0" prefWrapLength="0" HBox.hgrow="ALWAYS" />
           </HBox>
         </VBox>
 

@@ -294,8 +294,8 @@ class PersonDetailsPanelTest {
                         "Long tag should occupy multiple lines: " + diagnostics);
                 assertTrue(label.getHeight() >= label.prefHeight(label.getWidth()) - 1,
                         "All wrapped lines must have enough height: " + diagnostics);
-                assertTrue(label.prefHeight(-1) >= label.prefHeight(label.getWidth()) - 1,
-                        "Row measurement must account for the constrained tag width: " + diagnostics);
+                assertTrue(tags.getHeight() >= label.getBoundsInParent().getMaxY() - 1,
+                        "Tag pane must reserve enough height for wrapped rows: " + diagnostics);
                 assertEquals(longTag, text.getText(), "Rendered tag must not be truncated: " + diagnostics);
             }
         });
@@ -326,7 +326,7 @@ class PersonDetailsPanelTest {
                     assertEquals(!person.getTags().isEmpty(), tagsRow.isVisible());
                     Bounds viewport = scrollPane.lookup(".viewport").localToScene(
                             scrollPane.lookup(".viewport").getLayoutBounds());
-                    List<Bounds> tagBounds = new ArrayList<>();
+                    List<Label> previousTags = new ArrayList<>();
                     for (Node child : tags.getChildren()) {
                         Label label = (Label) child;
                         Text text = (Text) label.lookup(".text");
@@ -336,10 +336,16 @@ class PersonDetailsPanelTest {
                         assertTrue(bounds.getMinX() >= viewport.getMinX() - 1, context);
                         assertTrue(bounds.getMaxX() <= viewport.getMaxX() + 1, context);
                         assertTrue(label.getHeight() >= label.prefHeight(label.getWidth()) - 1, context);
-                        for (Bounds previous : tagBounds) {
-                            assertTrue(!bounds.intersects(previous), "Tags must not overlap: " + context);
+                        assertTrue(tags.getHeight() >= label.getBoundsInParent().getMaxY() - 1, context);
+                        assertTrue(tags.prefHeight(tags.getWidth()) >= label.getBoundsInParent().getMaxY() - 1,
+                                "Preferred pane height must include every row: " + context);
+                        for (Label previous : previousTags) {
+                            Bounds previousBounds = previous.localToScene(previous.getLayoutBounds());
+                            assertTrue(!bounds.intersects(previousBounds),
+                                    "Tags must not overlap: " + context + " bounds=" + bounds
+                                            + ", previousTag=" + previous.getText() + " bounds=" + previousBounds);
                         }
-                        tagBounds.add(bounds);
+                        previousTags.add(label);
                         if (label.getText().equals("VIP") || label.getText().equals("New")) {
                             assertEquals(label.prefWidth(-1), label.getWidth(), 1, context);
                             assertEquals(label.prefHeight(label.getWidth()), label.getHeight(), 1, context);
