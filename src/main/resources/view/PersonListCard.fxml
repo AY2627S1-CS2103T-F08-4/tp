@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <HBox id="cardPane" fx:id="cardPane" alignment="CENTER_LEFT" spacing="4"
-      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+      xmlns="http://javafx.com/javafx/25.0.3" xmlns:fx="http://javafx.com/fxml/1">
   <padding><Insets top="9" right="8" bottom="9" left="12" /></padding>
   <Label fx:id="id" styleClass="cell_small_label">
     <minWidth><Region fx:constant="USE_PREF_SIZE" /></minWidth>

@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <ScrollPane fx:id="detailsScrollPane" fitToWidth="true" hbarPolicy="NEVER" styleClass="client-details"
-            xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+            xmlns="http://javafx.com/javafx/25.0.3" xmlns:fx="http://javafx.com/fxml/1">
   <content>
     <VBox spacing="18">
       <padding><Insets top="18" right="18" bottom="18" left="18" /></padding>
