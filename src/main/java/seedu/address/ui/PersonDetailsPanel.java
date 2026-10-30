@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -121,6 +122,10 @@ public class PersonDetailsPanel extends UiPart<Region> {
                     label.setWrapText(true);
                     label.setMinWidth(0);
                     label.maxWidthProperty().bind(tags.widthProperty());
+                    // FlowPane measures row heights before resizing its children to the available width.
+                    label.minHeightProperty().bind(Bindings.createDoubleBinding(() ->
+                            label.prefHeight(tags.getWidth()), tags.widthProperty(),
+                            label.fontProperty(), label.insetsProperty(), label.textProperty()));
                     tags.getChildren().add(label);
                 });
         setShown(tagsRow, !tags.getChildren().isEmpty());

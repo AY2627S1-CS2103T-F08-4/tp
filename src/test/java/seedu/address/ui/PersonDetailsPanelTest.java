@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
@@ -249,17 +250,24 @@ class PersonDetailsPanelTest {
             String longTag = "RequiresSupervisorApprovalBeforeProcessingInternationalWireTransfersAboveDailyLimit";
             Person person = new PersonBuilder().withTags(longTag, "VIP").build();
             PersonDetailsPanel panel = new PersonDetailsPanel();
-            panel.showPerson(person);
             StackPane container = new StackPane(panel.getRoot());
             Scene scene = new Scene(container);
             scene.getStylesheets().add(PersonDetailsPanel.class.getResource("/view/DarkTheme.css").toExternalForm());
 
-            for (double width : new double[] {320, 480, 300}) {
-                container.resize(width, 600);
-                container.applyCss();
-                container.layout();
+            for (double width : new double[] {320, 480, 300, 320, 480, 300}) {
+                if (width == 320) {
+                    panel.showPerson(new PersonBuilder().withTags("VIP").build());
+                    settleLayout(container, width);
+                    FlowPane previousTags = (FlowPane) panel.getRoot().lookup("#tags");
+                    assertEquals(1, previousTags.getChildren().size());
+                    assertEquals("VIP", ((Label) previousTags.getChildren().getFirst()).getText());
+
+                    panel.showPerson(person);
+                }
+                settleLayout(container, width);
                 ScrollPane scrollPane = (ScrollPane) panel.getRoot();
                 FlowPane tags = (FlowPane) scrollPane.lookup("#tags");
+                assertEquals(2, tags.getChildren().size());
                 Label label = tags.getChildren().stream()
                         .filter(Label.class::isInstance)
                         .map(Label.class::cast)
@@ -272,30 +280,30 @@ class PersonDetailsPanelTest {
                 assertEquals(longTag, label.getText());
                 assertTrue(renderedTag.getMinX() >= viewport.getMinX() - 1);
                 assertTrue(renderedTag.getMaxX() <= viewport.getMaxX() + 1,
-                        "Full tag must fit within viewport at width " + width);
+                        "Full tag must fit within viewport");
                 Text text = (Text) label.lookup(".text");
                 Text singleLine = new Text(longTag);
                 singleLine.setFont(label.getFont());
-                String diagnostics = "requestedWidth=" + width
-                        + ", viewportWidth=" + viewport.getWidth()
-                        + ", labelWidth=" + label.getWidth()
-                        + ", labelHeight=" + label.getHeight()
-                        + ", preferredHeight=" + label.prefHeight(label.getWidth())
-                        + ", renderedText=[" + text.getText() + "]"
-                        + ", wrappingWidth=" + text.getWrappingWidth()
-                        + ", renderedTextHeight=" + text.getLayoutBounds().getHeight()
-                        + ", singleLineHeight=" + singleLine.getLayoutBounds().getHeight()
-                        + ", font=" + label.getFont()
-                        + ", os=" + System.getProperty("os.name")
-                        + ", architecture=" + System.getProperty("os.arch")
-                        + ", javafxVersion=" + System.getProperty("javafx.version")
-                        + ", javafxRuntimeVersion=" + System.getProperty("javafx.runtime.version");
+                assertEquals(longTag, text.getText(), "Rendered tag must not be truncated");
                 assertTrue(text.getLayoutBounds().getHeight() > singleLine.getLayoutBounds().getHeight(),
-                        "Long tag should occupy multiple lines: " + diagnostics);
+                        "Long tag should occupy multiple lines");
                 assertTrue(label.getHeight() >= label.prefHeight(label.getWidth()) - 1,
-                        "All wrapped lines must have enough height: " + diagnostics);
+                        "All wrapped lines must have enough height");
+                Label adjacentTag = (Label) tags.getChildren().get(1);
+                Bounds adjacentBounds = adjacentTag.localToScene(adjacentTag.getLayoutBounds());
+                assertFalse(renderedTag.intersects(adjacentBounds),
+                        "Tag labels must not overlap");
             }
         });
+    }
+
+    private static void settleLayout(StackPane container, double width) {
+        container.resize(width, 600);
+        // Width bindings can invalidate preferred heights during the initial layout pass.
+        for (int pass = 0; pass < 5; pass++) {
+            container.applyCss();
+            container.layout();
+        }
     }
 
     private static void runOnFxThread(Runnable action) throws Exception {
