@@ -542,7 +542,9 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 2. TellerFlow opens the Help window, displaying the URL of this repository's TellerFlow User Guide and a Copy URL button.
 3. Bank teller copies the URL and opens it in a browser to read the available commands and their usage.
 
-#### Use case: Find clients with cards expiring in a month
+#### Proposed use case: Find clients with cards expiring in a month
+
+This feature is not implemented in the current release. `find` supports names, phone numbers, and card numbers; there is no expiry-month search command. The following scenario describes a future feature.
 
 ##### Main success scenario (MSS)
 
@@ -574,8 +576,8 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 5.  If saved client data cannot be read, the application should explain the problem without overwriting the file, so the data can be repaired and loaded after a restart.
 6.  Invalid input and failed operations should produce clear feedback that tells the bank teller what needs correction.
 7.  Sensitive command input should not be written to application logs. **Future requirement (not implemented):** encrypt stored client and card details at rest to protect their confidentiality. The current release stores plaintext JSON; SHA-256 is a hash function, not an encryption mechanism.
-8.  The system must maintain an uptime of 99.9%. During an outage or a crash, the local stored data can still be accessed and modified.
-9.  The system must load all client information in under 5 seconds.
+8.  **Future availability target (not measured):** 99.9% uptime. TellerFlow is a local desktop application and provides no running service during a process crash. Previously saved client data remains on disk and can be loaded after restarting; external edits require all instances to be closed.
+9.  **Performance target (not benchmarked):** load all client information in under 5 seconds. This is a target, not a measured guarantee for every machine or dataset.
 
 The client-data lock prevents cooperating TellerFlow instances from saving to the same data file concurrently. It provides no encryption or user authentication. Card-number masking affects presentation only; the complete recorded card details, including CVV, remain in the saved JSON.
 
