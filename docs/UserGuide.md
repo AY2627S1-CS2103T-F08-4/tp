@@ -128,6 +128,7 @@ Tag | One or more ASCII letters or digits, with no spaces or punctuation.
 <box type="tip" seamless>
 
 **Tip:** A client can have any number of tags, including zero. Clients may share a name as long as their references differ.
+Tags appear in their own **Tags** section in the client details panel; this section is hidden when the client has no tags.
 </box>
 
 Examples:
