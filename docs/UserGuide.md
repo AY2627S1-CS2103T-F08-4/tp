@@ -104,7 +104,7 @@ Credit scores are nonnegative whole numbers. Debt is a nonnegative amount with a
 The debt is stored with two decimal places; no currency is assigned. An explicit `cs/0` or `d/0` records zero, which is different from an omitted value.
 Card details form one optional group: supply all four of `cn/`, `cvv/`, `exp/`, and `provider/`, or omit all four.
 Card number, CVV, and provider must be nonblank. Card details are saved as plain text; command input is trimmed at its edges.
-The client details panel shows a masked card number, provider, expiry date, credit score, and debt when supplied. CVV is not displayed. A card can be removed with `removecard`.
+The client details panel shows a masked card number, provider, CVV, expiry date, credit score, and debt when supplied. The CVV is visible in full. A card can be removed with `removecard`.
 Expiry dates must use `MM/YY`, with a month from `01` to `12` (e.g. `12/28`).
 This checks the format only; past expiry dates are accepted.
 
