@@ -53,7 +53,7 @@ The bulk of the app's work is done by the following four components:
 
 The _Sequence Diagram_ below shows how the components interact with each other for the scenario where the user issues the command `delete 1`.
 
-<puml src="diagrams/ArchitectureSequenceDiagram.puml" width="574" />
+<puml src="diagrams/ArchitectureSequenceDiagram.puml" width="1100" alt="Delete command stages a model change, saves it, and commits only after persistence succeeds" />
 
 Each of the four main components (also shown in the diagram above),
 
@@ -93,20 +93,19 @@ Here's a (partial) class diagram of the `Logic` component:
 
 The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete 1")` API call as an example.
 
-<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `delete 1` Command" />
+<puml src="diagrams/DeleteSequenceDiagram.puml" width="1200" alt="Delete execution resolves a displayed index to a Person in a staged model, saves through AddressBookSync, then commits or reports failure" />
 
-<box type="info" seamless>
+<a href="diagrams/DeleteSequenceDiagram.png" no-validation>Open the full-size delete sequence diagram</a> to inspect the calls and failure path.
 
-**Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, the lifeline continues till the end of diagram.
-</box>
+**Diagram note:** The `DeleteCommandParser` lifeline should end at the destroy marker (X); PlantUML may continue its dashed line below that marker.
 
 How the `Logic` component works:
 
 1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
-1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
-   Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
-1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
+1. This results in a `Command` object (an instance of a subclass such as `DeleteCommand`). `LogicManager` checks whether it changes client data. Protected mode rejects data-changing commands before they execute.
+1. `Model#beginStaging` returns a `ModelStage`, whose `model()` supplies the isolated model used by a data-changing command. For `delete 1`, the command resolves the first displayed client from that staged model and passes the `Person` to `deletePerson`; the active model is unchanged at this point.
+1. Unless the command requests clash confirmation, `LogicManager` saves the staged address book through `AddressBookSync` and `Storage`. After saving succeeds, `ModelStage#commit` publishes the staged data and filter to the active model. If saving fails, no commit occurs and logic throws `CommandException` with `Unable to save client data. No changes were made.`
+1. The command's `CommandResult` is returned after a successful commit. Commands that do not change client data execute directly against the active model without staging or saving.
 
 Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
 
