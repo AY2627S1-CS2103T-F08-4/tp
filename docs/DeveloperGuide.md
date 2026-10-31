@@ -410,15 +410,15 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 
 ##### Main success scenario (MSS)
 
-1. Bank teller requests the client list or searches for a client.
+1. Bank teller requests the client list or searches for a client, or supplies a known client reference directly.
 2. TellerFlow displays matching profiles.
-3. Bank teller selects a client to delete by providing the index or client reference number.
+3. Bank teller identifies a client using its displayed index or its reference. An index selects from the current filtered and sorted list; a reference selects from all saved clients, even when the client is not displayed.
 4. TellerFlow deletes the profile and saves the change.
 
 ##### Extensions
 
-- 2a. The list is empty. TellerFlow shows that there is no profile to delete; the use case ends.
-- 3a. The selection does not identify a displayed profile. TellerFlow reports the error; the use case resumes at step 3.
+- 2a. The displayed list is empty. There is no valid displayed index, but an existing client can still be deleted by reference if it is outside the current search results. The use case resumes at step 3.
+- 3a. The index does not identify a displayed profile, or the reference does not identify any saved client. TellerFlow reports the corresponding error; the use case resumes at step 3.
 - 4a. Saving fails. TellerFlow reports the failure and retains the profile; the use case ends.
 
 #### Use case: Reopen saved client records
@@ -659,7 +659,17 @@ Use a disposable folder containing the packaged JAR for these tests. Keep `data/
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.
 
-1. _{ more test cases … }_
+1. Deleting by reference outside the displayed results
+   1. Start without a `DELETEHIDDEN` client and run `add r/DELETEHIDDEN n/Hidden Client`. Run `find n/NoSuchClientKeyword` so the displayed list is empty.
+
+   1. Run `delete 1`.<br>
+      Expected: The displayed-index error appears; the hidden client remains saved.
+
+   1. Run `delete r/deletehidden`.<br>
+      Expected: The hidden client is deleted despite the empty displayed list. The reference is matched case-insensitively, and the current filter remains active. After `list` or restart, that client is absent.
+
+   1. Run `delete r/DELETEHIDDEN` again.<br>
+      Expected: The missing-reference error appears; no other client is deleted and saved data is unchanged.
 
 ### Removing a card
 
