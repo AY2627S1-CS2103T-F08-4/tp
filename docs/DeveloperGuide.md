@@ -573,9 +573,11 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 4.  If saving a change fails, both the displayed client records and the saved data file should remain in their previous valid state.
 5.  If saved client data cannot be read, the application should explain the problem without overwriting the file, so the data can be repaired and loaded after a restart.
 6.  Invalid input and failed operations should produce clear feedback that tells the bank teller what needs correction.
-7.  Stored client and card details should be protected from unauthorized access using SHA-256 encryption, and sensitive values should not appear in logs or error messages.
+7.  Sensitive command input should not be written to application logs. **Future requirement (not implemented):** encrypt stored client and card details at rest to protect their confidentiality. The current release stores plaintext JSON; SHA-256 is a hash function, not an encryption mechanism.
 8.  The system must maintain an uptime of 99.9%. During an outage or a crash, the local stored data can still be accessed and modified.
 9.  The system must load all client information in under 5 seconds.
+
+The client-data lock prevents cooperating TellerFlow instances from saving to the same data file concurrently. It provides no encryption or user authentication. Card-number masking affects presentation only; the complete recorded card details, including CVV, remain in the saved JSON.
 
 ### Glossary
 
