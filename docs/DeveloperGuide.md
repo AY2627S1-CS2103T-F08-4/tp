@@ -539,7 +539,8 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 ##### Main success scenario (MSS)
 
 1. Bank teller requests help.
-2. TellerFlow shows the available commands and how to use them.
+2. TellerFlow opens the Help window, displaying the URL of this repository's TellerFlow User Guide and a Copy URL button.
+3. Bank teller copies the URL and opens it in a browser to read the available commands and their usage.
 
 #### Use case: Find clients with cards expiring in a month
 

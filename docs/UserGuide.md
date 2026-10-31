@@ -89,9 +89,7 @@ The app restores its saved window size and position on launch, adjusting them to
 
 Shows a message explaining how to access the help page.
 
-The current Help window links to the original AddressBook Level 3 guide. Use this TellerFlow User Guide for the commands and features described below.
-
-![help message](images/helpMessage.png)
+The Help window displays the URL of the TellerFlow User Guide in this repository. Use its **Copy URL** button to copy the address, then open it in your browser to read the commands and features described below. You can also open Help from the Help menu or by pressing `F1`.
 
 Format: `help`
 
