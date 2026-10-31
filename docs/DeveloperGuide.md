@@ -196,12 +196,20 @@ Data-changing commands execute against a staged `ModelManager`. `LogicManager` s
 
 `JsonAdaptedPerson` writes the instants as ISO-8601 UTC strings in the `createdAt` and `lastModifiedAt` JSON properties. Missing properties in older data files remain `null`; editing such a record supplies its modification time without fabricating a creation time. An invalid non-null timestamp causes loading to fail, so startup follows the existing protected-mode path. `PersonDetailsPanel` converts known instants to the viewer's local time zone and formats them as `yyyy-MM-dd HH:mm`. It shows each known value independently in the selected client's side panel, or one unavailable message if both are missing.
 
+### Confirmation of shared client details
+
+`AddCommand` and `EditCommand` first reject duplicate client identities, then call `ModelManager#findClientClashes`. It compares the proposed profile with the full stored client list, excluding the client being edited. Phone and card numbers use exact string equality. `Email#isSameMailboxAs` compares local parts case-sensitively and domains case-insensitively. Absent values do not clash; a retained value can still clash with another client during an edit.
+
+If clashes exist and confirmation was not supplied, the command returns `CommandResult.requestClashConfirmation` before changing the staged model. `LogicManager` attaches the original command text and returns without saving or committing. `MainWindow` retains that command and accepts typed `yes` or `no`, ignoring case and surrounding spaces. Other command-box input leaves the request pending. `no` cancels; `yes` retries the original command with `confirm/y` appended. The warning masks card numbers, except numbers of four characters or fewer.
+
+Both command parsers also accept `confirm/y` directly, at most once; the value `y` is case-insensitive and other values cause a parse error. Confirmation bypasses only the shared-detail warning. It does not bypass identity or field validation, the requirement to provide an editable field, protected mode, or persistence errors.
+
 ### Incomplete client profiles
 
 `add` requires only a valid, unique client reference and name. References are normalized to uppercase and compared case-insensitively. Its syntax is:
 
 ```text
-add r/REFERENCE n/NAME [p/PHONE] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [t/TAG]...
+add r/REFERENCE n/NAME [p/PHONE] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [t/TAG]... [confirm/y]
 ```
 
 `AddCommandParser` parses supplied optional fields using the existing validators and passes null for omitted details. Supplying an empty prefix still fails validation. Card details form one optional group: any non-empty proper subset of the four card prefixes is rejected with a message listing the required group. Duplicate single-valued prefixes and non-empty preambles are rejected as before.
@@ -379,7 +387,7 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 
 - 1a. An optional contact, card, or financial detail is unavailable. Bank teller omits it; card details must be omitted as a group. The use case resumes at step 2.
 - 2a. The reference already belongs to another profile or a required value is invalid. TellerFlow explains the problem and requests a correction; the use case resumes at step 1.
-- 2b. A phone number or email address matches an existing profile. TellerFlow warns the bank teller, who checks the match and chooses whether to continue creating the profile or cancel.
+- 2b. A phone number, email address, or card number matches an existing profile. Unless `confirm/y` was supplied, TellerFlow warns the bank teller before saving. The bank teller types `yes` to proceed or `no` to cancel; other command-box input leaves the confirmation pending. The use case resumes at step 2 after confirmation or ends after cancellation.
 - 2c. Saving fails. TellerFlow reports the failure and leaves the saved profiles unchanged; the use case ends.
 
 #### Use case: View client profiles
@@ -432,7 +440,8 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 ##### Extensions
 
 - 1a. The selection is invalid or an updated value is invalid. TellerFlow reports the problem and requests a correction; the use case resumes at step 1.
-- 2a. Saving fails. TellerFlow reports the failure and retains the previous details; the use case ends.
+- 2a. The resulting phone number, email address, or card number matches another profile. Unless `confirm/y` was supplied, TellerFlow requests typed `yes` or `no` confirmation before saving. The use case resumes at step 2 after confirmation or ends after cancellation.
+- 2b. Saving fails. TellerFlow reports the failure and retains the previous details; the use case ends.
 
 #### Use case: Find clients by name
 

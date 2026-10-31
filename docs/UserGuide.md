@@ -108,7 +108,9 @@ The client details panel shows a masked card number, provider, CVV, expiry date,
 Expiry dates must use `MM/YY`, with a month from `01` to `12` (e.g. `12/28`).
 This checks the format only; past expiry dates are accepted.
 
-Format: `add r/REFERENCE n/NAME [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [t/TAG]...`
+Format: `add r/REFERENCE n/NAME [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [t/TAG]... [confirm/y]`
+
+If a phone number, email address, or card number matches another client, the app asks you to confirm before saving. See [Confirming shared client details](#confirming-shared-client-details) for the matching rules and how to proceed or cancel. A duplicate client reference is rejected and cannot be overridden.
 
 Missing contact, card, credit score, or debt details can be filled using `edit`. Existing details can also be updated. Use `removecard` to clear recorded card details. Phone, email, address, credit score, and debt cannot be cleared through commands; supplying an empty value is rejected.
 
@@ -180,7 +182,7 @@ Malformed timestamp strings still cause startup to enter protected mode.
 
 Edits an existing client in TellerFlow.
 
-Format: `edit INDEX [r/REFERENCE] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER] [cvv/CVV] [exp/EXPIRY_DATE] [provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [s/NOTE] [t/TAG]...`
+Format: `edit INDEX [r/REFERENCE] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER] [cvv/CVV] [exp/EXPIRY_DATE] [provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [s/NOTE] [t/TAG]... [confirm/y]`
 
 * Edits the client at the specified `INDEX`. The index refers to the index number shown in the current list, including after `find` or `sort`. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
@@ -194,6 +196,7 @@ Format: `edit INDEX [r/REFERENCE] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS
 * Use `s/NOTE` to add or replace a service note, following the length, character, and escaping rules in [Maintaining a service note](#maintaining-a-service-note-note). Enter `s/` without a note to remove it. This also succeeds when no note is present.
 * Phone, email, address, card fields, credit score, and debt cannot be cleared by entering empty values. Use `removecard` to remove a card.
 * After a successful edit, the full client list is displayed again, retaining the active sort order.
+* Shared phone numbers, email addresses, or card numbers require [confirmation](#confirming-shared-client-details), including when a shared value is retained from the existing profile. The client being edited is excluded from the comparison. `confirm/y` alone does not count as a field to edit.
 
 Examples:
 * `edit 1 p/91234567 e/johndoe@example.com` updates the 1st client's phone number and email address.
@@ -201,6 +204,18 @@ Examples:
 * `edit 3 cn/1111222233334444 cvv/123 exp/12/28 provider/TestBank` supplies a complete card, whether or not the 3rd client already has one.
 * `edit 1 cs/725 d/150.50` updates the 1st client's credit score and debt.
 * `edit 1 r/C0100 s/Prefers afternoon appointments` changes the 1st client's reference to `C0100` and replaces their service note.
+
+### Confirming shared client details
+
+`add` and `edit` check the proposed profile against all other clients, including clients outside the current search results. Sharing a phone number, email address, or card number is allowed after confirmation; sharing a client reference is not.
+
+* Phone numbers and card numbers match their exact stored values, including leading zeros and any internal spaces or hyphens in card numbers.
+* Email local parts are case-sensitive and domains are case-insensitive. For example, `alex@example.com` clashes with `alex@EXAMPLE.COM`, but not with `Alex@example.com`.
+* Missing values do not clash. The warning identifies each matching field and client; card numbers in the warning show only their last four characters unless the entire number is four characters or shorter.
+
+When a warning appears, no client changes or timestamp updates have been saved. Type `yes` in the command box and press Enter to proceed, or `no` to cancel. These responses ignore case and surrounding spaces. Until you respond, other command-box input produces `Please type yes or no.` and does not execute. A `yes` response still has to pass validation and save successfully.
+
+If you have already checked the shared details, you can include `confirm/y` directly in an `add` or `edit` command to skip this warning. For example, `add r/C0100 n/Jane Doe p/91234567 confirm/y` permits that phone number to be shared. The value must be `y` (case-insensitive); `confirm/no` and an empty `confirm/` are invalid. This parameter does not override an invalid field, a duplicate reference, protected mode, or a save failure.
 
 ### Locating clients by name, phone number or card number: `find`
 
@@ -361,10 +376,10 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add r/REFERENCE n/NAME [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [t/TAG]...` <br> e.g., `add r/C0001 n/James Ho` or `add r/C0002 n/James Ho p/22224444 e/jamesho@example.com t/friend`
+**Add**    | `add r/REFERENCE n/NAME [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [t/TAG]... [confirm/y]` <br> e.g., `add r/C0001 n/James Ho` or `add r/C0002 n/James Ho p/22224444 e/jamesho@example.com t/friend`
 **Clear**  | `clear`
 **Delete** | `delete INDEX` or `delete r/REFERENCE`<br> e.g., `delete 3` or `delete r/C0001`
-**Edit**   | `edit INDEX [r/REFERENCE] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER] [cvv/CVV] [exp/EXPIRY_DATE] [provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [s/NOTE] [t/TAG]...`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com` or `edit 1 cs/725 d/150.50`
+**Edit**   | `edit INDEX [r/REFERENCE] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER] [cvv/CVV] [exp/EXPIRY_DATE] [provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [s/NOTE] [t/TAG]... [confirm/y]`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com` or `edit 1 cs/725 d/150.50`
 **Find**   | `find [n/KEYWORD [MORE_KEYWORDS]...] [p/PHONE_NUMBER [MORE_PHONE_NUMBERS]...] [cn/CARD_NUMBER]` (at least one prefix required)<br> e.g., `find n/Jam Jak`, `find p/91234567` or `find cn/4111111111111111`
 **List**   | `list`
 **Sort**   | `sort [asc\|desc\|reset]`<br> e.g., `sort desc` or `sort reset`
