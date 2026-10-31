@@ -25,22 +25,24 @@ note over logic, staged : DeleteCommand executes against the staged model
 logic -[LOGIC_COLOR]> staged : deletePerson(p)
 staged --[MODEL_COLOR]> logic
 
-logic -[LOGIC_COLOR]> storage : saveAddressBook(staged address book)\nvia AddressBookSync
-activate storage STORAGE_COLOR
-
 alt save succeeds
+    logic -[LOGIC_COLOR]> storage : saveAddressBook(staged address book)\nvia AddressBookSync
+    activate storage STORAGE_COLOR
     storage --[STORAGE_COLOR]> logic : saved
+    deactivate storage
     logic -[LOGIC_COLOR]> stage : commit()
     stage -[MODEL_COLOR]> model : publish staged data and filter
     model --[MODEL_COLOR]> stage
     stage --[MODEL_COLOR]> logic
     logic --[LOGIC_COLOR]> ui : CommandResult
 else save fails
+    logic -[LOGIC_COLOR]> storage : saveAddressBook(staged address book)\nvia AddressBookSync
+    activate storage STORAGE_COLOR
     storage --[STORAGE_COLOR]> logic : error
+    deactivate storage
     note over model, staged : Active data and filter remain unchanged; stage is discarded
     logic --[LOGIC_COLOR]> ui : CommandException\nUnable to save client data. No changes were made.
 end
-deactivate storage
 
 deactivate logic
 
