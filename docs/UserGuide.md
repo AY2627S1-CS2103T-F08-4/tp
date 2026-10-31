@@ -6,7 +6,7 @@
 
 # TellerFlow User Guide
 
-TellerFlow is a **desktop application for managing client profiles, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, TellerFlow can help you manage client contact details, card information, finances, and service notes efficiently.
+TellerFlow is a **desktop application for managing client profiles for bank tellers, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, TellerFlow can help you manage client contact details, card information, finances, and service notes efficiently.
 
 <!-- * Table of Contents -->
 <page-nav-print />
