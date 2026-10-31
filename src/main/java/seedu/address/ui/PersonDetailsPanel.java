@@ -69,7 +69,7 @@ public class PersonDetailsPanel extends UiPart<Region> {
     @FXML
     private HBox debtRow;
     @FXML
-    private HBox tagsRow;
+    private VBox tagsSection;
     @FXML
     private HBox createdAtRow;
     @FXML
@@ -115,6 +115,9 @@ public class PersonDetailsPanel extends UiPart<Region> {
         setOptionalRow(cardDetailsRow, cardDetails, formatCardDetails(person));
         setOptionalRow(creditScoreRow, creditScore, person.getCreditScore().map(Object::toString).orElse(""));
         setOptionalRow(debtRow, debt, person.getDebt().map(Object::toString).orElse(""));
+        setShown(financialSection, cardDetailsRow.isManaged() || creditScoreRow.isManaged()
+                || debtRow.isManaged());
+
         tags.getChildren().clear();
         person.getTags().stream().sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> {
@@ -128,9 +131,7 @@ public class PersonDetailsPanel extends UiPart<Region> {
                             label.fontProperty(), label.insetsProperty(), label.textProperty()));
                     tags.getChildren().add(label);
                 });
-        setShown(tagsRow, !tags.getChildren().isEmpty());
-        setShown(financialSection, cardDetailsRow.isManaged() || creditScoreRow.isManaged()
-                || debtRow.isManaged() || tagsRow.isManaged());
+        setShown(tagsSection, !tags.getChildren().isEmpty());
 
         TimestampDisplay timestamps = formatTimestamps(person, ZoneId.systemDefault());
         setOptionalRow(createdAtRow, createdAt, timestamps.created());

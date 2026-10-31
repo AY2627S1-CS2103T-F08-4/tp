@@ -58,10 +58,11 @@
             <TextField fx:id="debt" editable="false" focusTraversable="false"
                        maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="details-value" />
           </HBox>
-          <HBox fx:id="tagsRow" spacing="12" alignment="TOP_LEFT">
-            <Label text="Tags" minWidth="90" prefWidth="90" styleClass="details-caption" />
-            <FlowPane fx:id="tags" hgap="7" vgap="3" minWidth="0" prefWrapLength="0" HBox.hgrow="ALWAYS" />
-          </HBox>
+        </VBox>
+
+        <VBox fx:id="tagsSection" spacing="10" styleClass="details-section">
+          <Label text="TAGS" styleClass="details-section-title" />
+          <FlowPane fx:id="tags" hgap="7" vgap="3" minWidth="0" prefWrapLength="0" />
         </VBox>
 
         <VBox spacing="10" styleClass="details-section">
