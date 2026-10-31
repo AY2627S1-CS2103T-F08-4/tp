@@ -360,6 +360,42 @@ Values in the file must follow the same field requirements as command input. Edi
 **Q**: How do I transfer my data to another computer?<br>
 **A**: Close TellerFlow on both computers. Copy `data/addressbook.json` from the folder containing the old computer's JAR into the `data` subfolder beside the JAR on the new computer, replacing any existing file after backing it up. Start TellerFlow to load the transferred clients. For IDE or Gradle launches, use the respective working directories instead of the JAR folders.
 
+**Q**: How do I back up or restore my clients?<br>
+**A**: Close all TellerFlow instances and copy `data/addressbook.json` to a separate backup location. To restore, keep the app closed, preserve a copy of the current file, and replace it with your backup before restarting. Restoration replaces the entire client list; it does not merge records. The companion `.lock` file is not part of the client backup and should be left in place.
+
+**Q**: Can I undo an edit, deletion, or `clear`?<br>
+**A**: There is no undo command or automatic backup history. Successful changes are saved immediately, and `clear` removes every client, including those outside search results, without a confirmation prompt. Restore a backup made before the change to recover earlier records; this also replaces any changes made since that backup.
+
+**Q**: Why do I see sample clients after restarting?<br>
+**A**: Sample clients appear when TellerFlow cannot find a client data file at its expected location. Check the path in the status bar and whether you moved the JAR without its `data` folder. An empty saved client list stays empty; it does not reload samples. See [Saving the data](#saving-the-data) for the different startup messages.
+
+**Q**: Why are some clients missing from the displayed list?<br>
+**A**: A `find` command filters the displayed list until another command changes that filter. Run `list` to show all clients again. This retains your active sort order. Indices in `edit` and `delete` refer to the current displayed list, so check the list before using an index. `delete r/REFERENCE` searches all clients, including hidden results.
+
+**Q**: Why are commands disabled after a data-loading error?<br>
+**A**: TellerFlow enters protected mode when the existing client file is invalid or unreadable. It shows an empty list and blocks all client changes to protect that file. Close the app, back up the affected file, then repair it or restore a valid backup and restart. There is no command to leave protected mode during the same session. See [Editing the data file](#editing-the-data-file).
+
+**Q**: What happens if a change cannot be saved?<br>
+**A**: `Unable to save client data. No changes were made.` means the command was not committed: the displayed records and saved file retain their previous values. Check write permissions for the data folder and available disk space before retrying the command. This differs from protected mode, which requires a restart after the data-loading problem is resolved.
+
+**Q**: Why is `addressbook.json.lock` still present after closing the app?<br>
+**A**: The file deliberately remains; the operating-system lock is released when the app closes or its process terminates. Leave the file in place, including after a crash. If another instance is reported, close that instance before retrying. Deleting or replacing an active lock file can bypass protection and cause lost updates; resulting behaviour is unsupported and should not be reported as a TellerFlow bug. See [Saving the data](#saving-the-data).
+
+**Q**: Why does the command box keep asking me to type `yes` or `no`?<br>
+**A**: An `add` or `edit` is awaiting confirmation because a phone number, email address, or card number matches another client. Type `yes` to proceed or `no` to cancel before entering another command. Nothing has been saved while the confirmation is pending. See [Confirming shared client details](#confirming-shared-client-details) for the matching rules and `confirm/y` option.
+
+**Q**: Why did my sort order disappear after restarting?<br>
+**A**: Sorting applies only to the current session and never rearranges the saved data. Run `sort asc` or `sort desc` again after restarting. During a session, `sort reset` returns to the stored order; `list` removes a search filter while retaining the current sort order.
+
+**Q**: Why are some details or the Tags section hidden?<br>
+**A**: Unrecorded contact, card, and financial details are hidden rather than displayed as invented values. Tags have their own section, which is hidden when the client has no tags. Use `edit` to fill missing details. Adding a card to a client without one requires all four card fields together. See [Editing a client](#editing-a-client-edit).
+
+**Q**: Does TellerFlow check that a card number or CVV is valid for a real bank card?<br>
+**A**: No. Card numbers, CVVs, and provider names are stored as nonblank text. Card numbers and CVVs have no digits-only, length, or checksum validation, and provider names are not restricted to a predefined list. Expiry validation checks only `MM/YY` and month `01–12`; past dates are accepted. The general command-prefix rules still apply to these values.
+
+**Q**: Are saved client and card details encrypted?<br>
+**A**: No. The JSON file contains the recorded values in plaintext, including complete card numbers and CVVs. Masking the card number in the interface does not encrypt the file, and the CVV is displayed in full. The lock file coordinates TellerFlow instances; it does not provide encryption or user authentication. Protect access to the data file and its backups using your computer's access controls.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## Known issues
