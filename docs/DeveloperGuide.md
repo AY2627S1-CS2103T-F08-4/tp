@@ -604,6 +604,8 @@ The client-data lock prevents cooperating TellerFlow instances from saving to th
 
 Given below are instructions to test the app manually.
 
+Use disposable folders and test client data. Start each independent scenario with its stated prerequisites. Close all TellerFlow instances before editing, renaming, or restoring a data file, and leave the companion lock file in place. Back up any fixture before changing it.
+
 <box type="info" seamless>
 
 **Note:** These instructions only provide a starting point for testers to work on;
@@ -626,8 +628,6 @@ testers are expected to do more _exploratory_ testing.
 
    1. With two monitors connected, move the window to the secondary monitor and close the app. Disconnect that monitor and relaunch.<br>
       Expected: The window opens within the primary screen's visual bounds without deleting preferences.
-
-1. _{ more test cases … }_
 
 ### Client data locking
 
@@ -663,7 +663,7 @@ Use a disposable folder containing the packaged JAR for these tests. Keep `data/
 
 ### Removing a card
 
-1. Start with a data file that has no `C0001` client. Add a client using `add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50`.
+1. Start with a data file that has no `C0001` client. Add a client using `add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50`. If the sample clients cause a shared-detail warning, type `yes` to complete the add before continuing.
 
    1. Select the new client row and run `removecard r/c0001`.<br>
       Expected: `Removed card ending in 1111 from client C0001`. The row remains selected and no longer shows a card summary. The client and other details remain. After restart, the saved JSON has no `cardDetails` field for C0001.
@@ -680,14 +680,14 @@ Use a disposable folder containing the packaged JAR for these tests. Keep `data/
 ### Saving data
 
 1. Viewing client timestamps
-   1. Add a client using the example `add` command in the User Guide.<br>
+   1. Start without a `TIMETEST` client and run `add r/TIMETEST n/Time Test`.<br>
       Expected: Select the client. Its details panel shows equal `Created` and `Last Modified` times in local `yyyy-MM-dd HH:mm` format.
 
-   1. Run `list`, then `find n/John` for that client.<br>
+   1. Run `list`, then `find n/Time` and select the `TIMETEST` client.<br>
       Expected: Both times remain unchanged in the selected client's details panel.
 
    1. After the clock reaches the next minute, run `edit 1 p/91234567` while the client is the first search result.<br>
-      Expected: `Created` remains unchanged and `Last Modified` reflects the successful edit. The corresponding INFO message is `Timestamp EDIT recorded`, without a client reference or stored instants.
+      Expected: If a shared-detail warning appears, type `yes` to complete the edit. `Created` remains unchanged and `Last Modified` reflects the successful edit. The corresponding INFO message is `Timestamp EDIT recorded`, without a client reference or stored instants.
 
    1. Relaunch the app.<br>
       Expected: The saved times are restored and shown in local time.
@@ -696,12 +696,26 @@ Use a disposable folder containing the packaged JAR for these tests. Keep `data/
       Expected: The selected client's details panel shows `Timestamp information is unavailable for this profile.` once. If only one property is removed, it shows only the remaining time.
 
    1. Close the app and restore the backup. Replace only `createdAt` with the parseable instant `+10000-01-01T00:00:00Z`, then relaunch.<br>
-      Expected: The app loads normally. `Created` shows `Timestamp information is invalid for this profile.` and `Last Modified` displays normally. Run `note` for the test client and inspect the file after closing: the original out-of-range `createdAt` value is preserved. Restore the backup with the app closed.
+      Expected: The app loads normally. `Created` shows `Timestamp information is invalid for this profile.` and `Last Modified` displays normally. Run `note r/TIMETEST s/Timestamp preservation test` and inspect the file after closing: the original out-of-range `createdAt` value is preserved. Restore the backup with the app closed.
 
    1. With the app closed, replace one timestamp in the saved data file with invalid text and relaunch.<br>
-      Expected: The app enters protected mode and disables `add`, `delete`, `edit`, and `clear` for the session without overwriting the file. Restore the backup after this test.
+      Expected: The app enters protected mode and disables all six data-changing commands: `add`, `delete`, `edit`, `note`, `removecard`, and `clear`. It does not overwrite the file. Close the app before restoring the backup after this test.
 
 1. Dealing with missing/corrupted data files
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+   1. With the app closed, rename the saved `data/addressbook.json` to a backup filename, then launch.<br>
+      Expected: Sample clients appear with `No saved client data found. Showing sample clients.` Reading or sorting does not create a new client data file. A successful data-changing command saves the sample clients together with that change. Close the app before restoring the original fixture.
 
-1. _{ more test cases … }_
+   1. With the app closed, replace the test fixture with `{"persons":[]}` and launch.<br>
+      Expected: The app displays an empty list and `No saved client data found.` It remains writable; `add r/EMPTYTEST n/Empty Test` succeeds. Sample clients do not reappear after a successful `clear` and restart.
+
+   1. With the app closed before each attempt, replace the fixture with each of the following, then launch: an empty file; `{`; `{}`; or `{"persons":[]} {"persons":[]}`.<br>
+      Expected: Each attempt starts with an empty list and the protected-mode message. The app preserves the exact invalid file contents, including after shutdown.
+
+   1. Repeat with a structurally valid fixture containing an invalid phone (`"phone":"12"`), two profiles whose references differ only by case, or a malformed timestamp.<br>
+      Expected: Each fixture produces the same protected-mode behaviour. Use a valid fixture as the starting point and change only the value being tested.
+
+   1. While in protected mode, try `add r/PROTECTED n/Protected Test`, `delete 1`, `edit 1 n/Changed Name`, `note r/TIMETEST s/Test`, `removecard r/TIMETEST`, and `clear`.<br>
+      Expected: Every command reports that changes are disabled, even if its target is absent. `list`, `find n/Test`, `sort`, and `help` remain available. No command rewrites the invalid client file.
+
+   1. With the app closed, restore a valid backup and relaunch.<br>
+      Expected: The saved clients load and data-changing commands work again. Repairing the file during a protected-mode session does not re-enable writes; a restart is required.
