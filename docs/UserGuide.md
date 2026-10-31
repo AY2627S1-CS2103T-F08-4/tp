@@ -46,6 +46,8 @@ TellerFlow is a **desktop application for managing client profiles, optimized fo
 
 1. Refer to the [Features](#features) section below for details of each command.
 
+The app restores its saved window size and position on launch, adjusting them to an available screen. If a previously used monitor is disconnected, the window is moved onto the primary screen; deleting `preferences.json` is not required.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## Features
@@ -367,8 +369,7 @@ _Details coming soon ..._
 
 ## Known issues
 
-1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+1. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
 
 --------------------------------------------------------------------------------------------------------------------
 

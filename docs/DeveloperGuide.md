@@ -614,7 +614,10 @@ testers are expected to do more _exploratory_ testing.
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
    1. Relaunch the app by double-clicking the JAR file.<br>
-      Expected: The most recent window size and location are retained.
+      Expected: The most recent window size and location are restored within the available screen bounds. Oversized or off-screen saved settings are adjusted to an available screen.
+
+   1. With two monitors connected, move the window to the secondary monitor and close the app. Disconnect that monitor and relaunch.<br>
+      Expected: The window opens within the primary screen's visual bounds without deleting preferences.
 
 1. _{ more test cases … }_
 
