@@ -353,10 +353,6 @@ If your changes make the data file invalid or unreadable, including a malformed 
 Values in the file must follow the same field requirements as command input. Edit the data file only if you are confident that you can update it correctly.
 </box>
 
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## FAQ
