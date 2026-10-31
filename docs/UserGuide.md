@@ -6,7 +6,7 @@
 
 # TellerFlow User Guide
 
-TellerFlow is a **desktop application for managing client profiles, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, TellerFlow can help you manage client contact details, card information, finances, and service notes efficiently.
+TellerFlow is a **desktop application for managing client profiles for bank tellers, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, TellerFlow can help you manage client contact details, card information, finances, and service notes efficiently.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -45,6 +45,8 @@ TellerFlow is a **desktop application for managing client profiles, optimized fo
    * `exit` : Exits the app.
 
 1. Refer to the [Features](#features) section below for details of each command.
+
+The app restores its saved window size and position on launch, adjusting them to an available screen. If a previously used monitor is disconnected, the window is moved onto the primary screen; deleting `preferences.json` is not required.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -87,9 +89,7 @@ TellerFlow is a **desktop application for managing client profiles, optimized fo
 
 Shows a message explaining how to access the help page.
 
-The current Help window links to the original AddressBook Level 3 guide. Use this TellerFlow User Guide for the commands and features described below.
-
-![help message](images/helpMessage.png)
+The Help window displays the URL of the TellerFlow User Guide in this repository. Use its **Copy URL** button to copy the address, then open it in your browser to read the commands and features described below. You can also open Help from the Help menu or by pressing `F1`.
 
 Format: `help`
 
@@ -104,11 +104,13 @@ Credit scores are nonnegative whole numbers. Debt is a nonnegative amount with a
 The debt is stored with two decimal places; no currency is assigned. An explicit `cs/0` or `d/0` records zero, which is different from an omitted value.
 Card details form one optional group: supply all four of `cn/`, `cvv/`, `exp/`, and `provider/`, or omit all four.
 Card number, CVV, and provider must be nonblank. Card details are saved as plain text; command input is trimmed at its edges.
-The client details panel shows a masked card number, provider, expiry date, credit score, and debt when supplied. CVV is not displayed. A card can be removed with `removecard`.
+The client details panel shows a masked card number, provider, CVV, expiry date, credit score, and debt when supplied. The CVV is visible in full. A card can be removed with `removecard`.
 Expiry dates must use `MM/YY`, with a month from `01` to `12` (e.g. `12/28`).
 This checks the format only; past expiry dates are accepted.
 
-Format: `add r/REFERENCE n/NAME [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [t/TAG]...`
+Format: `add r/REFERENCE n/NAME [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [t/TAG]... [confirm/y]`
+
+If a phone number, email address, or card number matches another client, the app asks you to confirm before saving. See [Confirming shared client details](#confirming-shared-client-details) for the matching rules and how to proceed or cancel. A duplicate client reference is rejected and cannot be overridden.
 
 Missing contact, card, credit score, or debt details can be filled using `edit`. Existing details can also be updated. Use `removecard` to clear recorded card details. Phone, email, address, credit score, and debt cannot be cleared through commands; supplying an empty value is rejected.
 
@@ -126,6 +128,7 @@ Tag | One or more ASCII letters or digits, with no spaces or punctuation.
 <box type="tip" seamless>
 
 **Tip:** A client can have any number of tags, including zero. Clients may share a name as long as their references differ.
+Tags appear in their own **Tags** section in the client details panel; this section is hidden when the client has no tags.
 </box>
 
 Examples:
@@ -180,7 +183,7 @@ Malformed timestamp strings still cause startup to enter protected mode.
 
 Edits an existing client in TellerFlow.
 
-Format: `edit INDEX [r/REFERENCE] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER] [cvv/CVV] [exp/EXPIRY_DATE] [provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [s/NOTE] [t/TAG]...`
+Format: `edit INDEX [r/REFERENCE] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER] [cvv/CVV] [exp/EXPIRY_DATE] [provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [s/NOTE] [t/TAG]... [confirm/y]`
 
 * Edits the client at the specified `INDEX`. The index refers to the index number shown in the current list, including after `find` or `sort`. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
@@ -194,6 +197,7 @@ Format: `edit INDEX [r/REFERENCE] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS
 * Use `s/NOTE` to add or replace a service note, following the length, character, and escaping rules in [Maintaining a service note](#maintaining-a-service-note-note). Enter `s/` without a note to remove it. This also succeeds when no note is present.
 * Phone, email, address, card fields, credit score, and debt cannot be cleared by entering empty values. Use `removecard` to remove a card.
 * After a successful edit, the full client list is displayed again, retaining the active sort order.
+* Shared phone numbers, email addresses, or card numbers require [confirmation](#confirming-shared-client-details), including when a shared value is retained from the existing profile. The client being edited is excluded from the comparison. `confirm/y` alone does not count as a field to edit.
 
 Examples:
 * `edit 1 p/91234567 e/johndoe@example.com` updates the 1st client's phone number and email address.
@@ -201,6 +205,18 @@ Examples:
 * `edit 3 cn/1111222233334444 cvv/123 exp/12/28 provider/TestBank` supplies a complete card, whether or not the 3rd client already has one.
 * `edit 1 cs/725 d/150.50` updates the 1st client's credit score and debt.
 * `edit 1 r/C0100 s/Prefers afternoon appointments` changes the 1st client's reference to `C0100` and replaces their service note.
+
+### Confirming shared client details
+
+`add` and `edit` check the proposed profile against all other clients, including clients outside the current search results. Sharing a phone number, email address, or card number is allowed after confirmation; sharing a client reference is not.
+
+* Phone numbers and card numbers match their exact stored values, including leading zeros and any internal spaces or hyphens in card numbers.
+* Email local parts are case-sensitive and domains are case-insensitive. For example, `alex@example.com` clashes with `alex@EXAMPLE.COM`, but not with `Alex@example.com`.
+* Missing values do not clash. The warning identifies each matching field and client; card numbers in the warning show only their last four characters unless the entire number is four characters or shorter.
+
+When a warning appears, no client changes or timestamp updates have been saved. Type `yes` in the command box and press Enter to proceed, or `no` to cancel. These responses ignore case and surrounding spaces. Until you respond, other command-box input produces `Please type yes or no.` and does not execute. A `yes` response still has to pass validation and save successfully.
+
+If you have already checked the shared details, you can include `confirm/y` directly in an `add` or `edit` command to skip this warning. For example, `add r/C0100 n/Jane Doe p/91234567 confirm/y` permits that phone number to be shared. The value must be `y` (case-insensitive); `confirm/no` and an empty `confirm/` are invalid. This parameter does not override an invalid field, a duplicate reference, protected mode, or a save failure.
 
 ### Locating clients by name, phone number or card number: `find`
 
@@ -313,6 +329,15 @@ TellerFlow automatically saves data after every successful `add`, `edit`, `delet
 
 Only one TellerFlow instance can open the same client data file at a time. If another instance is already using it, the second launch shows an error and closes without loading or changing data. Close the first instance before trying again. After an application crash, you can restart normally; no lock file needs to be deleted.
 
+TellerFlow manages a companion file, `data/addressbook.json.lock`, beside the client data file. It holds an operating-system lock on this file while running. The file deliberately remains after shutdown; its presence does not mean the data is still in use. Closing the application or terminating its process releases the active lock.
+
+<box type="warning" seamless>
+
+Do not delete, rename, or replace `addressbook.json.lock` while any TellerFlow instance is running. On systems that allow this, another instance can create a replacement lock file and bypass single-instance protection, allowing client changes to overwrite each other. Behaviour after this interference is undefined and unsupported. Problems caused by modifying an active lock file, including lost updates, should not be reported as TellerFlow bugs. Leave the file in place, including after a crash.
+</box>
+
+If startup reports `TellerFlow could not secure access to the client data. Check that its data folder is writable and try again.`, check that the data folder is writable. The app closes without loading client data or preferences when it cannot establish exclusive access. This is different from protected mode after a data-load failure.
+
 On startup, saved clients appear in the main window with `Loaded [COUNT] client(s).`. If there is no data file, sample clients appear with `No saved client data found. Showing sample clients.` The sample clients are saved with the next successful data-changing command. A valid data file containing no clients (for example, after `clear`) starts with an empty list and `No saved client data found.` A blank or malformed file is a load failure, as described below.
 
 ### Editing the data file
@@ -328,10 +353,6 @@ If your changes make the data file invalid or unreadable, including a malformed 
 Values in the file must follow the same field requirements as command input. Edit the data file only if you are confident that you can update it correctly.
 </box>
 
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## FAQ
@@ -339,12 +360,47 @@ _Details coming soon ..._
 **Q**: How do I transfer my data to another computer?<br>
 **A**: Close TellerFlow on both computers. Copy `data/addressbook.json` from the folder containing the old computer's JAR into the `data` subfolder beside the JAR on the new computer, replacing any existing file after backing it up. Start TellerFlow to load the transferred clients. For IDE or Gradle launches, use the respective working directories instead of the JAR folders.
 
+**Q**: How do I back up or restore my clients?<br>
+**A**: Close all TellerFlow instances and copy `data/addressbook.json` to a separate backup location. To restore, keep the app closed, preserve a copy of the current file, and replace it with your backup before restarting. Restoration replaces the entire client list; it does not merge records. The companion `.lock` file is not part of the client backup and should be left in place.
+
+**Q**: Can I undo an edit, deletion, or `clear`?<br>
+**A**: There is no undo command or automatic backup history. Successful changes are saved immediately, and `clear` removes every client, including those outside search results, without a confirmation prompt. Restore a backup made before the change to recover earlier records; this also replaces any changes made since that backup.
+
+**Q**: Why do I see sample clients after restarting?<br>
+**A**: Sample clients appear when TellerFlow cannot find a client data file at its expected location. Check the path in the status bar and whether you moved the JAR without its `data` folder. An empty saved client list stays empty; it does not reload samples. See [Saving the data](#saving-the-data) for the different startup messages.
+
+**Q**: Why are some clients missing from the displayed list?<br>
+**A**: A `find` command filters the displayed list until another command changes that filter. Run `list` to show all clients again. This retains your active sort order. Indices in `edit` and `delete` refer to the current displayed list, so check the list before using an index. `delete r/REFERENCE` searches all clients, including hidden results.
+
+**Q**: Why are commands disabled after a data-loading error?<br>
+**A**: TellerFlow enters protected mode when the existing client file is invalid or unreadable. It shows an empty list and blocks all client changes to protect that file. Close the app, back up the affected file, then repair it or restore a valid backup and restart. There is no command to leave protected mode during the same session. See [Editing the data file](#editing-the-data-file).
+
+**Q**: What happens if a change cannot be saved?<br>
+**A**: `Unable to save client data. No changes were made.` means the command was not committed: the displayed records and saved file retain their previous values. Check write permissions for the data folder and available disk space before retrying the command. This differs from protected mode, which requires a restart after the data-loading problem is resolved.
+
+**Q**: Why is `addressbook.json.lock` still present after closing the app?<br>
+**A**: The file deliberately remains; the operating-system lock is released when the app closes or its process terminates. Leave the file in place, including after a crash. If another instance is reported, close that instance before retrying. Deleting or replacing an active lock file can bypass protection and cause lost updates; resulting behaviour is unsupported and should not be reported as a TellerFlow bug. See [Saving the data](#saving-the-data).
+
+**Q**: Why does the command box keep asking me to type `yes` or `no`?<br>
+**A**: An `add` or `edit` is awaiting confirmation because a phone number, email address, or card number matches another client. Type `yes` to proceed or `no` to cancel before entering another command. Nothing has been saved while the confirmation is pending. See [Confirming shared client details](#confirming-shared-client-details) for the matching rules and `confirm/y` option.
+
+**Q**: Why did my sort order disappear after restarting?<br>
+**A**: Sorting applies only to the current session and never rearranges the saved data. Run `sort asc` or `sort desc` again after restarting. During a session, `sort reset` returns to the stored order; `list` removes a search filter while retaining the current sort order.
+
+**Q**: Why are some details or the Tags section hidden?<br>
+**A**: Unrecorded contact, card, and financial details are hidden rather than displayed as invented values. Tags have their own section, which is hidden when the client has no tags. Use `edit` to fill missing details. Adding a card to a client without one requires all four card fields together. See [Editing a client](#editing-a-client-edit).
+
+**Q**: Does TellerFlow check that a card number or CVV is valid for a real bank card?<br>
+**A**: No. Card numbers, CVVs, and provider names are stored as nonblank text. Card numbers and CVVs have no digits-only, length, or checksum validation, and provider names are not restricted to a predefined list. Expiry validation checks only `MM/YY` and month `01–12`; past dates are accepted. The general command-prefix rules still apply to these values.
+
+**Q**: Are saved client and card details encrypted?<br>
+**A**: No. The JSON file contains the recorded values in plaintext, including complete card numbers and CVVs. Masking the card number in the interface does not encrypt the file, and the CVV is displayed in full. The lock file coordinates TellerFlow instances; it does not provide encryption or user authentication. Protect access to the data file and its backups using your computer's access controls.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## Known issues
 
-1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+1. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -352,10 +408,10 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add r/REFERENCE n/NAME [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [t/TAG]...` <br> e.g., `add r/C0001 n/James Ho` or `add r/C0002 n/James Ho p/22224444 e/jamesho@example.com t/friend`
+**Add**    | `add r/REFERENCE n/NAME [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER cvv/CVV exp/EXPIRY_DATE provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [t/TAG]... [confirm/y]` <br> e.g., `add r/C0001 n/James Ho` or `add r/C0002 n/James Ho p/22224444 e/jamesho@example.com t/friend`
 **Clear**  | `clear`
 **Delete** | `delete INDEX` or `delete r/REFERENCE`<br> e.g., `delete 3` or `delete r/C0001`
-**Edit**   | `edit INDEX [r/REFERENCE] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER] [cvv/CVV] [exp/EXPIRY_DATE] [provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [s/NOTE] [t/TAG]...`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com` or `edit 1 cs/725 d/150.50`
+**Edit**   | `edit INDEX [r/REFERENCE] [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER] [cvv/CVV] [exp/EXPIRY_DATE] [provider/PROVIDER] [cs/CREDIT_SCORE] [d/DEBT] [s/NOTE] [t/TAG]... [confirm/y]`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com` or `edit 1 cs/725 d/150.50`
 **Find**   | `find [n/KEYWORD [MORE_KEYWORDS]...] [p/PHONE_NUMBER [MORE_PHONE_NUMBERS]...] [cn/CARD_NUMBER]` (at least one prefix required)<br> e.g., `find n/Jam Jak`, `find p/91234567` or `find cn/4111111111111111`
 **List**   | `list`
 **Sort**   | `sort [asc\|desc\|reset]`<br> e.g., `sort desc` or `sort reset`

@@ -7,12 +7,16 @@ participant ":LogicManager" as LogicManager LOGIC_COLOR
 participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
 participant ":DeleteCommandParser" as DeleteCommandParser LOGIC_COLOR
 participant "d:DeleteCommand" as DeleteCommand LOGIC_COLOR
-participant "r:CommandResult" as CommandResult LOGIC_COLOR
+participant ":AddressBookSync" as AddressBookSync LOGIC_COLOR
 end box
 
 box Model MODEL_COLOR_T1
-participant "m:Model" as Model MODEL_COLOR
+participant "active:Model" as ActiveModel MODEL_COLOR
+participant "stage:ModelStage" as ModelStage MODEL_COLOR
+participant "staged:Model" as StagedModel MODEL_COLOR
 end box
+
+participant ":Storage" as Storage STORAGE_COLOR
 
 [-> LogicManager : execute("delete 1")
 activate LogicManager
@@ -27,7 +31,7 @@ activate DeleteCommandParser
 DeleteCommandParser --> AddressBookParser
 deactivate DeleteCommandParser
 
-AddressBookParser -> DeleteCommandParser : parse("1")
+AddressBookParser -> DeleteCommandParser : parse(" 1")
 activate DeleteCommandParser
 
 create DeleteCommand
@@ -46,25 +50,48 @@ destroy DeleteCommandParser
 AddressBookParser --> LogicManager : d
 deactivate AddressBookParser
 
-LogicManager -> DeleteCommand : execute(m)
+LogicManager -> DeleteCommand : isDataChanging()
+DeleteCommand --> LogicManager : true
+note right of LogicManager : Protected mode rejects this command\nbefore staging or saving.
+LogicManager -> ActiveModel : beginStaging(clock)
+ActiveModel --> LogicManager : stage
+LogicManager -> ModelStage : model()
+ModelStage --> LogicManager : staged
+LogicManager -> DeleteCommand : execute(staged)
 activate DeleteCommand
 
-DeleteCommand -> Model : deletePerson(1)
-activate Model
+DeleteCommand -> StagedModel : getFilteredPersonList()
+StagedModel --> DeleteCommand : displayed
+note right of DeleteCommand : p = displayed.get(0)\nThe displayed index resolves to a Person.
+DeleteCommand -> StagedModel : deletePerson(p)
+StagedModel --> DeleteCommand
 
-Model --> DeleteCommand
-deactivate Model
-
-create CommandResult
-DeleteCommand -> CommandResult
-activate CommandResult
-
-CommandResult --> DeleteCommand
-deactivate CommandResult
-
-DeleteCommand --> LogicManager : r
+DeleteCommand --> LogicManager : r:CommandResult
 deactivate DeleteCommand
 
-[<--LogicManager
+LogicManager -> StagedModel : getAddressBook()
+StagedModel --> LogicManager : stagedBook
+LogicManager -> AddressBookSync : sync(stagedBook)
+AddressBookSync -> Storage : saveAddressBook(stagedBook)
+
+alt save succeeds
+    Storage --> AddressBookSync : saved
+    AddressBookSync --> LogicManager
+    LogicManager -> ModelStage : commit()
+    ModelStage -> StagedModel : getAddressBook()
+    StagedModel --> ModelStage : stagedBook
+    ModelStage -> ActiveModel : setAddressBook(stagedBook)
+    ModelStage -> StagedModel : getFilteredPersonListPredicate()
+    StagedModel --> ModelStage : predicate
+    ModelStage -> ActiveModel : updateFilteredPersonList(predicate)
+    ModelStage --> LogicManager
+    [<-- LogicManager : r
+else save fails
+    Storage --> AddressBookSync : IOException
+    AddressBookSync --> LogicManager : CommandException
+    note over ActiveModel, StagedModel : No commit; active data and filter remain unchanged.
+    [<-- LogicManager : CommandException(SAVE_FAILURE_MESSAGE)
+end
+
 deactivate LogicManager
 @enduml

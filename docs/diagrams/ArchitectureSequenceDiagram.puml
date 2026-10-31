@@ -5,7 +5,9 @@ skinparam ArrowFontStyle plain
 Actor User as user USER_COLOR
 Participant ":UI" as ui UI_COLOR
 Participant ":Logic" as logic LOGIC_COLOR
-Participant ":Model" as model MODEL_COLOR
+Participant "active:Model" as model MODEL_COLOR
+Participant "stage:ModelStage" as stage MODEL_COLOR
+Participant "staged:Model" as staged MODEL_COLOR
 Participant ":Storage" as storage STORAGE_COLOR
 
 user -[USER_COLOR]> ui : "delete 1"
@@ -14,24 +16,34 @@ activate ui UI_COLOR
 ui -[UI_COLOR]> logic : execute("delete 1")
 activate logic LOGIC_COLOR
 
-logic -[LOGIC_COLOR]> model : deletePerson(p)
-activate model MODEL_COLOR
+logic -[LOGIC_COLOR]> model : beginStaging(clock)
+model --[MODEL_COLOR]> logic : stage
+logic -[LOGIC_COLOR]> stage : model()
+stage --[MODEL_COLOR]> logic : staged
 
-model -[MODEL_COLOR]-> logic
-deactivate model
+note over logic, staged : DeleteCommand executes against the staged model
+logic -[LOGIC_COLOR]> staged : deletePerson(p)
+staged --[MODEL_COLOR]> logic
 
-logic -[LOGIC_COLOR]> storage : saveAddressBook(addressBook)
-activate storage STORAGE_COLOR
+alt save succeeds
+    logic -[LOGIC_COLOR]> storage : saveAddressBook(staged address book)\nvia AddressBookSync
+    activate storage STORAGE_COLOR
+    storage --[STORAGE_COLOR]> logic : saved
+    deactivate storage
+    logic -[LOGIC_COLOR]> stage : commit()
+    stage -[MODEL_COLOR]> model : publish staged data and filter
+    model --[MODEL_COLOR]> stage
+    stage --[MODEL_COLOR]> logic
+    logic --[LOGIC_COLOR]> ui : CommandResult
+else save fails
+    logic -[LOGIC_COLOR]> storage : saveAddressBook(staged address book)\nvia AddressBookSync
+    activate storage STORAGE_COLOR
+    storage --[STORAGE_COLOR]> logic : error
+    deactivate storage
+    note over model, staged : Active data and filter remain unchanged; stage is discarded
+    logic --[LOGIC_COLOR]> ui : CommandException\nUnable to save client data. No changes were made.
+end
 
-storage -[STORAGE_COLOR]> storage : Save to file
-activate storage STORAGE_COLOR_T1
-storage --[STORAGE_COLOR]> storage
-deactivate storage
-
-storage --[STORAGE_COLOR]> logic
-deactivate storage
-
-logic --[LOGIC_COLOR]> ui
 deactivate logic
 
 ui--[UI_COLOR]> user
