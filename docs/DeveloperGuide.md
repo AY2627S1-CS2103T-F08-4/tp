@@ -176,6 +176,18 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Exclusive access to client data
+
+`MainApp#isStorageInitialized` acquires an `AddressBookFileLock` before reading or writing preferences or loading client data. `AddressBookFileLock#tryAcquire` normalizes the absolute data path, creates its parent directory if needed, and opens the companion `addressbook.json.lock` file using `CREATE` and `WRITE`. `FileChannel#tryLock()` obtains an exclusive operating-system lock; the existence of the companion file alone does not block startup.
+
+The channel and lock remain open for the application's lifetime. `MainApp#stop` releases them in a `finally` block after attempting to save preferences; initialization failures also release the lock when caught. Process termination releases the operating-system lock, so a crash does not require manual cleanup. `AddressBookFileLock#close` deliberately retains the companion file to avoid races between instances opening and locking it.
+
+If another instance holds the lock, startup displays `The client data is already open in another TellerFlow instance. Close that instance and try again.` If establishing the lock throws an `IOException`, startup instead asks the user to check that the data folder is writable. Both paths show a dialog and exit without initializing storage, the model, or the main window. They do not enter protected mode.
+
+Deleting, renaming, or replacing an active companion file is unsupported. On filesystems that allow removal of an open file, the first process can retain its lock on the original file while another process creates and locks a new file at the same path. The two instances can then overwrite the same client data. Behaviour after such interference is undefined by TellerFlow; resulting lost updates are outside supported usage and should not be reported as application bugs. This companion file is separate from Java logging's `.lck` files and does not prevent an external editor from modifying `addressbook.json`.
+
+`AddressBookFileLockTest` covers exclusion within the JVM and across processes, reacquisition after close, and recovery after forced process termination with the companion file retained. `MainAppInstanceLockTest` covers startup rejection, unchanged client data and preferences, initialization cleanup, and the second-instance error dialog.
+
 ### Client creation and modification timestamps
 
 `Person` stores `createdAt` and `lastModifiedAt` as `Instant` values. `ModelManager#addPerson` stamps both with the same clock instant. `ModelManager#setPerson` copies the existing `createdAt` and stamps a new `lastModifiedAt`; this also applies when a valid edit supplies unchanged values. Read-only commands such as `list` and `find` do not stamp records. These fields are not part of command input or client uniqueness checks.
@@ -596,6 +608,22 @@ testers are expected to do more _exploratory_ testing.
       Expected: The most recent window size and location are retained.
 
 1. _{ more test cases … }_
+
+### Client data locking
+
+Use a disposable folder containing the packaged JAR for these tests. Keep `data/addressbook.json.lock` in place throughout normal launch, shutdown, and crash recovery.
+
+1. Start TellerFlow, add `add r/LOCKTEST n/Lock Test`, and record the saved client data and preferences. Launch the same JAR again while the first instance remains open.<br>
+   Expected: The second launch shows the already-open message and closes after the dialog is dismissed. Client data and preferences are unchanged by the second launch; the first instance can still save changes.
+
+1. Close the first instance normally and launch again.<br>
+   Expected: The companion file remains, the launch succeeds, and the saved clients load.
+
+1. Force-terminate the test application's process, then launch again without deleting the companion file.<br>
+   Expected: The launch succeeds and the last successfully saved clients load. Do not perform this test against real client data.
+
+1. Close all instances. In a separate disposable folder, create a directory named `data/addressbook.json.lock` before the first launch.<br>
+   Expected: Startup shows the could-not-secure-access message and exits without creating client data or preferences. With all instances closed, remove the test directory and launch again; startup succeeds.
 
 ### Deleting a person
 

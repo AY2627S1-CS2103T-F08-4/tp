@@ -313,6 +313,15 @@ TellerFlow automatically saves data after every successful `add`, `edit`, `delet
 
 Only one TellerFlow instance can open the same client data file at a time. If another instance is already using it, the second launch shows an error and closes without loading or changing data. Close the first instance before trying again. After an application crash, you can restart normally; no lock file needs to be deleted.
 
+TellerFlow manages a companion file, `data/addressbook.json.lock`, beside the client data file. It holds an operating-system lock on this file while running. The file deliberately remains after shutdown; its presence does not mean the data is still in use. Closing the application or terminating its process releases the active lock.
+
+<box type="warning" seamless>
+
+Do not delete, rename, or replace `addressbook.json.lock` while any TellerFlow instance is running. On systems that allow this, another instance can create a replacement lock file and bypass single-instance protection, allowing client changes to overwrite each other. Behaviour after this interference is undefined and unsupported. Problems caused by modifying an active lock file, including lost updates, should not be reported as TellerFlow bugs. Leave the file in place, including after a crash.
+</box>
+
+If startup reports `TellerFlow could not secure access to the client data. Check that its data folder is writable and try again.`, check that the data folder is writable. The app closes without loading client data or preferences when it cannot establish exclusive access. This is different from protected mode after a data-load failure.
+
 On startup, saved clients appear in the main window with `Loaded [COUNT] client(s).`. If there is no data file, sample clients appear with `No saved client data found. Showing sample clients.` The sample clients are saved with the next successful data-changing command. A valid data file containing no clients (for example, after `clear`) starts with an empty list and `No saved client data found.` A blank or malformed file is a load failure, as described below.
 
 ### Editing the data file
