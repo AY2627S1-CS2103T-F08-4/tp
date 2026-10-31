@@ -194,7 +194,9 @@ Deleting, renaming, or replacing an active companion file is unsupported. On fil
 
 Data-changing commands execute against a staged `ModelManager`. `LogicManager` saves the staged address book before committing it to the active model. After a successful add, it emits the INFO message `Timestamp ADD recorded`. Successful `edit`, `note`, and `removecard` commands emit `Timestamp EDIT recorded` because they use `ModelManager#setPerson`. These messages contain neither client references nor timestamp values. A failed save leaves the active record unchanged and emits no timestamp-change log entry.
 
-`JsonAdaptedPerson` writes the instants as ISO-8601 UTC strings in the `createdAt` and `lastModifiedAt` JSON properties. Missing properties in older data files remain `null`; editing such a record supplies its modification time without fabricating a creation time. An invalid non-null timestamp causes loading to fail, so startup follows the existing protected-mode path. `PersonDetailsPanel` converts known instants to the viewer's local time zone and formats them as `yyyy-MM-dd HH:mm`. It shows each known value independently in the selected client's side panel, or one unavailable message if both are missing.
+`JsonAdaptedPerson` writes the instants as ISO-8601 UTC strings in the `createdAt` and `lastModifiedAt` JSON properties. Missing properties in older data files remain `null`; editing such a record supplies its modification time without fabricating a creation time. A malformed timestamp that `Instant.parse` cannot parse causes loading to fail, so startup follows the protected-mode path.
+
+`PersonDetailsPanel` converts displayable instants to the viewer's local time zone and formats them as `yyyy-MM-dd HH:mm`. `TimestampUtil` defines the inclusive displayable range as `0001-01-01T18:00:00Z` through `9999-12-31T05:59:59.999999999Z`, keeping local dates within years 0001–9999 for offsets from −18:00 to +18:00. A parseable instant outside this range is preserved in the model and saved data; only its displayed field shows `Timestamp information is invalid for this profile.` It does not cause protected mode or hide another valid timestamp. Each missing timestamp is hidden independently, with one unavailable message if both are missing.
 
 ### Confirmation of shared client details
 
@@ -684,10 +686,13 @@ Use a disposable folder containing the packaged JAR for these tests. Keep `data/
    1. Relaunch the app.<br>
       Expected: The saved times are restored and shown in local time.
 
-   1. Back up the saved data file, remove both timestamp properties from the test client's entry, and relaunch.<br>
+   1. Close the app, back up the saved data file, remove both timestamp properties from the test client's entry, and relaunch.<br>
       Expected: The selected client's details panel shows `Timestamp information is unavailable for this profile.` once. If only one property is removed, it shows only the remaining time.
 
-   1. Replace one timestamp in the saved data file with invalid text and relaunch.<br>
+   1. Close the app and restore the backup. Replace only `createdAt` with the parseable instant `+10000-01-01T00:00:00Z`, then relaunch.<br>
+      Expected: The app loads normally. `Created` shows `Timestamp information is invalid for this profile.` and `Last Modified` displays normally. Run `note` for the test client and inspect the file after closing: the original out-of-range `createdAt` value is preserved. Restore the backup with the app closed.
+
+   1. With the app closed, replace one timestamp in the saved data file with invalid text and relaunch.<br>
       Expected: The app enters protected mode and disables `add`, `delete`, `edit`, and `clear` for the session without overwriting the file. Restore the backup after this test.
 
 1. Dealing with missing/corrupted data files
