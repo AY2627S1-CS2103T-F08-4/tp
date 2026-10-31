@@ -192,7 +192,7 @@ Deleting, renaming, or replacing an active companion file is unsupported. On fil
 
 `Person` stores `createdAt` and `lastModifiedAt` as `Instant` values. `ModelManager#addPerson` stamps both with the same clock instant. `ModelManager#setPerson` copies the existing `createdAt` and stamps a new `lastModifiedAt`; this also applies when a valid edit supplies unchanged values. Read-only commands such as `list` and `find` do not stamp records. These fields are not part of command input or client uniqueness checks.
 
-Data-changing commands execute against a staged `ModelManager`. `LogicManager` saves the staged address book before committing it to the active model. Only after a successful save does it emit an INFO log entry for an add or edit timestamp change, including the client reference and both stored instants. A failed save leaves the active record unchanged and emits no timestamp-change log entry.
+Data-changing commands execute against a staged `ModelManager`. `LogicManager` saves the staged address book before committing it to the active model. After a successful add, it emits the INFO message `Timestamp ADD recorded`. Successful `edit`, `note`, and `removecard` commands emit `Timestamp EDIT recorded` because they use `ModelManager#setPerson`. These messages contain neither client references nor timestamp values. A failed save leaves the active record unchanged and emits no timestamp-change log entry.
 
 `JsonAdaptedPerson` writes the instants as ISO-8601 UTC strings in the `createdAt` and `lastModifiedAt` JSON properties. Missing properties in older data files remain `null`; editing such a record supplies its modification time without fabricating a creation time. An invalid non-null timestamp causes loading to fail, so startup follows the existing protected-mode path. `PersonDetailsPanel` converts known instants to the viewer's local time zone and formats them as `yyyy-MM-dd HH:mm`. It shows each known value independently in the selected client's side panel, or one unavailable message if both are missing.
 
@@ -679,7 +679,7 @@ Use a disposable folder containing the packaged JAR for these tests. Keep `data/
       Expected: Both times remain unchanged in the selected client's details panel.
 
    1. After the clock reaches the next minute, run `edit 1 p/91234567` while the client is the first search result.<br>
-      Expected: `Created` remains unchanged and `Last Modified` reflects the successful edit. The corresponding INFO log includes the client reference and stored UTC instants.
+      Expected: `Created` remains unchanged and `Last Modified` reflects the successful edit. The corresponding INFO message is `Timestamp EDIT recorded`, without a client reference or stored instants.
 
    1. Relaunch the app.<br>
       Expected: The saved times are restored and shown in local time.
