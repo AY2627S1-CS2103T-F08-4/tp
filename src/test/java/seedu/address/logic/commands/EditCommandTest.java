@@ -43,6 +43,11 @@ public class EditCommandTest {
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs(), TEST_CLOCK);
 
     @Test
+    public void messageUsage_includesConfirmationOption() {
+        assertTrue(EditCommand.MESSAGE_USAGE.contains("[confirm/y]"));
+    }
+
+    @Test
     public void execute_legacyProfileWithoutCard_preservesIndependentFinancialDetails() {
         Person source = model.getFilteredPersonList().getFirst();
         Person legacy = new Person(source.getName(), null, null, null, null,
