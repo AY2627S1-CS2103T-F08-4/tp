@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CARD_NUMBER;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CONFIRM;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CREDIT_SCORE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CVV;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_DEBT;
@@ -41,7 +42,8 @@ public class AddCommand extends Command {
             + PREFIX_PROVIDER + "PROVIDER] "
             + "[" + PREFIX_CREDIT_SCORE + "CREDIT_SCORE] "
             + "[" + PREFIX_DEBT + "DEBT] "
-            + "[" + PREFIX_TAG + "TAG]...\n"
+            + "[" + PREFIX_TAG + "TAG]... "
+            + "[" + PREFIX_CONFIRM + "y]\n"
             + "Card details must be supplied together or omitted entirely.\n"
             + "Example: " + COMMAND_WORD + " " + PREFIX_REFERENCE + "C0001 " + PREFIX_NAME + "John Doe";
 
