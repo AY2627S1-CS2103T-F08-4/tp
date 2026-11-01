@@ -9,8 +9,9 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
  */
 public class Email {
 
-    public static final String MESSAGE_CONSTRAINTS =
-            "Email must be in the form local-part@domain, for example alex@example.com.";
+    public static final int MAX_LENGTH = 254;
+    public static final String MESSAGE_CONSTRAINTS = "Email must be in the form local-part@domain, for example "
+            + "alex@example.com, and contain at most " + MAX_LENGTH + " characters.";
     public static final String VALIDATION_REGEX =
             "[^\\s\\p{Z}@]+@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+"
                     + "[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?";
@@ -32,7 +33,8 @@ public class Email {
      * Returns true if a given string is a valid email.
      */
     public static boolean isValidEmail(String test) {
-        return test.matches(VALIDATION_REGEX)
+        // The length check must come first: very long input overflows the stack during regex matching.
+        return test.length() <= MAX_LENGTH && test.matches(VALIDATION_REGEX)
                 && test.substring(test.lastIndexOf('.') + 1).replaceAll("[^a-zA-Z]", "").length() >= 2;
     }
 

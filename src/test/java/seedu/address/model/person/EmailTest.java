@@ -21,6 +21,17 @@ public class EmailTest {
     }
 
     @Test
+    public void isValidEmail_lengthLimit() {
+        String domain = "@example.com";
+        int longestLocalPart = Email.MAX_LENGTH - domain.length();
+        assertTrue(Email.isValidEmail("a".repeat(longestLocalPart) + domain));
+        assertFalse(Email.isValidEmail("a".repeat(longestLocalPart + 1) + domain));
+
+        // Previously caused a StackOverflowError during regex matching.
+        assertFalse(Email.isValidEmail("a@" + "a.".repeat(20000) + "com"));
+    }
+
+    @Test
     public void constructor_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new Email(null));
     }
