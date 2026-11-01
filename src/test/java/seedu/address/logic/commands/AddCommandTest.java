@@ -34,6 +34,11 @@ public class AddCommandTest {
     }
 
     @Test
+    public void messageUsage_includesConfirmationOption() {
+        assertTrue(AddCommand.MESSAGE_USAGE.contains("[confirm/y]"));
+    }
+
+    @Test
     public void execute_personAcceptedByModel_addSuccessful() throws Exception {
         ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
         Person validPerson = new PersonBuilder().withClientReference("C0001").build();
