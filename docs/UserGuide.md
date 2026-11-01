@@ -127,7 +127,7 @@ Field | Requirements
 Reference | 1-20 characters. Starts with an ASCII letter and contains only ASCII letters, digits, or hyphens. Must be unique, ignoring case.
 Name | 1-100 characters. Contains at least one letter and uses only letters, spaces, apostrophes (`'`), or hyphens (`-`). Digits, periods, commas, and slashes are not supported, so enter `Dr. Tan` as `Tan` and `Ravi s/o Kumar` as `Ravi Kumar`. Names that need combining marks, such as most Hindi and Tamil names, are also not supported. Record the exact name in a service note, for example `note r/C0001 s/Legal name: Ravi \s/o Kumar`.
 Phone | 3-15 digits, with no spaces or other characters. Leading zeros are retained.
-Email | A nonblank local part followed by `@` and a dotted domain, such as `alex@example.com`. Spaces are not allowed; domain labels use ASCII letters, digits, or internal hyphens, and the final label must contain at least two letters.
+Email | At most 254 characters. A nonblank local part followed by `@` and a dotted domain, such as `alex@example.com`. Spaces are not allowed; domain labels use ASCII letters, digits, or internal hyphens, and the final label must contain at least two letters.
 Address | 1-200 printable characters on one line, with at least one non-space character.
 Tag | One or more ASCII letters or digits, with no spaces or punctuation.
 
