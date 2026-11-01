@@ -76,11 +76,17 @@ The app restores its saved window size and position on launch, adjusting them to
   This also applies to text such as `and/or`. In service notes, existing escapes such as `\w/o`
   preserve literal text (`w/o`); see [Maintaining a service note](#maintaining-a-service-note-note).
 
+* `add` and `edit` read every supported prefix after whitespace as a new parameter, so check free-text values before pressing Enter.<br>
+  For example, `edit 1 a/Unit 3 d/5` sets the address to `Unit 3` **and** the debt to `5.00`, and `edit 1 n/Ravi s/o Kumar` sets the name to `Ravi` **and** the service note to `o Kumar`.
+  Only service notes support escapes, so names and addresses cannot contain prefix-shaped text after whitespace. In an address, write `care of` instead of `c/o`, or record the exact wording in a service note.
+
 * Each prefix may appear only once per command, except `t/`, which can be repeated in `add` and `edit` to supply multiple tags.
 
 * Commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, reject extra text.<br>
   For example, `help 123` is invalid.
   The `sort` command checks its optional order argument and rejects any additional text.
+
+* Long results and error messages may not fit in the result box. Scroll the box or enlarge the window to read all of a message, including the `yes` or `no` prompt in a shared-detail warning.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
@@ -119,7 +125,7 @@ The following field requirements also apply when using `edit`:
 Field | Requirements
 ------|-------------
 Reference | 1-20 characters. Starts with an ASCII letter and contains only ASCII letters, digits, or hyphens. Must be unique, ignoring case.
-Name | 1-100 characters. Contains at least one letter and uses only letters, spaces, apostrophes (`'`), or hyphens (`-`).
+Name | 1-100 characters. Contains at least one letter and uses only letters, spaces, apostrophes (`'`), or hyphens (`-`). Digits, periods, commas, and slashes are not supported, so enter `Dr. Tan` as `Tan` and `Ravi s/o Kumar` as `Ravi Kumar`. Names that need combining marks, such as most Hindi and Tamil names, are also not supported. Record the exact name in a service note, for example `note r/C0001 s/Legal name: Ravi \s/o Kumar`.
 Phone | 3-15 digits, with no spaces or other characters. Leading zeros are retained.
 Email | A nonblank local part followed by `@` and a dotted domain, such as `alex@example.com`. Spaces are not allowed; domain labels use ASCII letters, digits, or internal hyphens, and the final label must contain at least two letters.
 Address | 1-200 printable characters on one line, with at least one non-space character.
@@ -138,6 +144,8 @@ Examples:
 * `add r/C0003 n/Alex Yeoh cn/4111111111111111 cvv/123 exp/12/28 provider/Visa` records a complete card group without contact or financial details.
 * `add r/C0004 n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/0.00`
 * `add r/C0005 n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 cn/5555555555554444 cvv/456 exp/11/29 provider/Mastercard cs/725 d/150.50 t/criminal`
+
+The last three examples reuse card numbers from the sample clients, and the last one also reuses an earlier email address, so they show a [shared-detail warning](#confirming-shared-client-details). Type `yes` to continue.
 
 ### Listing all clients: `list`
 
@@ -161,22 +169,22 @@ Example: `sort desc`
 
 ### Viewing client timestamps
 
-Select a client to see read-only `Created` and `Last Modified` times under **Profile history** in the side panel. They appear after `add`, `list`, or `find` when a client is selected; there is no timestamp command. Times use your computer's local time in `yyyy-MM-dd HH:mm` format. For example:
+Select a client to see read-only `Created` and `Last modified` times under **Profile history** in the side panel. They appear after `add`, `list`, or `find` when a client is selected; there is no timestamp command. Times use your computer's local time in `yyyy-MM-dd HH:mm` format. For example:
 
 ```text
 Created:        2026-03-15 09:42
-Last Modified:  2026-10-12 14:18
+Last modified:  2026-10-12 14:18
 ```
 
-For a newly added client, both times are the same. A successful `edit`, `note`, or `removecard` changes `Last Modified`, while `Created` stays the same. An `edit` or `note` also updates `Last Modified` when the entered values match the existing values. Viewing clients with `list` or `find`, or sorting them, does not change either time. Timestamps cannot be edited through commands.
+For a newly added client, both times are the same. A successful `edit`, `note`, or `removecard` changes `Last modified`, while `Created` stays the same. An `edit` or `note` also updates `Last modified` when the entered values match the existing values. Viewing clients with `list` or `find`, or sorting them, does not change either time. Timestamps cannot be edited through commands.
 
-Older saved profiles may lack timestamps. If one time is available, the side panel shows only that time. If both are unavailable, it shows `Timestamp information is unavailable for this profile.` once. Editing an older profile adds a `Last Modified` time but does not invent a `Created` time.
+Older saved profiles may lack timestamps. If one time is available, the side panel shows only that time. If both are unavailable, it shows `Timestamp information is unavailable for this profile.` once. Editing an older profile adds a `Last modified` time but does not invent a `Created` time.
 
 Saved timestamps use ISO instants and are written in UTC. The displayable range is
 `0001-01-01T18:00:00Z` through `9999-12-31T05:59:59.999999999Z`, inclusive, keeping local
 dates within years 0001–9999 across supported time-zone offsets (−18:00 to +18:00).
 A valid timestamp outside this range is preserved in saved data, but its associated `Created` or
-`Last Modified` field shows `Timestamp information is invalid for this profile.` Other valid timestamps display normally.
+`Last modified` field shows `Timestamp information is invalid for this profile.` Other valid timestamps display normally.
 Malformed timestamp strings still cause startup to enter protected mode.
 
 ### Editing a client: `edit`
@@ -239,6 +247,7 @@ Format: `find [n/KEYWORD [MORE_KEYWORDS]...] [p/PHONE_NUMBER [MORE_PHONE_NUMBERS
   For example, `n/` and `p/` together require at least one name keyword **and** at least one phone number to match.
 * The prefixes may be in any order, as may name keywords and phone-number alternatives.
 * Each prefix searches only its own field. Other fields such as email, address and tags are not searched.
+* Searching by client reference is not supported, so `find r/C0001` is rejected. If you know the reference, `delete`, `note`, and `removecard` accept `r/REFERENCE` directly. `edit` requires an index, so use `list` or a name search to find the client's row first.
 
 Examples:
 * `find n/John` returns clients such as `john` and `John Doe`.
@@ -261,7 +270,7 @@ Both prefixes are required, in either order. The reference is case-insensitive. 
 
 * The reference can identify any client, even if that client is outside the current `find` results.
 * Each prefix must appear exactly once. In both `note` and `edit`, escape prefix-shaped words in note text with a backslash so they are stored as text. For example, enter `\w/o` to store `w/o`, `\r/` to store `r/`, or `\\` to store a literal backslash. Unescaped prefix-shaped words after whitespace are treated as parameters or rejected.
-* A successful `note` command saves the change immediately, updates `Last Modified`, restores the full list in the active sort order, and selects the affected client.
+* A successful `note` command saves the change immediately, updates `Last modified`, restores the full list in the active sort order, and selects the affected client.
 
 Examples:
 * `note r/C0001 s/Prefers morning appointments`
@@ -299,7 +308,7 @@ Format: `clear`
 
 ### Removing a client's card: `removecard`
 
-Removes all four card fields associated with a client reference while retaining the client's profile, credit score, debt, tags, and service note. The reference is case-insensitive and is normalized to uppercase. It can identify a client outside the current `find` results. After the change is saved, `Last Modified` is updated. If the client was selected, they remain selected and their details pane no longer shows the card summary.
+Removes all four card fields associated with a client reference while retaining the client's profile, credit score, debt, tags, and service note. The reference is case-insensitive and is normalized to uppercase. It can identify a client outside the current `find` results. After the change is saved, `Last modified` is updated. If the client was selected, they remain selected and their details pane no longer shows the card summary. An active search still applies: after `find cn/CARD_NUMBER`, removing that card hides the client because they no longer match. Run `list` to show them again.
 
 Format: `removecard r/REFERENCE`
 
@@ -350,7 +359,8 @@ The file includes client references, contact details, card details (including CV
 
 **Caution:**
 If your changes make the data file invalid or unreadable, including a malformed timestamp value, TellerFlow starts with an empty list in protected mode and shows `Unable to load client data. Existing data was not changed. Commands that modify client data are disabled for this session.` All data-changing commands, including `note` and `removecard`, are disabled until you fix the file and restart; the existing file is not overwritten. Back up the file before editing it.<br>
-Values in the file must follow the same field requirements as command input. Edit the data file only if you are confident that you can update it correctly.
+Values in the file must follow the same field requirements as command input. Edit the data file only if you are confident that you can update it correctly.<br>
+Save the file as UTF-8 without a byte order mark (BOM), because a file with a BOM is treated as invalid. Omit an empty `serviceNote` or `tags` property rather than setting it to `null`, which is also treated as invalid. Do not add leading or trailing spaces to card values: they are kept exactly as written, so `find cn/` will not match them. A client without a `clientReference` loads with `(none)` as their reference, and `delete r/`, `note`, and `removecard` cannot reach them until you assign one using `edit INDEX r/REFERENCE`.
 </box>
 
 --------------------------------------------------------------------------------------------------------------------

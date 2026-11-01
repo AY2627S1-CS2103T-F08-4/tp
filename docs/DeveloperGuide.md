@@ -13,7 +13,8 @@
 
 ## **Acknowledgements**
 
-- _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+- TellerFlow is based on [AddressBook Level 3](https://se-education.org/addressbook-level3/) from the [SE-EDU initiative](https://se-education.org).
+- Third-party libraries: [JavaFX](https://openjfx.io), [Jackson](https://github.com/FasterXML/jackson), and [JUnit](https://junit.org/junit5/).
 
 ---
 
@@ -217,7 +218,7 @@ add r/REFERENCE n/NAME [p/PHONE] [e/EMAIL] [a/ADDRESS] [cn/CARD_NUMBER cvv/CVV e
 
 `Person` stores missing contact, card, and financial details as nullable fields and exposes them through non-null `Optional` getters. Each detail can be supplied independently, including a credit score or debt without a card. A supplied zero financial value remains distinct from absence. Required name and tag collections remain non-null; the referenced constructor also requires a reference. Unreferenced legacy records retain their existing name-based identity.
 
-`PersonDetailsPanel` hides absent rows and empty contact or financial sections, removing their layout space. Messages omit missing contact fields and their labels. The details panel masks all but the last four characters of a card number (numbers of four characters or fewer are shown in full) and displays the provider, full CVV, and expiry date. `JsonAdaptedPerson` serializes plain values, omits absent optional fields, and accepts missing or JSON-null optional details. A present card object must contain all four valid fields. Complete profiles and supported legacy files continue to load.
+`PersonDetailsPanel` hides absent rows and empty contact or financial sections, removing their layout space. Messages omit missing contact fields and their labels. The details panel masks all but the last four characters of a card number (numbers of four characters or fewer are shown in full) and displays the provider, full CVV, and expiry date. `JsonAdaptedPerson` serializes plain values, omits absent optional fields, and accepts missing optional details. JSON null is also accepted for them, except that `JsonAddressBookStorage` rejects a null `serviceNote` or `tags` property. A present card object must contain all four valid fields. Complete profiles and supported legacy files continue to load.
 
 For example, `add r/C0001 n/John Doe` creates a minimal profile, while `add r/C0002 n/Jane Doe e/jane@example.com d/0` records an email and explicit zero debt. Data-changing commands save automatically. `edit` can fill or update contact details, card details, credit score, and debt while retaining omitted fields. It can also change the reference and update tags or the service note.
 
@@ -313,17 +314,11 @@ The following activity diagram summarizes what happens when a user executes a ne
   - Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
   - Cons: We must ensure that the implementation of each individual command is correct.
 
-_{more aspects and alternatives to be added}_
-
 ### Remove card
 
 `removecard r/REFERENCE` parses and normalizes the client reference, then locates the client in the full address book. `RemoveCardCommand` replaces that client with a copy whose card details are absent, preserving the reference, contact details, financial details, and tags. A referenced client without a card remains valid when loaded from JSON.
 
-The command is data-changing, so `LogicManager` runs it on a staged model. Storage writes the new address book to a temporary file and atomically replaces the saved file; only then does logic publish the staged model. The JSON adapter omits the null `cardDetails` field. A failed lookup, missing card, protected mode, or save failure leaves the displayed and saved data unchanged. On success, the client row refreshes and a selected client remains selected.
-
-### \[Proposed\] Data archiving
-
-_{Explain here how the data archiving feature will be implemented}_
+The command is data-changing, so `LogicManager` runs it on a staged model. Storage writes the new address book to a temporary file and atomically replaces the saved file; only then does logic publish the staged model. The JSON adapter omits the null `cardDetails` field. A failed lookup, missing card, protected mode, or save failure leaves the displayed and saved data unchanged. On success, the displayed details refresh and a selected client remains selected, unless an active filter such as `find cn/CARD_NUMBER` no longer matches that client.
 
 ---
 
@@ -350,7 +345,7 @@ _{Explain here how the data archiving feature will be implemented}_
 - is reasonably comfortable using CLI apps
 
 **Value proposition**:
-Provides a fast and convenient CLI-based method of managing bank clients for bank tellers. Information like their card numbers and credit scores can be managed. Credit scores can conveniently be tracked and computed per user, allowing bankers to better manage them.
+Provides a fast and convenient CLI-based method of managing bank clients for bank tellers. Information like their card numbers and credit scores can be managed. Credit scores can conveniently be tracked per client, allowing bank tellers to better manage them.
 
 ### User stories
 
@@ -358,7 +353,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 | Priority | As a …      | I want to …                                                                                     | So that I can…                                                             |
 | -------- | ----------- |-------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| `* * *`  | bank teller | create a client profile containing a unique client reference, name, contact and contact details | keep the client's information in one place.                                |
+| `* * *`  | bank teller | create a client profile containing a unique client reference, name, and contact details         | keep the client's information in one place.                                |
 | `* * *`  | bank teller | view my saved client profiles and their card and contact details                                | retrieve the information needed when serving a client.                     |
 | `* * *`  | bank teller | delete a client profile                                                                         | remove records that were created by mistake or are no longer needed.       |
 | `* * *`  | bank teller | access my saved client records after closing and reopening TellerFlow                           | do not have to enter the same information again.                           |
@@ -513,7 +508,7 @@ For all use cases below, the **Actor** is the bank teller and the **System** is 
 1. Bank teller identifies a client reference and enters `removecard r/REFERENCE`.
 2. TellerFlow finds the client and its card summary.
 3. TellerFlow removes the summary and saves the profile without `cardDetails`.
-4. TellerFlow reports the last four characters of the removed card number and refreshes the client row. The client remains selected if previously selected.
+4. TellerFlow reports the last four characters of the removed card number and refreshes the displayed details. The client remains selected if previously selected and still matches the active filter.
 
 ##### Extensions
 
@@ -678,7 +673,7 @@ Use a disposable folder containing the packaged JAR for these tests. Keep `data/
 1. Start with a data file that has no `C0001` client. Add a client using `add r/C0001 n/Alex Yeoh p/87438807 e/alex@example.com a/10 Main Street cn/4111111111111111 cvv/123 exp/12/28 provider/Visa cs/700 d/1250.50`. If the sample clients cause a shared-detail warning, type `yes` to complete the add before continuing.
 
    1. Select the new client row and run `removecard r/c0001`.<br>
-      Expected: `Removed card ending in 1111 from client C0001`. The row remains selected and no longer shows a card summary. The client and other details remain. After restart, the saved JSON has no `cardDetails` field for C0001.
+      Expected: `Removed card ending in 1111 from client C0001`. The client remains selected and the details panel no longer shows a card summary. The client and other details remain. After restart, the saved JSON has no `cardDetails` field for C0001.
 
    1. Run `removecard r/C0001` again.<br>
       Expected: `Client C0001 is not associated with a card.` The data stays unchanged.
@@ -693,13 +688,13 @@ Use a disposable folder containing the packaged JAR for these tests. Keep `data/
 
 1. Viewing client timestamps
    1. Start without a `TIMETEST` client and run `add r/TIMETEST n/Time Test`.<br>
-      Expected: Select the client. Its details panel shows equal `Created` and `Last Modified` times in local `yyyy-MM-dd HH:mm` format.
+      Expected: Select the client. Its details panel shows equal `Created` and `Last modified` times in local `yyyy-MM-dd HH:mm` format.
 
    1. Run `list`, then `find n/Time` and select the `TIMETEST` client.<br>
       Expected: Both times remain unchanged in the selected client's details panel.
 
    1. After the clock reaches the next minute, run `edit 1 p/91234567` while the client is the first search result.<br>
-      Expected: If a shared-detail warning appears, type `yes` to complete the edit. `Created` remains unchanged and `Last Modified` reflects the successful edit. The corresponding INFO message is `Timestamp EDIT recorded`, without a client reference or stored instants.
+      Expected: If a shared-detail warning appears, type `yes` to complete the edit. `Created` remains unchanged and `Last modified` reflects the successful edit. The corresponding INFO message is `Timestamp EDIT recorded`, without a client reference or stored instants.
 
    1. Relaunch the app.<br>
       Expected: The saved times are restored and shown in local time.
@@ -708,7 +703,7 @@ Use a disposable folder containing the packaged JAR for these tests. Keep `data/
       Expected: The selected client's details panel shows `Timestamp information is unavailable for this profile.` once. If only one property is removed, it shows only the remaining time.
 
    1. Close the app and restore the backup. Replace only `createdAt` with the parseable instant `+10000-01-01T00:00:00Z`, then relaunch.<br>
-      Expected: The app loads normally. `Created` shows `Timestamp information is invalid for this profile.` and `Last Modified` displays normally. Run `note r/TIMETEST s/Timestamp preservation test` and inspect the file after closing: the original out-of-range `createdAt` value is preserved. Restore the backup with the app closed.
+      Expected: The app loads normally. `Created` shows `Timestamp information is invalid for this profile.` and `Last modified` displays normally. Run `note r/TIMETEST s/Timestamp preservation test` and inspect the file after closing: the original out-of-range `createdAt` value is preserved. Restore the backup with the app closed.
 
    1. With the app closed, replace one timestamp in the saved data file with invalid text and relaunch.<br>
       Expected: The app enters protected mode and disables all six data-changing commands: `add`, `delete`, `edit`, `note`, `removecard`, and `clear`. It does not overwrite the file. Close the app before restoring the backup after this test.
