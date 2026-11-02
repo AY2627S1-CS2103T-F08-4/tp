@@ -22,7 +22,7 @@ First, **fork** this repo, and **clone** the fork into your computer.
 
 If you plan to use IntelliJ IDEA (highly recommended):
 
-1. **Configure the JDK**: Follow the guide [_[se-edu/guides] IDEA: Configuring the JDK_](https://se-education.org/guides/tutorials/intellijJdk.html) to ensure Intellij is configured to use **JDK 17**.
+1. **Configure the JDK**: Follow the guide [_[se-edu/guides] IDEA: Configuring the JDK_](https://se-education.org/guides/tutorials/intellijJdk.html) to ensure IntelliJ uses **JDK 25** for the project SDK and Gradle JVM. The build targets Java 25; JDK 17 cannot compile this project. For command-line Gradle builds, point `JAVA_HOME` to your JDK 25 installation.
 1. **Import the project as a Gradle project**: Follow the guide [_[se-edu/guides] IDEA: Importing a Gradle project_](https://se-education.org/guides/tutorials/intellijImportGradleProject.html) to import the project into IDEA.
    <box type="warning" seamless>
    Note: Importing a Gradle project is slightly different from importing a normal Java project.
