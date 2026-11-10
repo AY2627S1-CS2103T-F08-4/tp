@@ -16,6 +16,16 @@
 - TellerFlow is based on [AddressBook Level 3](https://se-education.org/addressbook-level3/) from the [SE-EDU initiative](https://se-education.org).
 - Third-party libraries: [JavaFX](https://openjfx.io), [Jackson](https://github.com/FasterXML/jackson), and [JUnit](https://junit.org/junit5/).
 
+We acknowledge the use of OpenAI Codex to assist with the following areas during the development of TellerFlow:
+
+- **Writing and completing code:** Generating functions and boilerplate from descriptions and implementing tasks that require changes across multiple files.
+- **Debugging and explaining code:** Mainly used for diagnosing errors, but occasionally used to understand existing code and library behaviour.
+- **Code review and quality checks:** Reviewing changes for potential bugs and checkstyle issues.
+- **Testing:** Generating unit tests, suggesting edge cases, creating test data, and drafting integration and end-to-end test scaffolding.
+- **Refactoring and migration:** Migrating JavaFX from the existing version 17 to version 25.
+- **Documentation:** Drafting documentation, and pull request summaries.
+- **Planning and design:** Brainstorming architectures and comparing implementation approaches.
+
 ---
 
 ## **Setting up, getting started**
